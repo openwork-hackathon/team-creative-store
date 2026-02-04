@@ -10,6 +10,7 @@
   "dependencies": {
     "bullmq": "^5.34.4",
     "ioredis": "^5.5.0",
+    "viem": "^2.22.2",
     "@creative-store/db": "file:../db",
     "@creative-store/shared": "file:../shared"
   }

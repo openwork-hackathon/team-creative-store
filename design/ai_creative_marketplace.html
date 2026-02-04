@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AI Creative Marketplace - Discovery</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                "primary": "#135bec",
+                "background-light": "#f6f6f8",
+                "background-dark": "#101622",
+                "surface-dark": "#1b2537",
+              },
+              fontFamily: {
+                "display": ["Inter"]
+              },
+              borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+            },
+          },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white min-h-screen">
+<div class="layout-container flex h-full grow flex-col">
+<!-- Top Navigation -->
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 dark:border-[#232f48] px-6 lg:px-10 py-3 bg-background-light dark:bg-background-dark sticky top-0 z-50">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-4">
+<div class="size-8 text-primary">
+<svg fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path d="M39.5563 34.1455V13.8546C39.5563 15.708 36.8773 17.3437 32.7927 18.3189C30.2914 18.916 27.263 19.2655 24 19.2655C20.737 19.2655 17.7086 18.916 15.2073 18.3189C11.1227 17.3437 8.44365 15.708 8.44365 13.8546V34.1455C8.44365 35.9988 11.1227 37.6346 15.2073 38.6098C17.7086 39.2069 20.737 39.5564 24 39.5564C27.263 39.5564 30.2914 39.2069 32.7927 38.6098C36.8773 37.6346 39.5563 35.9988 39.5563 34.1455Z" fill="currentColor"></path>
+<path clip-rule="evenodd" d="M10.4485 13.8519C10.4749 13.9271 10.6203 14.246 11.379 14.7361C12.298 15.3298 13.7492 15.9145 15.6717 16.3735C18.0007 16.9296 20.8712 17.2655 24 17.2655C27.1288 17.2655 29.9993 16.9296 32.3283 16.3735C34.2508 15.9145 35.702 15.3298 36.621 14.7361C37.3796 14.246 37.5251 13.9271 37.5515 13.8519C37.5287 13.7876 37.4333 13.5973 37.0635 13.2931C36.5266 12.8516 35.6288 12.3647 34.343 11.9175C31.79 11.0295 28.1333 10.4437 24 10.4437C19.8667 10.4437 16.2099 11.0295 13.657 11.9175C12.3712 12.3647 11.4734 12.8516 10.9365 13.2931C10.5667 13.5973 10.4713 13.7876 10.4485 13.8519ZM37.5563 18.7877C36.3176 19.3925 34.8502 19.8839 33.2571 20.2642C30.5836 20.9025 27.3973 21.2655 24 21.2655C20.6027 21.2655 17.4164 20.9025 14.7429 20.2642C13.1498 19.8839 11.6824 19.3925 10.4436 18.7877V34.1275C10.4515 34.1545 10.5427 34.4867 11.379 35.027C12.298 35.6207 13.7492 36.2054 15.6717 36.6644C18.0007 37.2205 20.8712 37.5564 24 37.5564C27.1288 37.5564 29.9993 37.2205 32.3283 36.6644C34.2508 36.2054 35.702 35.6207 36.621 35.027C37.4573 34.4867 37.5485 34.1546 37.5563 34.1275V18.7877ZM41.5563 13.8546V34.1455C41.5563 36.1078 40.158 37.5042 38.7915 38.3869C37.3498 39.3182 35.4192 40.0389 33.2571 40.5551C30.5836 41.1934 27.3973 41.5564 24 41.5564C20.6027 41.5564 17.4164 41.1934 14.7429 40.5551C12.5808 40.0389 10.6502 39.3182 9.20848 38.3869C7.84205 37.5042 6.44365 36.1078 6.44365 34.1455L6.44365 13.8546C6.44365 12.2684 7.37223 11.0454 8.39581 10.2036C9.43325 9.3505 10.8137 8.67141 12.343 8.13948C15.4203 7.06909 19.5418 6.44366 24 6.44366C28.4582 6.44366 32.5797 7.06909 35.657 8.13948C37.1863 8.67141 38.5667 9.3505 39.6042 10.2036C40.6278 11.0454 41.5563 12.2684 41.5563 13.8546Z" fill="currentColor" fill-rule="evenodd"></path>
+</svg>
+</div>
+<h2 class="text-slate-900 dark:text-white text-lg font-bold leading-tight tracking-tight">AI Marketplace</h2>
+</div>
+<div class="hidden md:flex items-center gap-6">
+<a class="text-slate-600 dark:text-slate-300 hover:text-primary transition-colors text-sm font-medium" href="#">Explore</a>
+<a class="text-slate-600 dark:text-slate-300 hover:text-primary transition-colors text-sm font-medium" href="#">Creators</a>
+<a class="text-slate-600 dark:text-slate-300 hover:text-primary transition-colors text-sm font-medium" href="#">My Assets</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="flex min-w-[120px] items-center justify-center rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold tracking-wide hover:bg-blue-700 transition-colors shadow-lg shadow-primary/20">
+                    Connect Wallet
+                </button>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-slate-200 dark:border-slate-700" data-alt="User profile avatar placeholder" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCkQpdGaJaPEK0KG-Mo5jTqTgWgwqBpFGmlMBk_kVTCtSB8LAe-P9T0Ph5VxUK-JyJtDEegpemelbrVu_ERlEy_r9tvN1ZYjSeaqwZ1mLUayLrwWn8Aw8m2nc65tT9pYk6dgOtDhhaHV7lUX5XYOixL0BUMTwIT_oGWfKdVR0_fcc4G74Gz_FnmyQ6Zo5E2SDcOWcsNGUWeV5XLwTyBLocWlyf1LbXdPV_uWnaQ3UF7IH9LAM1llzgfCtjuD4VL90S7ThkWSzSDszo");'></div>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="flex-1 max-w-[1280px] mx-auto w-full px-4 lg:px-10 py-8">
+<!-- Search and Filters Section -->
+<div class="mb-8 space-y-4">
+<div class="flex flex-col md:flex-row gap-4">
+<div class="flex-1">
+<label class="flex flex-col w-full">
+<div class="flex w-full items-stretch rounded-xl h-12 bg-white dark:bg-[#1b2537] border border-slate-200 dark:border-[#2d3a54] focus-within:ring-2 focus-within:ring-primary/50 transition-all">
+<div class="text-slate-400 flex items-center justify-center pl-4 pr-2">
+<span class="material-symbols-outlined">search</span>
+</div>
+<input class="form-input flex w-full border-none bg-transparent text-slate-900 dark:text-white focus:outline-0 focus:ring-0 placeholder:text-slate-400 text-base font-normal px-2" placeholder="Search AI creatives, ads, and templates..." value=""/>
+</div>
+</label>
+</div>
+</div>
+<!-- Multi-select Filter Chips -->
+<div class="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide">
+<button class="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-white dark:bg-[#1b2537] border border-slate-200 dark:border-[#2d3a54] pl-4 pr-3 hover:border-primary transition-colors group">
+<p class="text-slate-700 dark:text-slate-200 text-sm font-medium">Price Range</p>
+<span class="material-symbols-outlined text-slate-400 group-hover:text-primary">keyboard_arrow_down</span>
+</button>
+<button class="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-white dark:bg-[#1b2537] border border-slate-200 dark:border-[#2d3a54] pl-4 pr-3 hover:border-primary transition-colors group">
+<p class="text-slate-700 dark:text-slate-200 text-sm font-medium">Asset Type</p>
+<span class="material-symbols-outlined text-slate-400 group-hover:text-primary">keyboard_arrow_down</span>
+</button>
+<button class="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-white dark:bg-[#1b2537] border border-slate-200 dark:border-[#2d3a54] pl-4 pr-3 hover:border-primary transition-colors group">
+<p class="text-slate-700 dark:text-slate-200 text-sm font-medium">Device</p>
+<span class="material-symbols-outlined text-slate-400 group-hover:text-primary">keyboard_arrow_down</span>
+</button>
+<button class="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-white dark:bg-[#1b2537] border border-slate-200 dark:border-[#2d3a54] pl-4 pr-3 hover:border-primary transition-colors group">
+<p class="text-slate-700 dark:text-slate-200 text-sm font-medium">License</p>
+<span class="material-symbols-outlined text-slate-400 group-hover:text-primary">keyboard_arrow_down</span>
+</button>
+<div class="h-6 w-px bg-slate-200 dark:bg-[#2d3a54] mx-2"></div>
+<button class="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-primary/10 text-primary px-4 hover:bg-primary/20 transition-colors">
+<span class="material-symbols-outlined text-[18px]">filter_list</span>
+<p class="text-sm font-semibold">More Filters</p>
+</button>
+</div>
+</div>
+<!-- Marketplace Grid -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+<!-- Card 1 -->
+<div class="group relative flex flex-col gap-3 pb-4 bg-white dark:bg-[#1b2537] rounded-xl overflow-hidden border border-slate-200 dark:border-[#2d3a54] hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+<div class="relative w-full aspect-[4/3] overflow-hidden">
+<div class="w-full h-full bg-center bg-no-repeat bg-cover transition-transform duration-500 group-hover:scale-105" data-alt="Futuristic neon city cyberpunk ad kit" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDUZytVFaCmTRzQa9VAoGYy9u1-_JWyHZzrIgFguhZQ6X8DZpoTmTs4mRjJzOZEQOQ0CDZLImOKtAxFm1eP1u0KgcbMSxbpAIg6-Inrs8qqoiGdm1Z71zxJ43SnO5snp_5JgNBQlJ2A4WL2THsAXTvp9wqNldeKNziUVLJq9cIIQmVdbOf81W8RZSR0qVPP2Sc8x-sCuWPKJXlqVXRqB188xtuP3G4729oLzXUmLCTqxw5qtk9yDwd828iZBaDA0TH5EuNYMlcPg1E");'></div>
+<div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+<button class="bg-white text-slate-900 px-4 py-2 rounded-lg font-bold text-sm shadow-xl flex items-center gap-2 transform translate-y-4 group-hover:translate-y-0 transition-transform">
+<span class="material-symbols-outlined">visibility</span> Quick Preview
+                            </button>
+</div>
+<div class="absolute top-3 right-3 bg-black/60 backdrop-blur-md px-2 py-1 rounded text-[10px] font-bold text-white uppercase tracking-widest">Premium</div>
+</div>
+<div class="px-4 py-1">
+<div class="flex justify-between items-start mb-1">
+<h3 class="text-slate-900 dark:text-white text-base font-bold leading-tight group-hover:text-primary transition-colors">Cyberpunk Ad Kit</h3>
+<div class="flex items-center text-amber-500 gap-0.5">
+<span class="material-symbols-outlined !text-[14px] fill-amber-500">star</span>
+<span class="text-xs font-bold">4.8</span>
+</div>
+</div>
+<p class="text-slate-500 dark:text-[#92a4c9] text-sm mb-3">by <span class="hover:text-primary cursor-pointer transition-colors">CreatorX</span></p>
+<div class="flex justify-between items-center mt-auto">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-primary !text-[18px]">monetization_on</span>
+<span class="text-slate-900 dark:text-white font-bold">45 AICC</span>
+</div>
+<button class="text-primary p-2 hover:bg-primary/10 rounded-full transition-colors">
+<span class="material-symbols-outlined">shopping_cart</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="group relative flex flex-col gap-3 pb-4 bg-white dark:bg-[#1b2537] rounded-xl overflow-hidden border border-slate-200 dark:border-[#2d3a54] hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+<div class="relative w-full aspect-[4/3] overflow-hidden">
+<div class="w-full h-full bg-center bg-no-repeat bg-cover transition-transform duration-500 group-hover:scale-105" data-alt="Abstract brain connections neural branding" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDKFC0Y0m4zwj85i19V0fxuQucF5Fj7iA3RV3bFc-Hi0rPlUHzACxh7TStc3XWRTjBRTsQFiaHOCxpcUomx43iLoC85TWiRuIl50bcXseO9mnSbWrY1TcO5MQXNp6uniQH5RX1jxGoCLuB5tRwKSHJCfo5iF67PiyiOZiwr4KXbSTslV3wIbnOYlQCD94ZrsC056thhttZKoCwYFXM6t08Ie4vyZBCKKiQ3hCKYjPptwAKMSbNzi0wAqbx15nP3eZ1LsC9q79zJOBs");'></div>
+<div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+<button class="bg-white text-slate-900 px-4 py-2 rounded-lg font-bold text-sm shadow-xl flex items-center gap-2 transform translate-y-4 group-hover:translate-y-0 transition-transform">
+<span class="material-symbols-outlined">visibility</span> Quick Preview
+                            </button>
+</div>
+</div>
+<div class="px-4 py-1">
+<div class="flex justify-between items-start mb-1">
+<h3 class="text-slate-900 dark:text-white text-base font-bold leading-tight group-hover:text-primary transition-colors">Neural Branding Pack</h3>
+<div class="flex items-center text-amber-500 gap-0.5">
+<span class="material-symbols-outlined !text-[14px] fill-amber-500">star</span>
+<span class="text-xs font-bold">4.9</span>
+</div>
+</div>
+<p class="text-slate-500 dark:text-[#92a4c9] text-sm mb-3">by <span class="hover:text-primary cursor-pointer transition-colors">AI_Artist</span></p>
+<div class="flex justify-between items-center mt-auto">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-primary !text-[18px]">monetization_on</span>
+<span class="text-slate-900 dark:text-white font-bold">120 AICC</span>
+</div>
+<button class="text-primary p-2 hover:bg-primary/10 rounded-full transition-colors">
+<span class="material-symbols-outlined">shopping_cart</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="group relative flex flex-col gap-3 pb-4 bg-white dark:bg-[#1b2537] rounded-xl overflow-hidden border border-slate-200 dark:border-[#2d3a54] hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+<div class="relative w-full aspect-[4/3] overflow-hidden">
+<div class="w-full h-full bg-center bg-no-repeat bg-cover transition-transform duration-500 group-hover:scale-105" data-alt="High quality character render collection" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDEtQDs383AO4YQ6bxP_dcoI1drTj-e5wY2NYzfLsh0JHRen43L_jtCn6DhHbdhUxAQOyPpgz-tkhOzr9KFfcfaG-JtATzyoIbLUvlkoCONFPRcxo0xOjojvYMg6-6qe1lXEag5nm_Z_aZ_sjCA_6T-SfdgQAXdckBo4yIkleLLFi-cOwi9zbqmtEC3HJDvuOpQofDgOBt3u_ldqeKA99OT_jGLlOnEtQYvjERVUfZKdUZp55grpKvCxn_i2B_uP-wA8sWApJbLTvI");'></div>
+<div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+<button class="bg-white text-slate-900 px-4 py-2 rounded-lg font-bold text-sm shadow-xl flex items-center gap-2 transform translate-y-4 group-hover:translate-y-0 transition-transform">
+<span class="material-symbols-outlined">visibility</span> Quick Preview
+                            </button>
+</div>
+</div>
+<div class="px-4 py-1">
+<div class="flex justify-between items-start mb-1">
+<h3 class="text-slate-900 dark:text-white text-base font-bold leading-tight group-hover:text-primary transition-colors">AI Character Assets</h3>
+<div class="flex items-center text-amber-500 gap-0.5">
+<span class="material-symbols-outlined !text-[14px] fill-amber-500">star</span>
+<span class="text-xs font-bold">4.5</span>
+</div>
+</div>
+<p class="text-slate-500 dark:text-[#92a4c9] text-sm mb-3">by <span class="hover:text-primary cursor-pointer transition-colors">NFT_Master</span></p>
+<div class="flex justify-between items-center mt-auto">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-primary !text-[18px]">monetization_on</span>
+<span class="text-slate-900 dark:text-white font-bold">30 AICC</span>
+</div>
+<button class="text-primary p-2 hover:bg-primary/10 rounded-full transition-colors">
+<span class="material-symbols-outlined">shopping_cart</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Card 4 -->
+<div class="group relative flex flex-col gap-3 pb-4 bg-white dark:bg-[#1b2537] rounded-xl overflow-hidden border border-slate-200 dark:border-[#2d3a54] hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+<div class="relative w-full aspect-[4/3] overflow-hidden">
+<div class="w-full h-full bg-center bg-no-repeat bg-cover transition-transform duration-500 group-hover:scale-105" data-alt="Glassmorphism ui components pack" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuD5wR7Df7LtQ37thayHsuVoDXLyIdKOE4t8gjHZM3uKST3DrHv9u6aD-rYFLZou0kSxHlBJNSzG_T8_YZ0wRPNGdOuqUsh8kh79-aAQC8gIEtrYpp_rz4eRErR2-cXBjAOGjLtCpMwY3vU7zgKoxabrST41JUBkAalzqhx6_E4O6w9s9yk-0Eo8UuFZvGNeyj4DN5gSUTcgLTpP--nbVbL-3RYTsRtqu6ss5pU0opkzrLp8fLqOpjq1jNa_SZDAIB_tdaXkpivI4Ig");'></div>
+<div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+<button class="bg-white text-slate-900 px-4 py-2 rounded-lg font-bold text-sm shadow-xl flex items-center gap-2 transform translate-y-4 group-hover:translate-y-0 transition-transform">
+<span class="material-symbols-outlined">visibility</span> Quick Preview
+                            </button>
+</div>
+</div>
+<div class="px-4 py-1">
+<div class="flex justify-between items-start mb-1">
+<h3 class="text-slate-900 dark:text-white text-base font-bold leading-tight group-hover:text-primary transition-colors">Futuristic UI Kit</h3>
+<div class="flex items-center text-amber-500 gap-0.5">
+<span class="material-symbols-outlined !text-[14px] fill-amber-500">star</span>
+<span class="text-xs font-bold">4.7</span>
+</div>
+</div>
+<p class="text-slate-500 dark:text-[#92a4c9] text-sm mb-3">by <span class="hover:text-primary cursor-pointer transition-colors">PixelPerfect</span></p>
+<div class="flex justify-between items-center mt-auto">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-primary !text-[18px]">monetization_on</span>
+<span class="text-slate-900 dark:text-white font-bold">85 AICC</span>
+</div>
+<button class="text-primary p-2 hover:bg-primary/10 rounded-full transition-colors">
+<span class="material-symbols-outlined">shopping_cart</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Card 5 -->
+<div class="group relative flex flex-col gap-3 pb-4 bg-white dark:bg-[#1b2537] rounded-xl overflow-hidden border border-slate-200 dark:border-[#2d3a54] hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+<div class="relative w-full aspect-[4/3] overflow-hidden">
+<div class="w-full h-full bg-center bg-no-repeat bg-cover transition-transform duration-500 group-hover:scale-105" data-alt="Fluid liquid motion backgrounds" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuC8IC5Mi2MfF_lh1B3zc758Un3No85aq6L0_3XiOe0q8wsGt_dNX2bpRmjskSJv6K4aXJGWseeL2NPkh1mHF6KFZK0EPeLNhQBxMKh-ni5vQykAQb9ru0MaRTJr04u7WmU9w3vZGep3ItpxScetROxEpNYXxTm-ewqFMDUVrv6fWXXVpIXfLfrWXkF2Xba67ZJV_6na48Bdpy7n9KKf8PcU7xq-WHCGm1tHarzrmObkXdTwGSUTD37GEm-L9CL0qEjVa2J1qzpNaGg");'></div>
+<div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+<button class="bg-white text-slate-900 px-4 py-2 rounded-lg font-bold text-sm shadow-xl flex items-center gap-2 transform translate-y-4 group-hover:translate-y-0 transition-transform">
+<span class="material-symbols-outlined">visibility</span> Quick Preview
+                            </button>
+</div>
+</div>
+<div class="px-4 py-1">
+<div class="flex justify-between items-start mb-1">
+<h3 class="text-slate-900 dark:text-white text-base font-bold leading-tight group-hover:text-primary transition-colors">Abstract Motion BG</h3>
+<div class="flex items-center text-amber-500 gap-0.5">
+<span class="material-symbols-outlined !text-[14px] fill-amber-500">star</span>
+<span class="text-xs font-bold">4.6</span>
+</div>
+</div>
+<p class="text-slate-500 dark:text-[#92a4c9] text-sm mb-3">by <span class="hover:text-primary cursor-pointer transition-colors">MotionDesign</span></p>
+<div class="flex justify-between items-center mt-auto">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-primary !text-[18px]">monetization_on</span>
+<span class="text-slate-900 dark:text-white font-bold">60 AICC</span>
+</div>
+<button class="text-primary p-2 hover:bg-primary/10 rounded-full transition-colors">
+<span class="material-symbols-outlined">shopping_cart</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Card 6 -->
+<div class="group relative flex flex-col gap-3 pb-4 bg-white dark:bg-[#1b2537] rounded-xl overflow-hidden border border-slate-200 dark:border-[#2d3a54] hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+<div class="relative w-full aspect-[4/3] overflow-hidden">
+<div class="w-full h-full bg-center bg-no-repeat bg-cover transition-transform duration-500 group-hover:scale-105" data-alt="Variable social media ad templates" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBdUmHP1IofzkUO0oX5YAVezEsBPIdJ_eiomXibfr1Re4NW8pFUupZo9IICPSDeaHe2O2dnbPqYIPfyBymD93aTAlC0l3Hz5zJehr0jy9Gi-_rxkh07BRTaznueANTe6IngSoGISPJrTiGkIm1D3Du1JlXFSStZO3WjHQVxrSp11Wd3NZjE-i-fzKhy8CPiwvla9lBbs_d6waZB53R1nAq8T88ivIkPXZV0m3Cd9Fvq9ESLk7dqQFy4zFgESXmIT5_x6_hWwKVqCm4");'></div>
+<div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+<button class="bg-white text-slate-900 px-4 py-2 rounded-lg font-bold text-sm shadow-xl flex items-center gap-2 transform translate-y-4 group-hover:translate-y-0 transition-transform">
+<span class="material-symbols-outlined">visibility</span> Quick Preview
+                            </button>
+</div>
+</div>
+<div class="px-4 py-1">
+<div class="flex justify-between items-start mb-1">
+<h3 class="text-slate-900 dark:text-white text-base font-bold leading-tight group-hover:text-primary transition-colors">Dynamic Ad Templates</h3>
+<div class="flex items-center text-amber-500 gap-0.5">
+<span class="material-symbols-outlined !text-[14px] fill-amber-500">star</span>
+<span class="text-xs font-bold">4.8</span>
+</div>
+</div>
+<p class="text-slate-500 dark:text-[#92a4c9] text-sm mb-3">by <span class="hover:text-primary cursor-pointer transition-colors">AdPro</span></p>
+<div class="flex justify-between items-center mt-auto">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-primary !text-[18px]">monetization_on</span>
+<span class="text-slate-900 dark:text-white font-bold">95 AICC</span>
+</div>
+<button class="text-primary p-2 hover:bg-primary/10 rounded-full transition-colors">
+<span class="material-symbols-outlined">shopping_cart</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Card 7 -->
+<div class="group relative flex flex-col gap-3 pb-4 bg-white dark:bg-[#1b2537] rounded-xl overflow-hidden border border-slate-200 dark:border-[#2d3a54] hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+<div class="relative w-full aspect-[4/3] overflow-hidden">
+<div class="w-full h-full bg-center bg-no-repeat bg-cover transition-transform duration-500 group-hover:scale-105" data-alt="Vector logo generation assets" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDNGfwY5sIv6l_PiBA-0FPP-feqU09DD0EeuwOg_SPxkPPViwOpmML8v6K9JCJkMmF3ETJp0bRV7JUOhhBPsYWvKwuxCKxVTRuTZjHBdOpP0yOqixVWS45kK0dLTA1XPvyCj4J2_5mjyWIh8U3Wlvpb99GpwTUfojyENdNBnDing2osdHpMQil4h3lzttaZX_N-cgJ6oaGlC0fGpyD0XQ7YuHv8M_ci5pDJkKJ9-ERaX2EGdKE6K-fmYTAaH4GsnhvmJT2W3WSykNc");'></div>
+<div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+<button class="bg-white text-slate-900 px-4 py-2 rounded-lg font-bold text-sm shadow-xl flex items-center gap-2 transform translate-y-4 group-hover:translate-y-0 transition-transform">
+<span class="material-symbols-outlined">visibility</span> Quick Preview
+                            </button>
+</div>
+</div>
+<div class="px-4 py-1">
+<div class="flex justify-between items-start mb-1">
+<h3 class="text-slate-900 dark:text-white text-base font-bold leading-tight group-hover:text-primary transition-colors">Vector AI Logos</h3>
+<div class="flex items-center text-amber-500 gap-0.5">
+<span class="material-symbols-outlined !text-[14px] fill-amber-500">star</span>
+<span class="text-xs font-bold">4.4</span>
+</div>
+</div>
+<p class="text-slate-500 dark:text-[#92a4c9] text-sm mb-3">by <span class="hover:text-primary cursor-pointer transition-colors">LogoGen</span></p>
+<div class="flex justify-between items-center mt-auto">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-primary !text-[18px]">monetization_on</span>
+<span class="text-slate-900 dark:text-white font-bold">40 AICC</span>
+</div>
+<button class="text-primary p-2 hover:bg-primary/10 rounded-full transition-colors">
+<span class="material-symbols-outlined">shopping_cart</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Card 8 -->
+<div class="group relative flex flex-col gap-3 pb-4 bg-white dark:bg-[#1b2537] rounded-xl overflow-hidden border border-slate-200 dark:border-[#2d3a54] hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+<div class="relative w-full aspect-[4/3] overflow-hidden">
+<div class="w-full h-full bg-center bg-no-repeat bg-cover transition-transform duration-500 group-hover:scale-105" data-alt="Cinematic 3D environmental scenes" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCQ0Ms2r5gucNbO1UW-eE41L0At9g_5kPDjgorLhp8v-Ii8YLxbHm49xco_cHpunegusrB3USzrz9mQulAD7rSWOr3VCwQFeAzUngd0S8cPH55sVMzXeHmXN4mWMz6cmR3_PBg2WLe1w-8NhucgHQMAC-vwCqOcmZ9x0jRbhUv4Q7t5LcWRXo6qXAFAqrFMyyUfe4SVOJldnGiDu5IUcrYdwsoDJ5p95kE3gF3CrgbmBgulY0QrO9OnB_5qMY6v1BItezb705nxEuQ");'></div>
+<div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+<button class="bg-white text-slate-900 px-4 py-2 rounded-lg font-bold text-sm shadow-xl flex items-center gap-2 transform translate-y-4 group-hover:translate-y-0 transition-transform">
+<span class="material-symbols-outlined">visibility</span> Quick Preview
+                            </button>
+</div>
+</div>
+<div class="px-4 py-1">
+<div class="flex justify-between items-start mb-1">
+<h3 class="text-slate-900 dark:text-white text-base font-bold leading-tight group-hover:text-primary transition-colors">3D Scene Generator</h3>
+<div class="flex items-center text-amber-500 gap-0.5">
+<span class="material-symbols-outlined !text-[14px] fill-amber-500">star</span>
+<span class="text-xs font-bold">5.0</span>
+</div>
+</div>
+<p class="text-slate-500 dark:text-[#92a4c9] text-sm mb-3">by <span class="hover:text-primary cursor-pointer transition-colors">3D_Viz</span></p>
+<div class="flex justify-between items-center mt-auto">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-primary !text-[18px]">monetization_on</span>
+<span class="text-slate-900 dark:text-white font-bold">150 AICC</span>
+</div>
+<button class="text-primary p-2 hover:bg-primary/10 rounded-full transition-colors">
+<span class="material-symbols-outlined">shopping_cart</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Pagination Section -->
+<div class="flex items-center justify-center mt-12 mb-8">
+<nav class="flex items-center gap-2">
+<a class="flex size-10 items-center justify-center rounded-lg border border-slate-200 dark:border-[#2d3a54] text-slate-400 hover:text-primary hover:border-primary transition-colors" href="#">
+<span class="material-symbols-outlined">chevron_left</span>
+</a>
+<a class="text-sm font-bold flex size-10 items-center justify-center text-white rounded-lg bg-primary shadow-lg shadow-primary/20" href="#">1</a>
+<a class="text-sm font-medium flex size-10 items-center justify-center text-slate-600 dark:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">2</a>
+<a class="text-sm font-medium flex size-10 items-center justify-center text-slate-600 dark:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">3</a>
+<a class="text-sm font-medium flex size-10 items-center justify-center text-slate-600 dark:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">4</a>
+<span class="text-sm flex size-10 items-center justify-center text-slate-400">...</span>
+<a class="text-sm font-medium flex size-10 items-center justify-center text-slate-600 dark:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">12</a>
+<a class="flex size-10 items-center justify-center rounded-lg border border-slate-200 dark:border-[#2d3a54] text-slate-400 hover:text-primary hover:border-primary transition-colors" href="#">
+<span class="material-symbols-outlined">chevron_right</span>
+</a>
+</nav>
+</div>
+</main>
+<!-- Footer -->
+<footer class="mt-auto border-t border-slate-200 dark:border-[#232f48] px-10 py-8 bg-white dark:bg-[#101622]">
+<div class="max-w-[1280px] mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+<div class="flex items-center gap-2">
+<div class="size-6 text-primary/70">
+<svg fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path d="M39.5563 34.1455V13.8546C39.5563 15.708 36.8773 17.3437 32.7927 18.3189C30.2914 18.916 27.263 19.2655 24 19.2655C20.737 19.2655 17.7086 18.916 15.2073 18.3189C11.1227 17.3437 8.44365 15.708 8.44365 13.8546V34.1455C8.44365 35.9988 11.1227 37.6346 15.2073 38.6098C17.7086 39.2069 20.737 39.5564 24 39.5564C27.263 39.5564 30.2914 39.2069 32.7927 38.6098C36.8773 37.6346 39.5563 35.9988 39.5563 34.1455Z" fill="currentColor"></path>
+</svg>
+</div>
+<span class="text-slate-400 text-sm">© 2024 AI Creative Marketplace. Built for the future of ads.</span>
+</div>
+<div class="flex items-center gap-8">
+<a class="text-slate-400 hover:text-white text-sm" href="#">Terms</a>
+<a class="text-slate-400 hover:text-white text-sm" href="#">Privacy</a>
+<a class="text-slate-400 hover:text-white text-sm" href="#">Help Center</a>
+</div>
+</div>
+</footer>
+</div>
+</body></html>

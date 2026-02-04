@@ -2,11 +2,14 @@
   "name": "team-creative-store",
   "private": true,
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "frontend"
   ],
   "scripts": {
     "dev:api": "bun --cwd packages/api run dev",
     "dev:worker": "bun --cwd packages/worker run dev",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "build:frontend": "npm --prefix frontend run build",
     "prisma:generate": "bun --cwd packages/db run prisma:generate",
     "prisma:migrate": "bun --cwd packages/db run prisma:migrate",
     "format": "bunx prettier -w ."

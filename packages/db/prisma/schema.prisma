@@ -1,0 +1,147 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum CreativeStatus {
+  draft
+  published
+  archived
+}
+
+enum VersionStatus {
+  draft
+  published
+}
+
+enum JobStatus {
+  queued
+  running
+  succeeded
+  failed
+}
+
+enum NftStatus {
+  pending
+  confirmed
+  failed
+}
+
+model Project {
+  id        String   @id @default(uuid())
+  name      String
+  createdAt DateTime @default(now())
+  briefs    Brief[]
+  creatives Creative[]
+}
+
+model Brief {
+  id          String   @id @default(uuid())
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id])
+  intentText  String
+  briefJson   Json
+  constraints Json
+  status      String   @default("draft")
+  createdAt   DateTime @default(now())
+  drafts      Draft[]
+}
+
+model Draft {
+  id            String   @id @default(uuid())
+  briefId       String
+  brief         Brief    @relation(fields: [briefId], references: [id])
+  draftJson     Json
+  previewAssetId String?
+  createdAt     DateTime @default(now())
+}
+
+model Creative {
+  id        String         @id @default(uuid())
+  projectId String
+  project   Project        @relation(fields: [projectId], references: [id])
+  title     String
+  status    CreativeStatus @default(draft)
+  createdAt DateTime       @default(now())
+  versions  CreativeVersion[]
+  publishRecords PublishRecord[]
+}
+
+model CreativeVersion {
+  id           String       @id @default(uuid())
+  creativeId   String
+  creative     Creative      @relation(fields: [creativeId], references: [id])
+  versionName  String
+  baseCanvasKey String
+  sourceTree   Json
+  prompts      Json
+  status       VersionStatus @default(draft)
+  createdAt    DateTime      @default(now())
+  renderJobs   RenderJob[]
+  nft          NftRecord?
+}
+
+model PlacementSpec {
+  id       String @id @default(uuid())
+  key      String @unique
+  width    Int
+  height   Int
+  safeArea Json
+  rules    Json
+  category String
+  renderJobs RenderJob[]
+}
+
+model RenderJob {
+  id            String   @id @default(uuid())
+  versionId     String
+  version       CreativeVersion @relation(fields: [versionId], references: [id])
+  placementSpecId String
+  placementSpec PlacementSpec @relation(fields: [placementSpecId], references: [id])
+  status        JobStatus @default(queued)
+  error         String?
+  createdAt     DateTime @default(now())
+  startedAt     DateTime?
+  finishedAt    DateTime?
+  render        Render?
+}
+
+model Render {
+  id         String   @id @default(uuid())
+  renderJobId String  @unique
+  renderJob  RenderJob @relation(fields: [renderJobId], references: [id])
+  url        String
+  width      Int
+  height     Int
+  format     String
+  hash       String
+  createdAt  DateTime @default(now())
+}
+
+model PublishRecord {
+  id         String   @id @default(uuid())
+  creativeId String
+  creative   Creative @relation(fields: [creativeId], references: [id])
+  versionId  String
+  version    CreativeVersion @relation(fields: [versionId], references: [id])
+  slug       String   @unique
+  publishedAt DateTime @default(now())
+}
+
+model NftRecord {
+  id           String   @id @default(uuid())
+  versionId    String   @unique
+  version      CreativeVersion @relation(fields: [versionId], references: [id])
+  chain        String
+  contractAddress String
+  tokenId      String
+  txHash       String
+  metadataUri  String
+  contentHash  String
+  status       NftStatus @default(pending)
+  mintedAt     DateTime?
+}

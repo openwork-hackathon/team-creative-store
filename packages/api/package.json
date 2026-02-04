@@ -1,0 +1,17 @@
+{
+  "name": "@creative-store/api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun --hot src/index.ts",
+    "start": "bun src/index.ts"
+  },
+  "dependencies": {
+    "hono": "^4.6.10",
+    "@hono/node-server": "^1.13.7",
+    "zod": "^3.24.1",
+    "@creative-store/shared": "file:../shared",
+    "@creative-store/db": "file:../db"
+  }
+}

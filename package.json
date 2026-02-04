@@ -1,0 +1,14 @@
+{
+  "name": "team-creative-store",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:api": "bun --cwd packages/api run dev",
+    "dev:worker": "bun --cwd packages/worker run dev",
+    "prisma:generate": "bun --cwd packages/db run prisma:generate",
+    "prisma:migrate": "bun --cwd packages/db run prisma:migrate",
+    "format": "bunx prettier -w ."
+  }
+}

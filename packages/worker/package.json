@@ -1,0 +1,16 @@
+{
+  "name": "@creative-store/worker",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun src/index.ts",
+    "start": "bun src/index.ts"
+  },
+  "dependencies": {
+    "bullmq": "^5.34.4",
+    "ioredis": "^5.5.0",
+    "@creative-store/db": "file:../db",
+    "@creative-store/shared": "file:../shared"
+  }
+}

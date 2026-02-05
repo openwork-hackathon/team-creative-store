@@ -1,21 +1,22 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp } from "./app";
-import { generateObject } from "ai";
+
+// Import the mocked module to access the mock function
+const mockGenerateObject = vi.fn();
+const mockGenerateText = vi.fn();
+vi.mock("ai", () => ({
+  generateObject: mockGenerateObject,
+  generateText: mockGenerateText
+}));
 
 type Brief = { id: string; intentText: string; briefJson: unknown };
 type Draft = { id: string; briefId: string; draftJson: unknown };
 
-vi.mock("ai", () => ({
-  generateObject: vi.fn()
-}));
-
-const generateObjectMock = vi.mocked(generateObject);
-
 const originalApiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
 
 afterEach(() => {
-  generateObjectMock.mockReset();
-  vi.unstubAllGlobals();
+  mockGenerateObject.mockReset();
+  mockGenerateText.mockReset();
   process.env.GOOGLE_GENERATIVE_AI_API_KEY = originalApiKey;
 });
 
@@ -53,8 +54,9 @@ const createMemoryPrisma = () => {
 };
 
 describe("AI routes", () => {
-  it("parses briefs with AI fallback data", async () => {
-    generateObjectMock.mockResolvedValueOnce({
+  it("parses briefs with AI", async () => {
+    process.env.GOOGLE_GENERATIVE_AI_API_KEY = "test-key";
+    mockGenerateObject.mockResolvedValueOnce({
       object: {
         industry: "Retail",
         placements: ["square_1_1"],
@@ -86,28 +88,16 @@ describe("AI routes", () => {
 
   it("generates creatives and stores a sanitized draft", async () => {
     process.env.GOOGLE_GENERATIVE_AI_API_KEY = "test-key";
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        candidates: [
-          {
-            content: {
-              parts: [
-                {
-                  inlineData: {
-                    mimeType: "image/png",
-                    data: "aGVsbG8="
-                  }
-                }
-              ]
-            }
-          }
-        ]
-      })
+    mockGenerateText.mockResolvedValueOnce({
+      files: [
+        {
+          mediaType: "image/png",
+          base64: "aGVsbG8="
+        }
+      ]
     });
-    vi.stubGlobal("fetch", fetchMock);
 
-    generateObjectMock.mockResolvedValueOnce({
+    mockGenerateObject.mockResolvedValueOnce({
       object: {
         html: '<div><script>alert("x")</script><p>Hi</p></div>',
         assets: [{ label: "Logo" }],
@@ -138,5 +128,74 @@ describe("AI routes", () => {
       ])
     );
     expect(payload.draft.draftJson.creative.html).not.toContain("<script");
+  });
+
+  it("returns error when AI generation fails", async () => {
+    process.env.GOOGLE_GENERATIVE_AI_API_KEY = "test-key";
+    mockGenerateText.mockRejectedValueOnce(new Error("Network error"));
+
+    const prisma = createMemoryPrisma();
+    const app = createApp({
+      prisma,
+      getSession: async () => ({ user: { id: "user_1" } })
+    });
+
+    const response = await app.request("/api/ai/creative/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ briefId: "brief_1", placement: "square_1_1" })
+    });
+
+    expect(response.status).toBe(500);
+    const payload = await response.json();
+    expect(payload.error).toBe("Network error");
+    expect(payload.code).toBe("AI_ERROR");
+  });
+
+  it("returns error when AI brief parsing fails", async () => {
+    process.env.GOOGLE_GENERATIVE_AI_API_KEY = "test-key";
+    mockGenerateObject.mockRejectedValueOnce(new Error("Rate limit exceeded"));
+
+    const app = createApp({
+      prisma: createMemoryPrisma(),
+      getSession: async () => ({ user: { id: "user_1" } })
+    });
+
+    const response = await app.request("/api/ai/brief/parse", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        intentText: "Launch a sale for eco-friendly sneakers",
+        placements: ["square_1_1"]
+      })
+    });
+
+    expect(response.status).toBe(500);
+    const payload = await response.json();
+    expect(payload.error).toBe("Rate limit exceeded");
+    expect(payload.code).toBe("AI_ERROR");
+  });
+
+  it("returns error when GOOGLE_GENERATIVE_AI_API_KEY is not set", async () => {
+    delete process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+
+    const app = createApp({
+      prisma: createMemoryPrisma(),
+      getSession: async () => ({ user: { id: "user_1" } })
+    });
+
+    const response = await app.request("/api/ai/brief/parse", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        intentText: "Launch a sale for eco-friendly sneakers",
+        placements: ["square_1_1"]
+      })
+    });
+
+    expect(response.status).toBe(500);
+    const payload = await response.json();
+    expect(payload.error).toBe("GOOGLE_GENERATIVE_AI_API_KEY environment variable is not set");
+    expect(payload.code).toBe("MISSING_API_KEY");
   });
 });

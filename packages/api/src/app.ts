@@ -8,7 +8,7 @@ import {
   zPlacementSpecKey
 } from "@creative-store/shared";
 import { buildBriefJsonFromInput } from "./brief-analysis";
-import { generateCreativeWithAi, parseBriefWithAi } from "./ai-creative";
+import { generateCreativeWithAi, parseBriefWithAi, AiCreativeError } from "./ai-creative";
 
 type SessionUser = { id: string };
 type Session = { user: SessionUser } | null;
@@ -65,6 +65,11 @@ export function createApp({ prisma, getSession }: AppDeps) {
   });
 
   app.get("/health", (c) => c.json({ ok: true }));
+
+  app.get("/debug/env", (c) => c.json({ 
+    hasGeminiKey: !!process.env.GEMINI_API_KEY,
+    keyLength: process.env.GEMINI_API_KEY?.length || 0
+  }));
 
   app.post("/api/admin/seed/placement-specs", async (c) => {
     for (const spec of PLACEMENT_SPECS) {
@@ -129,8 +134,16 @@ export function createApp({ prisma, getSession }: AppDeps) {
       const user = c.get("user") as SessionUser | null;
       if (!user) return c.json({ error: "unauthorized" }, 401);
       const input = c.req.valid("json");
-      const parsed = await parseBriefWithAi(input);
-      return c.json(parsed);
+      try {
+        const parsed = await parseBriefWithAi(input);
+        return c.json(parsed);
+      } catch (error) {
+        if (error instanceof AiCreativeError) {
+          return c.json({ error: error.message, code: error.code }, 500);
+        }
+        const message = error instanceof Error ? error.message : "AI brief parsing failed";
+        return c.json({ error: message, code: "AI_ERROR" }, 500);
+      }
     }
   );
 
@@ -151,24 +164,32 @@ export function createApp({ prisma, getSession }: AppDeps) {
       const brief = await prisma.brief.findUnique({ where: { id: input.briefId } });
       if (!brief) return c.json({ error: "not_found" }, 404);
 
-      const creative = await generateCreativeWithAi({
-        placement: input.placement,
-        brief: (brief as { briefJson?: unknown }).briefJson ?? {},
-        intentText: (brief as { intentText?: string }).intentText,
-        brandAssets: input.brandAssets
-      });
+      try {
+        const creative = await generateCreativeWithAi({
+          placement: input.placement,
+          brief: (brief as { briefJson?: unknown }).briefJson ?? {},
+          intentText: (brief as { intentText?: string }).intentText,
+          brandAssets: input.brandAssets
+        });
 
-      const draft = await prisma.draft.create({
-        data: {
-          briefId: input.briefId,
-          draftJson: {
-            placement: input.placement,
-            creative
+        const draft = await prisma.draft.create({
+          data: {
+            briefId: input.briefId,
+            draftJson: {
+              placement: input.placement,
+              creative
+            }
           }
-        }
-      });
+        });
 
-      return c.json({ draft, creative });
+        return c.json({ draft, creative });
+      } catch (error) {
+        if (error instanceof AiCreativeError) {
+          return c.json({ error: error.message, code: error.code }, 500);
+        }
+        const message = error instanceof Error ? error.message : "AI creative generation failed";
+        return c.json({ error: message, code: "AI_ERROR" }, 500);
+      }
     }
   );
 

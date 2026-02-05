@@ -11,7 +11,10 @@ export const wagmiConfig = createConfig({
     injected(),
     coinbaseWallet({
       appName: "CreativeAI",
-      appLogoUrl: "https://example.com/logo.png"
+      appLogoUrl: "https://example.com/logo.png",
+      // Use 'all' to support both Coinbase Wallet extension and mobile app
+      // 'smartWalletOnly' for only Smart Wallet, 'eoaOnly' for only EOA wallet
+      preference: { options: "all" }
     }),
     walletConnect({
       projectId,

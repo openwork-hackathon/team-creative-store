@@ -10,6 +10,7 @@
     "test": "vitest"
   },
   "dependencies": {
+    "@coinbase/wallet-sdk": "^4.3.7",
     "@creative-store/shared": "file:../shared",
     "@tanstack/react-query": "^5.90.20",
     "@tanstack/react-router": "^1.100.0",

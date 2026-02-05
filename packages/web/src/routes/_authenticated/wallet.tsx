@@ -84,12 +84,18 @@ function WalletPage() {
     await navigator.clipboard.writeText(address);
   };
 
-  const handleConnect = (connectorId: number) => {
-    const connector = connectors[connectorId];
-    if (connector) {
-      connect({ connector });
-      setShowConnectModal(false);
-    }
+  const handleConnect = (connector: (typeof connectors)[number]) => {
+    connect(
+      { connector },
+      {
+        onSuccess: () => {
+          setShowConnectModal(false);
+        },
+        onError: (error) => {
+          console.error("Failed to connect wallet:", error);
+        }
+      }
+    );
   };
 
   const getTxIcon = (type: WalletTx["type"]) => {
@@ -138,20 +144,6 @@ function WalletPage() {
     }
   };
 
-  const getConnectorIcon = (connectorName: string) => {
-    const name = connectorName.toLowerCase();
-    if (name.includes("metamask") || name.includes("injected")) {
-      return "🦊";
-    }
-    if (name.includes("coinbase")) {
-      return "🔵";
-    }
-    if (name.includes("walletconnect")) {
-      return "🔗";
-    }
-    return "👛";
-  };
-
   // Connect Wallet Modal
   const ConnectWalletModal = () => (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
@@ -173,32 +165,26 @@ function WalletPage() {
         </p>
 
         <div className="space-y-3">
-          {connectors.map((connector, index) => (
-            <button
-              key={connector.uid}
-              type="button"
-              onClick={() => handleConnect(index)}
-              disabled={isConnectPending || isConnecting}
-              className="flex w-full items-center gap-4 rounded-xl border border-slate-200 bg-slate-50 p-4 transition-all hover:border-primary hover:bg-primary/5 disabled:cursor-not-allowed disabled:opacity-50 dark:border-[#324467] dark:bg-[#1a2333] dark:hover:border-primary dark:hover:bg-primary/10"
-            >
-              <span className="text-2xl">{getConnectorIcon(connector.name)}</span>
-              <div className="flex-1 text-left">
-                <p className="font-semibold text-slate-900 dark:text-white">{connector.name}</p>
-                <p className="text-xs text-slate-500 dark:text-[#92a4c9]">
-                  {connector.name.toLowerCase().includes("injected")
-                    ? "Browser wallet extension"
-                    : connector.name.toLowerCase().includes("coinbase")
-                      ? "Coinbase Wallet"
-                      : connector.name.toLowerCase().includes("walletconnect")
-                        ? "Scan with mobile wallet"
-                        : "Connect wallet"}
-                </p>
-              </div>
-              {(isConnectPending || isConnecting) && (
-                <div className="size-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-              )}
-            </button>
-          ))}
+          {connectors
+            .filter((connector) => connector.name.toLowerCase().includes("coinbase"))
+            .map((connector) => (
+              <button
+                key={connector.uid}
+                type="button"
+                onClick={() => handleConnect(connector)}
+                disabled={isConnectPending || isConnecting}
+                className="flex w-full items-center gap-4 rounded-xl border border-slate-200 bg-slate-50 p-4 transition-all hover:border-primary hover:bg-primary/5 disabled:cursor-not-allowed disabled:opacity-50 dark:border-[#324467] dark:bg-[#1a2333] dark:hover:border-primary dark:hover:bg-primary/10"
+              >
+                <span className="text-2xl">🔵</span>
+                <div className="flex-1 text-left">
+                  <p className="font-semibold text-slate-900 dark:text-white">{connector.name}</p>
+                  <p className="text-xs text-slate-500 dark:text-[#92a4c9]">Coinbase Wallet</p>
+                </div>
+                {(isConnectPending || isConnecting) && (
+                  <div className="size-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                )}
+              </button>
+            ))}
         </div>
 
         <p className="mt-6 text-center text-xs text-slate-400 dark:text-[#92a4c9]">

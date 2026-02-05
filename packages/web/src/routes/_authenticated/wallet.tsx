@@ -1,12 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-
-type WalletSummary = {
-  address: string;
-  aiccBalance: string;
-  isConnected: boolean;
-};
+import { useAccount, useConnect, useDisconnect, useBalance } from "wagmi";
+import { base } from "wagmi/chains";
+import { formatUnits } from "viem";
 
 type WalletTx = {
   id: string;
@@ -33,44 +30,66 @@ type Order = {
 
 function WalletPage() {
   const [tab, setTab] = useState<"wallet" | "orders">("wallet");
+  const [showConnectModal, setShowConnectModal] = useState(false);
 
-  const summaryQuery = useQuery({
-    queryKey: ["wallet", "summary"],
-    queryFn: async () => {
-      const res = await fetch("/api/wallet/summary", { credentials: "include" });
-      if (!res.ok) throw new Error("Failed to load wallet summary");
-      return (await res.json()) as { summary: WalletSummary };
-    }
+  // Wagmi hooks for wallet connection
+  const { address, isConnected, isConnecting } = useAccount();
+  const { connect, connectors, isPending: isConnectPending } = useConnect();
+  const { disconnect } = useDisconnect();
+
+  // Get ETH balance on Base network
+  const { data: balanceData } = useBalance({
+    address,
+    chainId: base.id
   });
 
+  // Format address for display
+  const formatAddress = (addr: string) => {
+    return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+  };
+
+  // Format balance
+  const formattedBalance = balanceData
+    ? `${parseFloat(formatUnits(balanceData.value, balanceData.decimals)).toFixed(4)} ${balanceData.symbol}`
+    : "0.00 ETH";
+
+  // Mock AICC balance (in production, this would come from a token contract)
+  const aiccBalance = isConnected ? "1,250.00" : "0.00";
+
   const txQuery = useQuery({
-    queryKey: ["wallet", "transactions"],
+    queryKey: ["wallet", "transactions", address],
     queryFn: async () => {
       const res = await fetch("/api/wallet/transactions", { credentials: "include" });
       if (!res.ok) throw new Error("Failed to load transactions");
       return (await res.json()) as { transactions: WalletTx[] };
     },
-    enabled: summaryQuery.data?.summary?.isConnected ?? false
+    enabled: isConnected
   });
 
   const ordersQuery = useQuery({
-    queryKey: ["orders"],
+    queryKey: ["orders", address],
     queryFn: async () => {
       const res = await fetch("/api/orders", { credentials: "include" });
       if (!res.ok) throw new Error("Failed to load orders");
       return (await res.json()) as { orders: Order[] };
     },
-    enabled: summaryQuery.data?.summary?.isConnected ?? false
+    enabled: isConnected
   });
 
-  const summary = summaryQuery.data?.summary;
-  const isConnected = summary?.isConnected ?? false;
   const transactions = txQuery.data?.transactions ?? [];
   const orders = ordersQuery.data?.orders ?? [];
 
   const copyAddress = async () => {
-    if (!summary?.address) return;
-    await navigator.clipboard.writeText(summary.address);
+    if (!address) return;
+    await navigator.clipboard.writeText(address);
+  };
+
+  const handleConnect = (connectorId: number) => {
+    const connector = connectors[connectorId];
+    if (connector) {
+      connect({ connector });
+      setShowConnectModal(false);
+    }
   };
 
   const getTxIcon = (type: WalletTx["type"]) => {
@@ -118,6 +137,76 @@ function WalletPage() {
         );
     }
   };
+
+  const getConnectorIcon = (connectorName: string) => {
+    const name = connectorName.toLowerCase();
+    if (name.includes("metamask") || name.includes("injected")) {
+      return "🦊";
+    }
+    if (name.includes("coinbase")) {
+      return "🔵";
+    }
+    if (name.includes("walletconnect")) {
+      return "🔗";
+    }
+    return "👛";
+  };
+
+  // Connect Wallet Modal
+  const ConnectWalletModal = () => (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+      <div className="mx-4 w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-[#324467] dark:bg-background-dark">
+        <div className="mb-6 flex items-center justify-between">
+          <h3 className="text-xl font-bold text-slate-900 dark:text-white">Connect Wallet</h3>
+          <button
+            type="button"
+            onClick={() => setShowConnectModal(false)}
+            className="flex size-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-[#324467] dark:hover:text-white"
+          >
+            <span className="material-symbols-outlined">close</span>
+          </button>
+        </div>
+
+        <p className="mb-6 text-sm text-slate-500 dark:text-[#92a4c9]">
+          Connect your wallet to access your AICC tokens, view transaction history, and manage your
+          creative licenses on the Base network.
+        </p>
+
+        <div className="space-y-3">
+          {connectors.map((connector, index) => (
+            <button
+              key={connector.uid}
+              type="button"
+              onClick={() => handleConnect(index)}
+              disabled={isConnectPending || isConnecting}
+              className="flex w-full items-center gap-4 rounded-xl border border-slate-200 bg-slate-50 p-4 transition-all hover:border-primary hover:bg-primary/5 disabled:cursor-not-allowed disabled:opacity-50 dark:border-[#324467] dark:bg-[#1a2333] dark:hover:border-primary dark:hover:bg-primary/10"
+            >
+              <span className="text-2xl">{getConnectorIcon(connector.name)}</span>
+              <div className="flex-1 text-left">
+                <p className="font-semibold text-slate-900 dark:text-white">{connector.name}</p>
+                <p className="text-xs text-slate-500 dark:text-[#92a4c9]">
+                  {connector.name.toLowerCase().includes("injected")
+                    ? "Browser wallet extension"
+                    : connector.name.toLowerCase().includes("coinbase")
+                      ? "Coinbase Wallet"
+                      : connector.name.toLowerCase().includes("walletconnect")
+                        ? "Scan with mobile wallet"
+                        : "Connect wallet"}
+                </p>
+              </div>
+              {(isConnectPending || isConnecting) && (
+                <div className="size-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+              )}
+            </button>
+          ))}
+        </div>
+
+        <p className="mt-6 text-center text-xs text-slate-400 dark:text-[#92a4c9]">
+          By connecting, you agree to our Terms of Service and Privacy Policy
+        </p>
+      </div>
+    </div>
+  );
 
   // Disconnected State UI
   const DisconnectedState = () => (
@@ -171,17 +260,11 @@ function WalletPage() {
         <div className="flex w-full flex-col gap-4 sm:w-auto sm:flex-row">
           <button
             type="button"
+            onClick={() => setShowConnectModal(true)}
             className="flex h-14 items-center justify-center gap-2 rounded-xl bg-primary px-10 text-lg font-bold text-white shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] hover:bg-blue-700 active:scale-95"
           >
             <span className="material-symbols-outlined">account_balance_wallet</span>
             Connect Wallet
-          </button>
-          <button
-            type="button"
-            className="flex h-14 items-center justify-center gap-2 rounded-xl border-2 border-slate-200 px-8 text-lg font-bold text-slate-700 transition-all hover:bg-slate-50 dark:border-[#324467] dark:text-white dark:hover:bg-white/5"
-          >
-            <span className="material-symbols-outlined">swap_horiz</span>
-            Switch to Base
           </button>
         </div>
       </div>
@@ -234,16 +317,30 @@ function WalletPage() {
           </div>
           <div className="mt-1 flex items-center justify-between">
             <p className="font-mono text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-              {summary?.address ?? "—"}
+              {address ? formatAddress(address) : "—"}
             </p>
-            <button
-              type="button"
-              onClick={copyAddress}
-              className="p-1 text-primary hover:text-blue-400"
-            >
-              <span className="material-symbols-outlined">content_copy</span>
-            </button>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={copyAddress}
+                className="p-1 text-primary hover:text-blue-400"
+                title="Copy address"
+              >
+                <span className="material-symbols-outlined">content_copy</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => disconnect()}
+                className="p-1 text-red-500 hover:text-red-400"
+                title="Disconnect wallet"
+              >
+                <span className="material-symbols-outlined">logout</span>
+              </button>
+            </div>
           </div>
+          <p className="mt-1 text-sm text-slate-500 dark:text-[#92a4c9]">
+            Balance: {formattedBalance}
+          </p>
         </div>
         <div className="relative flex flex-1 flex-col gap-2 overflow-hidden rounded-xl border border-slate-200 bg-white p-6 dark:border-[#324467] dark:bg-background-dark/50">
           <div className="flex items-center gap-2 text-slate-500 dark:text-[#92a4c9]">
@@ -253,7 +350,7 @@ function WalletPage() {
             </p>
           </div>
           <p className="mt-1 text-2xl font-bold leading-tight tracking-tight text-slate-900 dark:text-white">
-            {summary?.aiccBalance ?? "0.00"} AICC
+            {aiccBalance} AICC
           </p>
           <div className="absolute -bottom-4 -right-4 opacity-10">
             <span className="material-symbols-outlined text-8xl">currency_exchange</span>
@@ -441,6 +538,7 @@ function WalletPage() {
           </p>
           <button
             type="button"
+            onClick={() => setShowConnectModal(true)}
             className="flex h-14 items-center justify-center gap-2 rounded-xl bg-primary px-10 text-lg font-bold text-white shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] hover:bg-blue-700 active:scale-95"
           >
             <span className="material-symbols-outlined">account_balance_wallet</span>
@@ -549,6 +647,9 @@ function WalletPage() {
 
   return (
     <div className="mx-auto w-full max-w-[1024px] px-4 py-8">
+      {/* Connect Wallet Modal */}
+      {showConnectModal && <ConnectWalletModal />}
+
       {/* Page Heading */}
       <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div className="flex min-w-72 flex-col gap-2">
@@ -616,8 +717,8 @@ function WalletPage() {
         <OrdersTabContent />
       )}
 
-      {summaryQuery.isLoading && (
-        <div className="text-sm text-slate-500 dark:text-[#92a4c9]">Loading…</div>
+      {isConnecting && (
+        <div className="text-sm text-slate-500 dark:text-[#92a4c9]">Connecting…</div>
       )}
     </div>
   );

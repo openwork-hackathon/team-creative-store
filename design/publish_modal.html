@@ -19,7 +19,7 @@
                     fontFamily: {
                         "display": ["Inter"]
                     },
-                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
                 },
             },
         }
@@ -32,6 +32,13 @@
             background-image: linear-gradient(to right, #232f48 1px, transparent 1px),
                               linear-gradient(to bottom, #232f48 1px, transparent 1px);
             background-size: 40px 40px;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
     </style>
 </head>
@@ -60,9 +67,9 @@
 <span class="material-symbols-outlined">notifications</span>
 </button>
 <button class="flex min-w-[100px] cursor-pointer items-center justify-center rounded-lg h-10 px-5 bg-primary text-white text-sm font-bold shadow-lg shadow-primary/20">
-                Publish
-            </button>
-<div class="ml-2 bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-slate-700" data-alt="User profile avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBS24u3QfmId-DrhXhus1-dr5puWGOAYJ_cxGwR0LHY01nXla7ccRK6ixcWBzJTKFgMTK60KggWkcwXqCSHri5WCSkARsHD_r7DOmHEfp_Rvorj937g8xnPVwmmGFskumTEFAMqFo-RGfOeUEruIfxvzmd20G-qvUqdB2Y2BiHggXoPS9LS__1V7SoN_QLtrYaPxyS8DfjDB33RbObF_bS_NTyR3Ey-asHRLbmiaSmivGOvG_a4pbk3VSbS9GpOXwumQ1idH-OqVRM");'></div>
+                    Publish
+                </button>
+<div class="ml-2 bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-slate-700" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBS24u3QfmId-DrhXhus1-dr5puWGOAYJ_cxGwR0LHY01nXla7ccRK6ixcWBzJTKFgMTK60KggWkcwXqCSHri5WCSkARsHD_r7DOmHEfp_Rvorj937g8xnPVwmmGFskumTEFAMqFo-RGfOeUEruIfxvzmd20G-qvUqdB2Y2BiHggXoPS9LS__1V7SoN_QLtrYaPxyS8DfjDB33RbObF_bS_NTyR3Ey-asHRLbmiaSmivGOvG_a4pbk3VSbS9GpOXwumQ1idH-OqVRM");'></div>
 </div>
 </header>
 <div class="flex flex-1 overflow-hidden">
@@ -133,8 +140,8 @@
 <div class="w-px h-6 bg-slate-700 mx-2"></div>
 <span class="text-sm font-medium text-slate-400">Zoom: 65%</span>
 </div>
-<div class="flex items-center gap-4">
-<button class="flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-sm font-bold hover:bg-slate-700 transition-colors">
+<div class="flex items-center gap-3">
+<button class="flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-700 text-slate-300 text-sm font-bold transition-colors hover:bg-slate-800">
 <span class="material-symbols-outlined">download</span>
 <span>Export All</span>
 </button>
@@ -163,10 +170,10 @@
 <div class="flex-1 overflow-auto flex items-center justify-center p-12 canvas-grid relative">
 <div class="relative shadow-2xl rounded-2xl border-[12px] border-slate-900 bg-black overflow-hidden flex flex-col" style="width: 360px; height: 780px;">
 <div class="absolute top-0 left-1/2 -translate-x-1/2 w-28 h-6 bg-slate-900 rounded-b-2xl z-20"></div>
-<div class="flex-1 relative bg-cover bg-center" data-alt="Vibrant creative design preview" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCDCCtDRR_Zh-XCvY0VfLpI52OgdP08RqES2oamkUkgNHnbr8CwO8J3hxl6nWGtypRFTblw7j2bIMiaMX_u1hkQ05wbc3cs43id3tkDitpUwJyjeCKb9G0UDMb7ymy-Aqf1oem57vEr-yb4HnI6hcv144RuoG9qAey1i_n7ASpQg_WE_W8YDHteCQEz8qg5dC-RKtxf6VT12nniJoVhssZNDdERzNS5V8ayLkKpDon5NWXU6hdbAx1ylv5pf0QlNRaYa4LKApCvGvw');">
+<div class="flex-1 relative bg-cover bg-center" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCDCCtDRR_Zh-XCvY0VfLpI52OgdP08RqES2oamkUkgNHnbr8CwO8J3hxl6nWGtypRFTblw7j2bIMiaMX_u1hkQ05wbc3cs43id3tkDitpUwJyjeCKb9G0UDMb7ymy-Aqf1oem57vEr-yb4HnI6hcv144RuoG9qAey1i_n7ASpQg_WE_W8YDHteCQEz8qg5dC-RKtxf6VT12nniJoVhssZNDdERzNS5V8ayLkKpDon5NWXU6hdbAx1ylv5pf0QlNRaYa4LKApCvGvw');">
 <div class="absolute inset-0 flex flex-col justify-between p-6 z-10">
 <div class="flex justify-between items-start">
-<span class="bg-primary px-2 py-1 rounded text-[10px] font-bold">LIVE AD</span>
+<span class="bg-primary px-2 py-1 rounded text-[10px] font-bold text-white">LIVE AD</span>
 <span class="material-symbols-outlined text-white">more_vert</span>
 </div>
 <div class="space-y-3">
@@ -182,6 +189,123 @@
 </div>
 </div>
 </main>
+</div>
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+<div class="bg-white dark:bg-[#161c2b] w-full max-w-4xl rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col max-h-[90vh]">
+<div class="px-8 py-6 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+<div>
+<h2 class="text-xl font-bold">Publish to Network</h2>
+<p class="text-sm text-slate-400">Finalize your assets and prepare for distribution</p>
+</div>
+<button class="p-2 hover:bg-slate-800 rounded-full text-slate-400 transition-colors">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<div class="flex-1 overflow-y-auto px-8 py-6">
+<form class="grid grid-cols-1 md:grid-cols-12 gap-8">
+<div class="md:col-span-7 space-y-6">
+<div>
+<label class="block text-sm font-semibold mb-2">Campaign Title <span class="text-primary">*</span></label>
+<input class="w-full bg-slate-50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 focus:ring-primary focus:border-primary transition-all" placeholder="e.g., Summer NFT Drop 2024" required="" type="text"/>
+</div>
+<div class="relative">
+<div class="flex items-center justify-between mb-2">
+<label class="block text-sm font-semibold">Description</label>
+<span class="flex items-center gap-1 text-[10px] bg-primary/20 text-primary px-2 py-0.5 rounded font-bold uppercase tracking-wider">
+<span class="material-symbols-outlined text-[12px]">auto_awesome</span> AI Generated
+                                    </span>
+</div>
+<textarea class="w-full bg-slate-50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 focus:ring-primary focus:border-primary transition-all text-sm leading-relaxed" rows="4">Elevate your digital presence with the Summer NFT Drop. This collection features AI-optimized assets across 15+ dimensions, ensuring your creative message lands perfectly on every device from mobile to TV displays.</textarea>
+<button class="absolute bottom-3 right-3 text-xs text-primary font-bold hover:underline" type="button">Regenerate</button>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div>
+<label class="block text-sm font-semibold mb-2">Category</label>
+<select class="w-full bg-slate-50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 focus:ring-primary focus:border-primary transition-all text-sm">
+<option>Ads</option>
+<option>Branding</option>
+<option>E-commerce</option>
+<option>Gaming</option>
+</select>
+</div>
+<div>
+<label class="block text-sm font-semibold mb-2">License Type</label>
+<div class="flex p-1 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-slate-700">
+<button class="flex-1 text-xs font-bold py-2 rounded-lg bg-white dark:bg-slate-700 shadow-sm text-primary" type="button">Standard</button>
+<button class="flex-1 text-xs font-bold py-2 rounded-lg text-slate-500" type="button">Extended</button>
+</div>
+</div>
+</div>
+<div>
+<label class="block text-sm font-semibold mb-2">Tags (Up to 10)</label>
+<div class="flex flex-wrap gap-2 p-3 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl min-h-[48px]">
+<span class="bg-slate-200 dark:bg-slate-800 px-3 py-1 rounded-lg text-xs font-medium flex items-center gap-2">NFT <span class="material-symbols-outlined text-[14px] cursor-pointer">close</span></span>
+<span class="bg-slate-200 dark:bg-slate-800 px-3 py-1 rounded-lg text-xs font-medium flex items-center gap-2">Digital Art <span class="material-symbols-outlined text-[14px] cursor-pointer">close</span></span>
+<span class="bg-slate-200 dark:bg-slate-800 px-3 py-1 rounded-lg text-xs font-medium flex items-center gap-2">Creative <span class="material-symbols-outlined text-[14px] cursor-pointer">close</span></span>
+<input class="bg-transparent border-none p-0 text-xs focus:ring-0 w-20" placeholder="Add tag..." type="text"/>
+</div>
+</div>
+</div>
+<div class="md:col-span-5 space-y-6">
+<div class="bg-primary/5 border border-primary/20 rounded-2xl p-6">
+<label class="block text-sm font-semibold mb-4 text-primary">Listing Price (AICC)</label>
+<div class="relative">
+<input class="w-full bg-white dark:bg-slate-900 border-primary/20 rounded-xl px-4 py-4 text-2xl font-black focus:ring-primary focus:border-primary" type="number" value="1250"/>
+<span class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">AICC</span>
+</div>
+<p class="mt-3 text-xs text-slate-400 flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-primary">info</span>
+                                    Recommended Price: <span class="text-white font-bold">1,180 - 1,420 AICC</span>
+</p>
+</div>
+<div>
+<div class="flex items-center justify-between mb-4">
+<label class="block text-sm font-semibold">Deliverables</label>
+<span class="text-[10px] text-slate-400 uppercase font-bold tracking-widest">12 Assets selected</span>
+</div>
+<div class="space-y-3">
+<div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-slate-700">
+<div class="flex items-center gap-3">
+<div class="p-2 bg-blue-500/10 rounded-lg"><span class="material-symbols-outlined text-blue-500 text-sm">smartphone</span></div>
+<div>
+<p class="text-xs font-bold">Mobile Package</p>
+<p class="text-[10px] text-slate-500">4 Sizes (PNG, MP4)</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-primary">check_circle</span>
+</div>
+<div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-slate-700">
+<div class="flex items-center gap-3">
+<div class="p-2 bg-purple-500/10 rounded-lg"><span class="material-symbols-outlined text-purple-500 text-sm">desktop_windows</span></div>
+<div>
+<p class="text-xs font-bold">Web &amp; Social</p>
+<p class="text-[10px] text-slate-500">8 Sizes (JPG, WebP)</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-primary">check_circle</span>
+</div>
+<label class="flex items-center gap-3 p-4 border border-dashed border-slate-700 rounded-xl cursor-pointer hover:border-primary transition-colors">
+<input class="rounded border-slate-700 text-primary focus:ring-primary bg-transparent" type="checkbox"/>
+<div>
+<p class="text-xs font-bold">Include Source Files</p>
+<p class="text-[10px] text-slate-500">PSD, AI, and Figma Archives</p>
+</div>
+</label>
+</div>
+</div>
+</div>
+</form>
+</div>
+<div class="px-8 py-6 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-background-dark/50 flex items-center justify-between">
+<button class="px-6 py-3 rounded-xl text-sm font-bold text-slate-400 hover:text-white transition-colors">Save as Draft</button>
+<div class="flex gap-4">
+<button class="px-6 py-3 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-bold hover:bg-slate-800 transition-colors">Cancel</button>
+<button class="px-10 py-3 rounded-xl bg-primary text-white text-sm font-bold shadow-lg shadow-primary/20 hover:brightness-110 active:scale-95 transition-all">
+                            Confirm &amp; Publish
+                        </button>
+</div>
+</div>
+</div>
 </div>
 </div>
 

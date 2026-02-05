@@ -9,15 +9,21 @@ type Session = { user: SessionUser } | null;
 
 type PrismaLike = {
   project: {
-    findMany: (args: { where: { userId: string } }) => Promise<Array<{ id: string; name: string }>>;
+    findMany: (args: { where: { userId: string }; orderBy?: { createdAt: "desc" }; take?: number }) => Promise<Array<{ id: string; name: string; createdAt: Date }>>;
     create: (args: { data: { name: string; userId: string } }) => Promise<{ id: string; name: string }>;
+    count: (args: { where: { userId: string } }) => Promise<number>;
   };
   brief: {
     create: (args: { data: { projectId: string; intentText: string; briefJson: unknown; constraints: unknown } }) => Promise<unknown>;
     findUnique: (args: { where: { id: string } }) => Promise<unknown | null>;
+    count: (args: { where: { project: { userId: string } } }) => Promise<number>;
   };
   draft: {
     findMany: (args: { where: { briefId: string }; orderBy: { createdAt: "desc" } }) => Promise<unknown[]>;
+    count: (args: { where: { brief: { project: { userId: string } }; createdAt: { gte: Date } } }) => Promise<number>;
+  };
+  creative: {
+    count: (args: { where: { project: { userId: string }; status: string } }) => Promise<number>;
   };
   placementSpec: {
     upsert: (args: {
@@ -94,6 +100,65 @@ export function createApp({ prisma, getSession }: AppDeps) {
     const user = c.get("user") as SessionUser | null;
     if (!user) return c.json({ error: "unauthorized" }, 401);
     return c.json({ user });
+  });
+
+  // --- Dashboard Stats ---
+  app.get("/api/dashboard/stats", async (c) => {
+    const user = c.get("user") as SessionUser | null;
+    if (!user) return c.json({ error: "unauthorized" }, 401);
+
+    // Calculate daily generations (drafts created today)
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    
+    const dailyGenerations = await prisma.draft.count({
+      where: {
+        brief: { project: { userId: user.id } },
+        createdAt: { gte: todayStart }
+      }
+    });
+
+    // Count published creatives
+    const publishedCreatives = await prisma.creative.count({
+      where: {
+        project: { userId: user.id },
+        status: "published"
+      }
+    });
+
+    // Mock monthly revenue for now (TODO: integrate with actual payment records)
+    const monthlyRevenue = "0 AICC";
+    const monthlyRevenueChange = 0;
+
+    // Get recent projects with timestamps
+    const recentProjects = await prisma.project.findMany({
+      where: { userId: user.id },
+      orderBy: { createdAt: "desc" },
+      take: 5
+    });
+
+    return c.json({
+      stats: {
+        dailyGenerations: {
+          value: dailyGenerations,
+          change: 0 // TODO: calculate vs yesterday
+        },
+        publishedCreatives: {
+          value: publishedCreatives,
+          change: 0 // TODO: calculate vs last period
+        },
+        monthlyRevenue: {
+          value: monthlyRevenue,
+          change: monthlyRevenueChange
+        }
+      },
+      recentProjects: recentProjects.map(p => ({
+        id: p.id,
+        name: p.name,
+        timestamp: new Date(p.createdAt).toLocaleString(),
+        status: "draft" // TODO: calculate actual status
+      }))
+    });
   });
 
   // --- Wallet / Orders (mock for now) ---

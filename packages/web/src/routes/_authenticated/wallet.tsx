@@ -692,17 +692,6 @@ function WalletPage() {
             Manage your on-chain assets, AICC tokens, and creative licensing.
           </p>
         </div>
-        {isConnected && (
-          <div className="flex gap-3">
-            <button
-              type="button"
-              className="flex h-11 items-center justify-center gap-2 rounded-lg bg-primary px-5 font-bold text-white transition-colors hover:bg-blue-700"
-            >
-              <span className="material-symbols-outlined text-xl">add_card</span>
-              Add Funds
-            </button>
-          </div>
-        )}
       </div>
 
       {/* Tabs */}

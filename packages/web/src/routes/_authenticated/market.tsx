@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState, useMemo } from "react";
 import { createApiClient, type MarketplaceListing, type MarketplaceQuery } from "@/lib/api";
@@ -139,22 +139,22 @@ function PriceRangeFilter({
 }
 
 // Marketplace card component
-function MarketplaceCard({ listing, onQuickPreview }: { listing: MarketplaceListing; onQuickPreview: (listing: MarketplaceListing) => void }) {
+function MarketplaceCard({ listing }: { listing: MarketplaceListing }) {
   return (
-    <div className="group relative flex flex-col gap-3 overflow-hidden rounded-xl border border-border bg-card pb-4 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+    <Link
+      to="/market/$id"
+      params={{ id: listing.id }}
+      className="group relative flex flex-col gap-3 overflow-hidden rounded-xl border border-border bg-card pb-4 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+    >
       <div className="relative aspect-[4/3] w-full overflow-hidden">
         <div
           className="h-full w-full bg-cover bg-center bg-no-repeat transition-transform duration-500 group-hover:scale-105"
           style={{ backgroundImage: `url("${listing.imageUrl}")` }}
         />
         <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
-          <button
-            type="button"
-            onClick={() => onQuickPreview(listing)}
-            className="flex translate-y-4 transform items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-bold text-slate-900 shadow-xl transition-transform group-hover:translate-y-0"
-          >
-            <span className="material-symbols-outlined">visibility</span> Quick Preview
-          </button>
+          <span className="flex translate-y-4 transform items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-bold text-slate-900 shadow-xl transition-transform group-hover:translate-y-0">
+            <span className="material-symbols-outlined">visibility</span> View Details
+          </span>
         </div>
         {listing.isPremium && (
           <div className="absolute right-3 top-3 rounded bg-black/60 px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-white backdrop-blur-md">
@@ -173,22 +173,19 @@ function MarketplaceCard({ listing, onQuickPreview }: { listing: MarketplaceList
           </div>
         </div>
         <p className="mb-3 text-sm text-muted-foreground">
-          by <span className="cursor-pointer transition-colors hover:text-primary">{listing.creator.name}</span>
+          by <span className="transition-colors hover:text-primary">{listing.creator.name}</span>
         </p>
         <div className="mt-auto flex items-center justify-between">
           <div className="flex items-center gap-1.5">
             <span className="material-symbols-outlined !text-[18px] text-primary">monetization_on</span>
             <span className="font-bold text-foreground">{listing.priceAicc} AICC</span>
           </div>
-          <button
-            type="button"
-            className="rounded-full p-2 text-primary transition-colors hover:bg-primary/10"
-          >
+          <span className="rounded-full p-2 text-primary transition-colors group-hover:bg-primary/10">
             <span className="material-symbols-outlined">shopping_cart</span>
-          </button>
+          </span>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
 
@@ -262,93 +259,6 @@ function Pagination({
   );
 }
 
-// Preview modal component
-function PreviewModal({
-  listing,
-  onClose
-}: {
-  listing: MarketplaceListing;
-  onClose: () => void;
-}) {
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="mx-4 max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-border bg-card p-6 shadow-2xl">
-        <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-xl font-bold text-foreground">{listing.title}</h3>
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex size-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-          >
-            <span className="material-symbols-outlined">close</span>
-          </button>
-        </div>
-
-        <div className="mb-4 aspect-video w-full overflow-hidden rounded-lg">
-          <img
-            src={listing.imageUrl}
-            alt={listing.title}
-            className="h-full w-full object-cover"
-          />
-        </div>
-
-        <div className="mb-4 flex flex-wrap gap-2">
-          {listing.isPremium && (
-            <span className="rounded-full bg-amber-500/10 px-3 py-1 text-xs font-bold uppercase text-amber-500">
-              Premium
-            </span>
-          )}
-          <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-bold uppercase text-primary">
-            {listing.assetType.replace("_", " ")}
-          </span>
-          <span className="rounded-full bg-muted px-3 py-1 text-xs font-bold uppercase text-muted-foreground">
-            {listing.licenseType}
-          </span>
-        </div>
-
-        <p className="mb-4 text-sm text-muted-foreground">{listing.description}</p>
-
-        <div className="mb-4 flex flex-wrap gap-2">
-          {listing.tags.map((tag) => (
-            <span key={tag} className="rounded bg-muted px-2 py-1 text-xs text-muted-foreground">
-              #{tag}
-            </span>
-          ))}
-        </div>
-
-        <div className="mb-6 flex items-center justify-between rounded-lg bg-muted p-4">
-          <div>
-            <p className="text-sm text-muted-foreground">Created by</p>
-            <p className="font-semibold text-foreground">{listing.creator.name}</p>
-          </div>
-          <div className="text-right">
-            <p className="text-sm text-muted-foreground">Rating</p>
-            <div className="flex items-center gap-1 text-amber-500">
-              <span className="material-symbols-outlined !text-[16px]">star</span>
-              <span className="font-bold">{listing.rating}</span>
-              <span className="text-xs text-muted-foreground">({listing.reviewCount} reviews)</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-2xl text-primary">monetization_on</span>
-            <span className="text-2xl font-bold text-foreground">{listing.priceAicc} AICC</span>
-          </div>
-          <button
-            type="button"
-            className="flex items-center gap-2 rounded-lg bg-primary px-6 py-3 font-bold text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] hover:bg-primary/90"
-          >
-            <span className="material-symbols-outlined">shopping_cart</span>
-            Purchase
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function MarketPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -357,7 +267,6 @@ function MarketPage() {
   const [priceMin, setPriceMin] = useState("");
   const [priceMax, setPriceMax] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [previewListing, setPreviewListing] = useState<MarketplaceListing | null>(null);
 
   // Debounce search input
   const handleSearchChange = (value: string) => {
@@ -420,11 +329,6 @@ function MarketPage() {
 
   return (
     <div className="mx-auto w-full max-w-[1280px] px-4 py-8 lg:px-10">
-      {/* Preview Modal */}
-      {previewListing && (
-        <PreviewModal listing={previewListing} onClose={() => setPreviewListing(null)} />
-      )}
-
       {/* Page Header */}
       <div className="mb-8">
         <h1 className="mb-2 text-3xl font-black leading-tight tracking-[-0.033em] text-foreground md:text-4xl">
@@ -569,7 +473,6 @@ function MarketPage() {
             <MarketplaceCard
               key={listing.id}
               listing={listing}
-              onQuickPreview={setPreviewListing}
             />
           ))}
         </div>

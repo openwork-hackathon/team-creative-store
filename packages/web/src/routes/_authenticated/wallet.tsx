@@ -1,9 +1,26 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { useAccount, useConnect, useDisconnect, useBalance } from "wagmi";
+import { useAccount, useConnect, useDisconnect, useBalance, useReadContract } from "wagmi";
 import { base } from "wagmi/chains";
 import { formatUnits } from "viem";
+
+const erc20Abi = [
+  {
+    name: "balanceOf",
+    type: "function",
+    stateMutability: "view",
+    inputs: [{ name: "account", type: "address" }],
+    outputs: [{ name: "", type: "uint256" }]
+  },
+  {
+    name: "decimals",
+    type: "function",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ name: "", type: "uint8" }]
+  }
+] as const;
 
 type WalletTx = {
   id: string;
@@ -48,10 +65,25 @@ function WalletPage() {
     | undefined;
 
   // Get AICC token balance (ERC20 on Base)
-  const { data: aiccBalanceData } = useBalance({
-    address,
+  const { data: aiccBalance } = useReadContract({
+    address: aiccTokenAddress,
+    abi: erc20Abi,
+    functionName: "balanceOf",
+    args: address ? [address] : undefined,
     chainId: base.id,
-    token: aiccTokenAddress
+    query: {
+      enabled: !!aiccTokenAddress && !!address
+    }
+  });
+
+  const { data: aiccDecimals } = useReadContract({
+    address: aiccTokenAddress,
+    abi: erc20Abi,
+    functionName: "decimals",
+    chainId: base.id,
+    query: {
+      enabled: !!aiccTokenAddress
+    }
   });
 
   // Format address for display
@@ -64,8 +96,8 @@ function WalletPage() {
     ? `${parseFloat(formatUnits(balanceData.value, balanceData.decimals)).toFixed(4)} ${balanceData.symbol}`
     : "0.00 ETH";
 
-  const formattedAiccBalance = aiccBalanceData
-    ? `${parseFloat(formatUnits(aiccBalanceData.value, aiccBalanceData.decimals)).toFixed(2)} ${aiccBalanceData.symbol}`
+  const formattedAiccBalance = aiccTokenAddress && aiccBalance !== undefined && aiccDecimals !== undefined
+    ? `${parseFloat(formatUnits(aiccBalance, aiccDecimals)).toFixed(2)} AICC`
     : aiccTokenAddress
       ? "0.00 AICC"
       : "Set VITE_AICC_TOKEN_ADDRESS";

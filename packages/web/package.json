@@ -10,6 +10,7 @@
     "test": "vitest"
   },
   "dependencies": {
+    "@better-fetch/fetch": "^1.1.21",
     "@creative-store/shared": "file:../shared",
     "@tanstack/react-query": "^5.66.0",
     "@tanstack/react-router": "^1.100.0",

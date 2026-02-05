@@ -11,9 +11,12 @@ vi.mock("ai", () => ({
 
 const generateObjectMock = vi.mocked(generateObject);
 
+const originalApiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+
 afterEach(() => {
   generateObjectMock.mockReset();
   vi.unstubAllGlobals();
+  process.env.GOOGLE_GENERATIVE_AI_API_KEY = originalApiKey;
 });
 
 const createMemoryPrisma = () => {
@@ -82,7 +85,6 @@ describe("AI routes", () => {
   });
 
   it("generates creatives and stores a sanitized draft", async () => {
-    const originalApiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
     process.env.GOOGLE_GENERATIVE_AI_API_KEY = "test-key";
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
@@ -136,6 +138,5 @@ describe("AI routes", () => {
       ])
     );
     expect(payload.draft.draftJson.creative.html).not.toContain("<script");
-    process.env.GOOGLE_GENERATIVE_AI_API_KEY = originalApiKey;
   });
 });

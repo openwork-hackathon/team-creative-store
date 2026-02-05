@@ -4,9 +4,10 @@ import { LoginCard } from "@/components/auth/login-card";
 type LoginPageProps = {
   onSignIn: (email: string, password: string) => Promise<unknown> | void;
   onSignUp: (name: string, email: string, password: string) => Promise<unknown> | void;
+  onGoogleSignIn?: () => void;
 };
 
-export function LoginPage({ onSignIn, onSignUp }: LoginPageProps) {
+export function LoginPage({ onSignIn, onSignUp, onGoogleSignIn }: LoginPageProps) {
   const [mode, setMode] = useState<"sign-in" | "sign-up">("sign-in");
   const [notice, setNotice] = useState<string | null>(null);
 
@@ -30,6 +31,7 @@ export function LoginPage({ onSignIn, onSignUp }: LoginPageProps) {
         onModeChange={setMode}
         onSignIn={handleSignIn}
         onSignUp={handleSignUp}
+        onGoogleSignIn={onGoogleSignIn}
       />
     </div>
   );

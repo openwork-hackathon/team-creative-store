@@ -20,6 +20,13 @@ type TopNavProps = {
 export function TopNav({ user }: TopNavProps) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
+  const initials = user?.name
+    ?.split(" ")
+    .map((part) => part[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+
   return (
     <header className="sticky top-0 z-50 flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 bg-background-light px-4 py-3 dark:border-[#232f48] dark:bg-background-dark md:px-10">
       <div className="flex items-center gap-8">
@@ -90,14 +97,16 @@ export function TopNav({ user }: TopNavProps) {
         </div>
 
         {/* User Avatar */}
-        <div
-          className="aspect-square size-10 rounded-full border-2 border-primary bg-cover bg-center bg-no-repeat"
-          style={{
-            backgroundImage: user?.image
-              ? `url("${user.image}")`
-              : 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuBw2JlV4CLrBIJHDXtezuJzq-DSNZOCN9f23-NX9Rdyq2s4vsWQh1xqG2Kn1Djn6xOyWDbcTcMHgyWGU7arALq2i1yphjC0VKMeHJvC60Spumi0L30u4Gmz-hTEeEkkjNGGuX0eVyPS2o8pVTUul9_g7VB71P0eE8m_h984Z9bK4LPRf9B9etYw-PpwMmCysBbC9nBWBt_QQDexFcbd9PMubo7Q5hBsHYEhwRlNcNvDzmzFAbNrVk83_k6EdMp54JmRkLtqHPWh_vM")'
-          }}
-        />
+        {user?.image ? (
+          <div
+            className="aspect-square size-10 rounded-full border-2 border-primary bg-cover bg-center bg-no-repeat"
+            style={{ backgroundImage: `url("${user.image}")` }}
+          />
+        ) : (
+          <div className="flex size-10 items-center justify-center rounded-full border-2 border-primary bg-slate-100 text-sm font-semibold text-slate-600 dark:bg-[#232f48] dark:text-white">
+            {initials || "AI"}
+          </div>
+        )}
       </div>
     </header>
   );

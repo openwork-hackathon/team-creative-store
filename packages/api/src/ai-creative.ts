@@ -4,6 +4,7 @@ import {
   PLACEMENT_SPEC_BY_KEY,
   zAiCreativeOutput,
   zBrief,
+  type BrandAsset,
   type PlacementSpecKey
 } from "@creative-store/shared";
 import { buildBriefJsonFromInput } from "./brief-analysis";
@@ -17,6 +18,69 @@ type BriefParseInput = {
 };
 
 const model = () => google("gemini-1.5-flash");
+const PLACEHOLDER_IMAGE_DATA_URL =
+  "data:image/svg+xml;base64," +
+  "PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MDAiIGhlaWdodD0iODAwIiB2aWV3Qm94PSIwIDAgODAwIDgwMCI+PHJlY3Qgd2lkdGg9IjgwMCIgaGVpZ2h0PSI4MDAiIGZpbGw9IiNFNkUwRDYiLz48cGF0aCBkPSJNMCA2MDBMMjAwIDQwMGwyMDAgMjAwIDIwMC0xNTAgMjAwIDI1MFY4MDBIMHoiIGZpbGw9IiNDQ0M0QjgiIG9wYWNpdHk9Ii44Ii8+PHRleHQgeD0iNDAwIiB5PSIzODAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgSGVsdmV0aWNhLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjMyIiBmaWxsPSIjNjY2Ij5QbGFjZWhvbGRlciBJbWFnZTwvdGV4dD48L3N2Zz4=";
+
+type GeminiImageInput = {
+  prompt: string;
+  brandAssets?: BrandAsset[];
+};
+
+export async function generateImageWithGeminiFlash(input: GeminiImageInput) {
+  const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+  if (!apiKey) return null;
+
+  try {
+    const inlineDataParts =
+      input.brandAssets?.map((asset) => ({
+        inlineData: {
+          mimeType: asset.mimeType,
+          data: asset.dataBase64
+        }
+      })) ?? [];
+
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${apiKey}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [
+            {
+              role: "user",
+              parts: [{ text: input.prompt }, ...inlineDataParts]
+            }
+          ],
+          generationConfig: { responseModalities: ["TEXT", "IMAGE"] }
+        })
+      }
+    );
+
+    if (!response.ok) return null;
+    const payload = await response.json();
+    const candidates = Array.isArray(payload?.candidates) ? payload.candidates : [];
+
+    for (const candidate of candidates) {
+      const parts = candidate?.content?.parts;
+      if (!Array.isArray(parts)) continue;
+      const imagePart = parts.find(
+        (part) =>
+          part?.inlineData?.mimeType?.startsWith("image/") &&
+          typeof part.inlineData.data === "string" &&
+          part.inlineData.data.length > 0
+      );
+      if (imagePart) {
+        const { mimeType, data } = imagePart.inlineData;
+        return `data:${mimeType};base64,${data}`;
+      }
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
+}
 
 export async function parseBriefWithAi(input: BriefParseInput) {
   try {
@@ -77,10 +141,48 @@ type CreativeGenerateInput = {
   placement: PlacementSpecKey;
   brief: unknown;
   intentText?: string;
+  brandAssets?: BrandAsset[];
+};
+
+const buildImagePrompt = (input: CreativeGenerateInput) => {
+  const spec = PLACEMENT_SPEC_BY_KEY[input.placement];
+  const intentText = input.intentText?.trim();
+  return [
+    "Create a high-quality, brand-safe background image for an advertisement.",
+    `Placement size: ${spec.width}x${spec.height}.`,
+    intentText ? `Campaign intent: ${intentText}.` : "Use a versatile, modern marketing aesthetic.",
+    "Avoid adding text or logos unless provided via brand assets.",
+    `Brief: ${JSON.stringify(input.brief)}`
+  ].join(" ");
+};
+
+const ensureBackgroundImage = (
+  html: string,
+  src: string,
+  assetId: string
+) => {
+  if (new RegExp(`data-asset-id=[\"']${assetId}[\"']`).test(html)) {
+    return html;
+  }
+
+  const background = `
+    <div style="position:relative;width:100%;height:100%;">
+      <img data-asset-id="${assetId}" src="${src}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;" />
+      <div style="position:relative;z-index:1;width:100%;height:100%;">${html}</div>
+    </div>
+  `;
+
+  return background;
 };
 
 export async function generateCreativeWithAi(input: CreativeGenerateInput) {
   const spec = PLACEMENT_SPEC_BY_KEY[input.placement];
+  const imagePrompt = buildImagePrompt(input);
+  const generatedImage = await generateImageWithGeminiFlash({
+    prompt: imagePrompt,
+    brandAssets: input.brandAssets
+  });
+  const backgroundSrc = generatedImage ?? PLACEHOLDER_IMAGE_DATA_URL;
   try {
     const result = await generateObject({
       model: model(),
@@ -100,16 +202,40 @@ export async function generateCreativeWithAi(input: CreativeGenerateInput) {
       })
     });
 
-    const sanitizedHtml = sanitizeCreativeHtml(result.object.html);
+    const assets = [...(result.object.assets ?? [])];
+    if (generatedImage) {
+      assets.push({ type: "image", label: "generated", dataUrl: generatedImage });
+    } else {
+      assets.push({ type: "image", label: "placeholder", url: backgroundSrc });
+    }
+
+    const htmlWithBackground = ensureBackgroundImage(
+      result.object.html,
+      backgroundSrc,
+      "background"
+    );
+    const sanitizedHtml = sanitizeCreativeHtml(htmlWithBackground);
     return {
       ...result.object,
-      html: sanitizedHtml
+      html: sanitizedHtml,
+      assets
     };
   } catch {
     const fallback = buildCreativeFallback(input.placement, input.intentText);
+    const htmlWithBackground = ensureBackgroundImage(
+      fallback.html,
+      backgroundSrc,
+      "background"
+    );
     return {
       ...fallback,
-      html: sanitizeCreativeHtml(fallback.html)
+      html: sanitizeCreativeHtml(htmlWithBackground),
+      assets: [
+        ...(fallback.assets ?? []),
+        generatedImage
+          ? { type: "image", label: "generated", dataUrl: generatedImage }
+          : { type: "image", label: "placeholder", url: backgroundSrc }
+      ]
     };
   }
 }

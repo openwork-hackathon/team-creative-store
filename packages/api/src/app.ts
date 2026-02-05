@@ -4,6 +4,7 @@ import { zValidator } from "@hono/zod-validator";
 import {
   PLACEMENT_SPECS,
   zCreateBriefInput,
+  zBrandAsset,
   zPlacementSpecKey
 } from "@creative-store/shared";
 import { buildBriefJsonFromInput } from "./brief-analysis";
@@ -139,7 +140,8 @@ export function createApp({ prisma, getSession }: AppDeps) {
       "json",
       z.object({
         briefId: z.string().min(1),
-        placement: zPlacementSpecKey
+        placement: zPlacementSpecKey,
+        brandAssets: z.array(zBrandAsset).optional()
       })
     ),
     async (c) => {
@@ -152,7 +154,8 @@ export function createApp({ prisma, getSession }: AppDeps) {
       const creative = await generateCreativeWithAi({
         placement: input.placement,
         brief: (brief as { briefJson?: unknown }).briefJson ?? {},
-        intentText: (brief as { intentText?: string }).intentText
+        intentText: (brief as { intentText?: string }).intentText,
+        brandAssets: input.brandAssets
       });
 
       const draft = await prisma.draft.create({

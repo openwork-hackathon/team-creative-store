@@ -51,7 +51,7 @@ export function sanitizeCreativeHtml(html: string) {
     allowedAttributes: {
       "*": ["class", "style", "id", "role", "aria-label", "aria-hidden"],
       a: ["href", "name", "target", "rel"],
-      img: ["src", "alt", "title", "width", "height", "loading", "decoding"],
+      img: ["src", "alt", "title", "width", "height", "loading", "decoding", "data-asset-id"],
       button: ["type", "aria-label"]
     },
     allowedSchemes: ["data", "http", "https", "mailto", "tel"],

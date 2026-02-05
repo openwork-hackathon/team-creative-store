@@ -1,4 +1,4 @@
-import type { PlacementSpecKey, AiCreativeOutput } from "@creative-store/shared";
+import type { PlacementSpecKey, AiCreativeOutput, BrandAsset } from "@creative-store/shared";
 
 type CreateBriefInput = {
   intentText: string;
@@ -12,6 +12,7 @@ type ParseBriefInput = CreateBriefInput;
 type GenerateCreativeInput = {
   briefId: string;
   placement: PlacementSpecKey;
+  brandAssets?: BrandAsset[];
 };
 
 export function createApiClient(

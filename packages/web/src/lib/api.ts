@@ -1,10 +1,17 @@
-import type { PlacementSpecKey } from "@creative-store/shared";
+import type { PlacementSpecKey, AiCreativeOutput } from "@creative-store/shared";
 
 type CreateBriefInput = {
   intentText: string;
   placements: PlacementSpecKey[];
   industry?: string;
   sensitiveWords?: string[];
+};
+
+type ParseBriefInput = CreateBriefInput;
+
+type GenerateCreativeInput = {
+  briefId: string;
+  placement: PlacementSpecKey;
 };
 
 export function createApiClient(
@@ -33,6 +40,18 @@ export function createApiClient(
       request(`${baseUrl}/briefs/${briefId}`).then((response) => response.json()),
     getCurrentUser: async () =>
       request(`${baseUrl}/user/@me`).then((response) => response.json()),
+    parseBriefWithAi: async (input: ParseBriefInput) =>
+      request(`${baseUrl}/ai/brief/parse`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(input)
+      }).then((response) => response.json()),
+    generateCreative: async (input: GenerateCreativeInput) =>
+      request(`${baseUrl}/ai/creative/generate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(input)
+      }).then((response) => response.json() as Promise<{ draft?: unknown; creative?: AiCreativeOutput }>),
     uploadLogo: async (formData: FormData) =>
       request(`${baseUrl}/uploads/logo`, {
         method: "POST",

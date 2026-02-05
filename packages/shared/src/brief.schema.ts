@@ -23,7 +23,8 @@ export const zBrief = z.object({
   compliance: z.object({
     sensitiveWords: z.array(z.string()).default([]),
     notes: z.string().optional()
-  }).default({ sensitiveWords: [] })
+  }).default({ sensitiveWords: [] }),
+  proposedHook: z.string().optional()
 });
 
 export type Brief = z.infer<typeof zBrief>;

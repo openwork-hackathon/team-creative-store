@@ -14,7 +14,9 @@ describe("CampaignGenerator", () => {
       }),
       getBrief: vi.fn().mockResolvedValue({
         brief: { id: "b1", intentText: "Launch a sale", briefJson: {} }
-      })
+      }),
+      generateCreative: vi.fn(),
+      parseBriefWithAi: vi.fn()
     };
 
     render(<CampaignGenerator api={api} />);
@@ -37,6 +39,8 @@ describe("CampaignGenerator", () => {
       createProject: vi.fn(),
       createBrief: vi.fn(),
       getBrief: vi.fn(),
+      generateCreative: vi.fn(),
+      parseBriefWithAi: vi.fn(),
       uploadLogo: vi.fn().mockResolvedValue({ ok: true, files: [] }),
       uploadVisuals: vi.fn().mockResolvedValue({ ok: true, files: [] })
     };

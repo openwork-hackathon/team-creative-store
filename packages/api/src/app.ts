@@ -1,8 +1,13 @@
 import { Hono } from "hono";
 import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
-import { PLACEMENT_SPECS, zCreateBriefInput } from "@creative-store/shared";
+import {
+  PLACEMENT_SPECS,
+  zCreateBriefInput,
+  zPlacementSpecKey
+} from "@creative-store/shared";
 import { buildBriefJsonFromInput } from "./brief-analysis";
+import { generateCreativeWithAi, parseBriefWithAi } from "./ai-creative";
 
 type SessionUser = { id: string };
 type Session = { user: SessionUser } | null;
@@ -17,6 +22,7 @@ type PrismaLike = {
     findUnique: (args: { where: { id: string } }) => Promise<unknown | null>;
   };
   draft: {
+    create: (args: { data: { briefId: string; draftJson: unknown } }) => Promise<unknown>;
     findMany: (args: { where: { briefId: string }; orderBy: { createdAt: "desc" } }) => Promise<unknown[]>;
   };
   placementSpec: {
@@ -111,6 +117,57 @@ export function createApp({ prisma, getSession }: AppDeps) {
     const files = collectFiles(body.files ?? body.file);
     return c.json({ ok: true, files: mapFiles(files) });
   });
+
+  app.post(
+    "/api/ai/brief/parse",
+    zValidator(
+      "json",
+      zCreateBriefInput.omit({ projectId: true })
+    ),
+    async (c) => {
+      const user = c.get("user") as SessionUser | null;
+      if (!user) return c.json({ error: "unauthorized" }, 401);
+      const input = c.req.valid("json");
+      const parsed = await parseBriefWithAi(input);
+      return c.json(parsed);
+    }
+  );
+
+  app.post(
+    "/api/ai/creative/generate",
+    zValidator(
+      "json",
+      z.object({
+        briefId: z.string().min(1),
+        placement: zPlacementSpecKey
+      })
+    ),
+    async (c) => {
+      const user = c.get("user") as SessionUser | null;
+      if (!user) return c.json({ error: "unauthorized" }, 401);
+      const input = c.req.valid("json");
+      const brief = await prisma.brief.findUnique({ where: { id: input.briefId } });
+      if (!brief) return c.json({ error: "not_found" }, 404);
+
+      const creative = await generateCreativeWithAi({
+        placement: input.placement,
+        brief: (brief as { briefJson?: unknown }).briefJson ?? {},
+        intentText: (brief as { intentText?: string }).intentText
+      });
+
+      const draft = await prisma.draft.create({
+        data: {
+          briefId: input.briefId,
+          draftJson: {
+            placement: input.placement,
+            creative
+          }
+        }
+      });
+
+      return c.json({ draft, creative });
+    }
+  );
 
   app.post(
     "/api/projects",

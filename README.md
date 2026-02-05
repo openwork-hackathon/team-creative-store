@@ -16,7 +16,7 @@ docker compose up -d
 2) Create env file
 
 ```bash
-cp .env.exmaple .env
+cp .env.example .env
 ```
 
 Set a strong secret:

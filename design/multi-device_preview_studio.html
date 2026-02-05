@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Multi-Device Preview Studio</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#135bec",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101622",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .canvas-grid {
+            background-image: linear-gradient(to right, #232f48 1px, transparent 1px),
+                              linear-gradient(to bottom, #232f48 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-white antialiased">
+<div class="flex flex-col h-screen overflow-hidden">
+<!-- TopNavBar -->
+<header class="flex h-16 items-center justify-between border-b border-solid border-slate-200 dark:border-slate-800 px-6 bg-white dark:bg-background-dark shrink-0 z-20">
+<div class="flex items-center gap-4">
+<div class="text-primary">
+<svg class="size-8" fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path d="M39.5563 34.1455V13.8546C39.5563 15.708 36.8773 17.3437 32.7927 18.3189C30.2914 18.916 27.263 19.2655 24 19.2655C20.737 19.2655 17.7086 18.916 15.2073 18.3189C11.1227 17.3437 8.44365 15.708 8.44365 13.8546V34.1455C8.44365 35.9988 11.1227 37.6346 15.2073 38.6098C17.7086 39.2069 20.737 39.5564 24 39.5564C27.1288 39.5564 30.2914 39.2069 32.7927 38.6098C36.8773 37.6346 39.5563 35.9988 39.5563 34.1455Z" fill="currentColor"></path>
+</svg>
+</div>
+<h2 class="text-lg font-bold leading-tight tracking-tight">Preview Studio</h2>
+<div class="ml-4 h-6 w-px bg-slate-700"></div>
+<div class="flex items-center gap-6 ml-4">
+<a class="text-slate-400 hover:text-white text-sm font-medium transition-colors" href="#">v1.2.4 (Latest)</a>
+<a class="text-slate-400 hover:text-white text-sm font-medium transition-colors" href="#">Assets</a>
+<a class="text-slate-400 hover:text-white text-sm font-medium transition-colors" href="#">History</a>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<button class="flex items-center justify-center p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-white transition-colors">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<button class="flex items-center justify-center p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-white transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="flex min-w-[100px] cursor-pointer items-center justify-center rounded-lg h-10 px-5 bg-primary text-white text-sm font-bold shadow-lg shadow-primary/20">
+                    Publish
+                </button>
+<div class="ml-2 bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-slate-700" data-alt="User profile avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBS24u3QfmId-DrhXhus1-dr5puWGOAYJ_cxGwR0LHY01nXla7ccRK6ixcWBzJTKFgMTK60KggWkcwXqCSHri5WCSkARsHD_r7DOmHEfp_Rvorj937g8xnPVwmmGFskumTEFAMqFo-RGfOeUEruIfxvzmd20G-qvUqdB2Y2BiHggXoPS9LS__1V7SoN_QLtrYaPxyS8DfjDB33RbObF_bS_NTyR3Ey-asHRLbmiaSmivGOvG_a4pbk3VSbS9GpOXwumQ1idH-OqVRM");'></div>
+</div>
+</header>
+<div class="flex flex-1 overflow-hidden">
+<!-- SideNavBar (Left) -->
+<aside class="w-64 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark flex flex-col p-4 shrink-0">
+<div class="flex flex-col gap-6 h-full">
+<div class="space-y-4">
+<div class="flex flex-col">
+<h1 class="text-sm font-semibold uppercase tracking-wider text-slate-500">Device Selection</h1>
+<p class="text-xs text-slate-400">Preview layouts</p>
+</div>
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary border border-primary/20">
+<span class="material-symbols-outlined">smartphone</span>
+<p class="text-sm font-medium">Mobile</p>
+</div>
+<div class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-colors">
+<span class="material-symbols-outlined">desktop_windows</span>
+<p class="text-sm font-medium">Web</p>
+</div>
+<div class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-colors">
+<span class="material-symbols-outlined">tv</span>
+<p class="text-sm font-medium">TV / Display</p>
+</div>
+</div>
+</div>
+<div class="space-y-4">
+<div class="flex flex-col">
+<h1 class="text-sm font-semibold uppercase tracking-wider text-slate-500">Dimensions</h1>
+</div>
+<div class="flex flex-col gap-1">
+<div class="flex items-center justify-between px-3 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-700">
+<p class="text-xs font-mono text-white">1080 x 1920</p>
+<span class="text-[10px] px-1.5 py-0.5 rounded bg-primary/20 text-primary font-bold">9:16</span>
+</div>
+<div class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-slate-800 transition-colors text-slate-400">
+<p class="text-xs font-mono">1080 x 1080</p>
+<span class="text-[10px] px-1.5 py-0.5">1:1</span>
+</div>
+<div class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-slate-800 transition-colors text-slate-400">
+<p class="text-xs font-mono">1280 x 720</p>
+<span class="text-[10px] px-1.5 py-0.5">16:9</span>
+</div>
+</div>
+</div>
+<div class="mt-auto">
+<button class="w-full flex items-center justify-center gap-2 rounded-lg h-10 border-2 border-dashed border-slate-700 text-slate-400 text-sm font-medium hover:border-primary hover:text-primary transition-all">
+<span class="material-symbols-outlined text-sm">add</span>
+<span>Custom Size</span>
+</button>
+</div>
+</div>
+</aside>
+<!-- Main Canvas Area -->
+<main class="flex-1 flex flex-col bg-slate-50 dark:bg-[#0b0f1a] relative overflow-hidden">
+<!-- ToolBar (Floating/Top of Canvas) -->
+<div class="flex items-center justify-between gap-2 px-6 py-3 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark/50 backdrop-blur-md sticky top-0 z-10">
+<div class="flex items-center gap-1">
+<button class="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors" title="Toggle Grid">
+<span class="material-symbols-outlined">grid_4x4</span>
+</button>
+<button class="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors" title="Safety Zones">
+<span class="material-symbols-outlined">shield</span>
+</button>
+<button class="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors" title="Zoom In">
+<span class="material-symbols-outlined">zoom_in</span>
+</button>
+<button class="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors" title="Fullscreen">
+<span class="material-symbols-outlined">fullscreen</span>
+</button>
+<div class="w-px h-6 bg-slate-700 mx-2"></div>
+<span class="text-sm font-medium text-slate-400">Zoom: 65%</span>
+</div>
+<button class="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-white text-sm font-bold transition-transform active:scale-95 shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined fill-1">auto_fix_high</span>
+<span>AI Auto-Fix</span>
+</button>
+</div>
+<!-- Tabs (Dimension Switcher) -->
+<div class="bg-white dark:bg-background-dark/30 border-b border-slate-800">
+<div class="flex px-6 gap-8 overflow-x-auto no-scrollbar">
+<a class="flex flex-col items-center justify-center border-b-2 border-primary text-white py-3 transition-all shrink-0" href="#">
+<p class="text-sm font-bold tracking-tight">iPhone 14 Pro</p>
+</a>
+<a class="flex flex-col items-center justify-center border-b-2 border-transparent text-slate-500 py-3 transition-all hover:text-slate-300 shrink-0" href="#">
+<p class="text-sm font-medium">Galaxy S23</p>
+</a>
+<a class="flex flex-col items-center justify-center border-b-2 border-transparent text-slate-500 py-3 transition-all hover:text-slate-300 shrink-0" href="#">
+<p class="text-sm font-medium">iPad Air</p>
+</a>
+<a class="flex flex-col items-center justify-center border-b-2 border-transparent text-slate-500 py-3 transition-all hover:text-slate-300 shrink-0" href="#">
+<p class="text-sm font-medium">Custom Display</p>
+</a>
+</div>
+</div>
+<!-- Canvas -->
+<div class="flex-1 overflow-auto flex items-center justify-center p-12 canvas-grid relative">
+<!-- Preview Container -->
+<div class="relative shadow-2xl rounded-2xl border-[12px] border-slate-900 bg-black overflow-hidden flex flex-col" style="width: 360px; height: 780px;">
+<!-- Mockup Notch -->
+<div class="absolute top-0 left-1/2 -translate-x-1/2 w-28 h-6 bg-slate-900 rounded-b-2xl z-20"></div>
+<!-- Content -->
+<div class="flex-1 relative bg-cover bg-center" data-alt="Vibrant creative design preview" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCDCCtDRR_Zh-XCvY0VfLpI52OgdP08RqES2oamkUkgNHnbr8CwO8J3hxl6nWGtypRFTblw7j2bIMiaMX_u1hkQ05wbc3cs43id3tkDitpUwJyjeCKb9G0UDMb7ymy-Aqf1oem57vEr-yb4HnI6hcv144RuoG9qAey1i_n7ASpQg_WE_W8YDHteCQEz8qg5dC-RKtxf6VT12nniJoVhssZNDdERzNS5V8ayLkKpDon5NWXU6hdbAx1ylv5pf0QlNRaYa4LKApCvGvw');">
+<!-- Overlay UI elements -->
+<div class="absolute inset-0 flex flex-col justify-between p-6 z-10">
+<div class="flex justify-between items-start">
+<span class="bg-primary px-2 py-1 rounded text-[10px] font-bold">LIVE AD</span>
+<span class="material-symbols-outlined text-white">more_vert</span>
+</div>
+<div class="space-y-3">
+<h3 class="text-2xl font-black text-white leading-tight">Elevate Your Creative Workflow.</h3>
+<p class="text-sm text-slate-200">Generate stunning NFT assets in seconds with AI-powered optimization.</p>
+<button class="w-full bg-white text-black font-bold py-3 rounded-xl">MINT NOW</button>
+</div>
+</div>
+<!-- Safety Zone Overlay -->
+<div class="absolute inset-x-4 top-12 bottom-20 border border-red-500/30 border-dashed rounded-lg pointer-events-none">
+<div class="absolute top-0 left-0 p-1 bg-red-500/20 text-[8px] text-red-400 font-bold uppercase">Safe Zone</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Right Panel (Edits) -->
+<aside class="w-72 border-l border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark flex flex-col overflow-y-auto shrink-0">
+<div class="p-6 space-y-8">
+<!-- Quick Edits -->
+<div class="space-y-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-xl">edit_note</span>
+<h3 class="text-sm font-bold uppercase tracking-wider">Quick Edits</h3>
+</div>
+<div class="space-y-3">
+<div>
+<label class="text-xs text-slate-500 font-medium mb-1.5 block">Headline Text</label>
+<textarea class="w-full bg-slate-100 dark:bg-slate-800 border-none rounded-lg text-sm focus:ring-1 focus:ring-primary h-20 resize-none">Elevate Your Creative Workflow.</textarea>
+</div>
+<div>
+<label class="text-xs text-slate-500 font-medium mb-1.5 block">Primary Color</label>
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-lg bg-primary cursor-pointer border-2 border-white shadow-sm"></div>
+<input class="flex-1 bg-slate-100 dark:bg-slate-800 border-none rounded-lg text-sm font-mono focus:ring-1 focus:ring-primary uppercase" type="text" value="#135BEC"/>
+</div>
+</div>
+</div>
+</div>
+<!-- Layout Issues (AI suggestions) -->
+<div class="space-y-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-yellow-500 text-xl">error</span>
+<h3 class="text-sm font-bold uppercase tracking-wider">Analysis</h3>
+</div>
+<div class="bg-yellow-500/10 border border-yellow-500/20 p-4 rounded-xl space-y-3">
+<div class="flex gap-3">
+<span class="material-symbols-outlined text-yellow-500 text-sm">warning</span>
+<p class="text-xs text-yellow-200 leading-snug">Text overflow detected in 1080x1080 view.</p>
+</div>
+<div class="flex gap-3">
+<span class="material-symbols-outlined text-yellow-500 text-sm">contrast</span>
+<p class="text-xs text-yellow-200 leading-snug">Contrast ratio below 4.5:1 on sub-headline.</p>
+</div>
+<button class="w-full py-2 bg-yellow-500 text-slate-900 font-bold text-xs rounded-lg hover:bg-yellow-400 transition-colors">
+                                Apply All Fixes
+                            </button>
+</div>
+</div>
+<!-- Meta / Settings -->
+<div class="space-y-4 pt-4 border-t border-slate-800">
+<div class="flex justify-between items-center">
+<span class="text-xs text-slate-500 font-medium">NFT Export Mode</span>
+<button class="w-10 h-5 bg-primary rounded-full relative">
+<div class="absolute right-0.5 top-0.5 size-4 bg-white rounded-full"></div>
+</button>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-xs text-slate-500 font-medium">Smart Resizing</span>
+<button class="w-10 h-5 bg-slate-700 rounded-full relative">
+<div class="absolute left-0.5 top-0.5 size-4 bg-slate-500 rounded-full"></div>
+</button>
+</div>
+</div>
+</div>
+<div class="mt-auto p-6 border-t border-slate-800">
+<button class="w-full flex items-center justify-center gap-2 rounded-lg h-12 bg-slate-100 dark:bg-slate-800 text-slate-300 font-bold hover:bg-slate-700 transition-colors">
+<span class="material-symbols-outlined">download</span>
+<span>Export All Sizes</span>
+</button>
+</div>
+</aside>
+</div>
+</div>
+</body></html>

@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Wallet &amp; Order Management</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#135bec",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101622",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display min-h-screen text-slate-900 dark:text-white">
+<div class="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden">
+<div class="layout-container flex h-full grow flex-col">
+<!-- Navigation Bar -->
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 dark:border-[#232f48] px-4 md:px-10 py-3 bg-background-light dark:bg-background-dark sticky top-0 z-50">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-4 text-primary">
+<div class="size-6">
+<svg fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path d="M24 45.8096C19.6865 45.8096 15.4698 44.5305 11.8832 42.134C8.29667 39.7376 5.50128 36.3314 3.85056 32.3462C2.19985 28.361 1.76794 23.9758 2.60947 19.7452C3.451 15.5145 5.52816 11.6284 8.57829 8.5783C11.6284 5.52817 15.5145 3.45101 19.7452 2.60948C23.9758 1.76795 28.361 2.19986 32.3462 3.85057C36.3314 5.50129 39.7376 8.29668 42.134 11.8833C44.5305 15.4698 45.8096 19.6865 45.8096 24L24 24L24 45.8096Z" fill="currentColor"></path>
+</svg>
+</div>
+<h2 class="text-slate-900 dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">CreativeAI</h2>
+</div>
+<label class="hidden md:flex flex-col min-w-40 !h-10 max-w-64">
+<div class="flex w-full flex-1 items-stretch rounded-lg h-full">
+<div class="text-slate-400 dark:text-[#92a4c9] flex border-none bg-slate-100 dark:bg-[#232f48] items-center justify-center pl-4 rounded-l-lg border-r-0">
+<span class="material-symbols-outlined text-xl">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-slate-900 dark:text-white focus:outline-0 focus:ring-0 border-none bg-slate-100 dark:bg-[#232f48] focus:border-none h-full placeholder:text-slate-400 dark:placeholder:text-[#92a4c9] px-4 rounded-l-none border-l-0 pl-2 text-base font-normal leading-normal" placeholder="Search assets..." value=""/>
+</div>
+</label>
+</div>
+<div class="flex flex-1 justify-end gap-8 items-center">
+<nav class="hidden lg:flex items-center gap-9">
+<a class="text-slate-600 dark:text-white text-sm font-medium leading-normal hover:text-primary transition-colors" href="#">Dashboard</a>
+<a class="text-slate-600 dark:text-white text-sm font-medium leading-normal hover:text-primary transition-colors" href="#">Creatives</a>
+<a class="text-slate-600 dark:text-white text-sm font-medium leading-normal hover:text-primary transition-colors" href="#">Ads</a>
+<a class="text-primary text-sm font-bold leading-normal" href="#">Wallet</a>
+</nav>
+<div class="flex gap-2">
+<button class="flex items-center justify-center rounded-lg h-10 w-10 bg-slate-100 dark:bg-[#232f48] text-slate-600 dark:text-white hover:bg-slate-200 dark:hover:bg-[#324467] transition-colors">
+<span class="material-symbols-outlined text-xl">notifications</span>
+</button>
+<button class="flex items-center justify-center rounded-lg h-10 w-10 bg-slate-100 dark:bg-[#232f48] text-slate-600 dark:text-white hover:bg-slate-200 dark:hover:bg-[#324467] transition-colors">
+<span class="material-symbols-outlined text-xl">settings</span>
+</button>
+</div>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-primary" data-alt="User profile avatar circle" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBw2JlV4CLrBIJHDXtezuJzq-DSNZOCN9f23-NX9Rdyq2s4vsWQh1xqG2Kn1Djn6xOyWDbcTcMHgyWGU7arALq2i1yphjC0VKMeHJvC60Spumi0L30u4Gmz-hTEeEkkjNGGuX0eVyPS2o8pVTUul9_g7VB71P0eE8m_h984Z9bK4LPRf9B9etYw-PpwMmCysBbC9nBWBt_QQDexFcbd9PMubo7Q5hBsHYEhwRlNcNvDzmzFAbNrVk83_k6EdMp54JmRkLtqHPWh_vM");'></div>
+</div>
+</header>
+<main class="flex-1 overflow-y-auto">
+<div class="mx-auto max-w-[1024px] px-4 py-8">
+<!-- Page Heading -->
+<div class="flex flex-wrap justify-between items-end gap-3 mb-6">
+<div class="flex min-w-72 flex-col gap-2">
+<p class="text-slate-900 dark:text-white text-4xl font-black leading-tight tracking-[-0.033em]">Wallet &amp; Orders</p>
+<p class="text-slate-500 dark:text-[#92a4c9] text-base font-normal leading-normal">Manage your on-chain assets, AICC tokens, and creative licensing.</p>
+</div>
+<div class="flex gap-3">
+<button class="flex items-center justify-center gap-2 rounded-lg h-11 px-5 bg-primary text-white font-bold hover:bg-blue-700 transition-colors">
+<span class="material-symbols-outlined text-xl">add_card</span>
+                                Add Funds
+                            </button>
+</div>
+</div>
+<!-- Tabs -->
+<div class="mb-8">
+<div class="flex border-b border-slate-200 dark:border-[#324467] gap-8">
+<a class="flex flex-col items-center justify-center border-b-[3px] border-b-primary text-slate-900 dark:text-white pb-3 pt-4 px-2" href="#">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">account_balance_wallet</span>
+<p class="text-sm font-bold leading-normal tracking-[0.015em]">Wallet</p>
+</div>
+</a>
+<a class="flex flex-col items-center justify-center border-b-[3px] border-b-transparent text-slate-400 dark:text-[#92a4c9] pb-3 pt-4 px-2 hover:text-slate-600 dark:hover:text-white transition-all" href="#">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">receipt_long</span>
+<p class="text-sm font-bold leading-normal tracking-[0.015em]">Orders</p>
+</div>
+</a>
+</div>
+</div>
+<!-- Wallet Overview -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
+<div class="flex flex-1 flex-col gap-2 rounded-xl p-6 border border-slate-200 dark:border-[#324467] bg-white dark:bg-background-dark/50">
+<div class="flex items-center gap-2 text-slate-500 dark:text-[#92a4c9]">
+<span class="material-symbols-outlined text-lg">link</span>
+<p class="text-sm font-medium leading-normal uppercase tracking-wider">Base Network Address</p>
+</div>
+<div class="flex items-center justify-between mt-1">
+<p class="text-slate-900 dark:text-white tracking-light text-2xl font-bold font-mono">0x71C...4f92</p>
+<button class="text-primary hover:text-blue-400 p-1">
+<span class="material-symbols-outlined">content_copy</span>
+</button>
+</div>
+</div>
+<div class="flex flex-1 flex-col gap-2 rounded-xl p-6 border border-slate-200 dark:border-[#324467] bg-white dark:bg-background-dark/50 relative overflow-hidden">
+<div class="flex items-center gap-2 text-slate-500 dark:text-[#92a4c9]">
+<span class="material-symbols-outlined text-lg">token</span>
+<p class="text-sm font-medium leading-normal uppercase tracking-wider">AICC Balance</p>
+</div>
+<p class="text-slate-900 dark:text-white tracking-light text-2xl font-bold leading-tight mt-1">1,250.00 AICC</p>
+<div class="absolute -right-4 -bottom-4 opacity-10">
+<span class="material-symbols-outlined text-8xl">currency_exchange</span>
+</div>
+</div>
+</div>
+<!-- Transaction History -->
+<div class="mb-12">
+<div class="flex items-center justify-between px-2 pb-5">
+<h2 class="text-slate-900 dark:text-white text-[22px] font-bold leading-tight tracking-[-0.015em]">Transaction History</h2>
+<button class="text-primary text-sm font-bold hover:underline">View All</button>
+</div>
+<div class="rounded-xl border border-slate-200 dark:border-[#324467] overflow-hidden bg-white dark:bg-background-dark/20">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-slate-50 dark:bg-[#1a2333] text-slate-500 dark:text-[#92a4c9] text-xs uppercase tracking-wider font-semibold">
+<th class="px-6 py-4">Transaction</th>
+<th class="px-6 py-4">Hash</th>
+<th class="px-6 py-4">Amount</th>
+<th class="px-6 py-4">Status</th>
+<th class="px-6 py-4">Date</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100 dark:divide-[#324467]">
+<tr class="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+<td class="px-6 py-4 flex items-center gap-3">
+<div class="size-8 rounded-full bg-green-500/20 flex items-center justify-center text-green-500">
+<span class="material-symbols-outlined text-base">arrow_downward</span>
+</div>
+<span class="font-medium">Received AICC</span>
+</td>
+<td class="px-6 py-4 font-mono text-xs text-slate-400">0x3f2...9a21</td>
+<td class="px-6 py-4 font-bold text-green-500">+ 500.00</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 rounded-full text-[10px] font-bold bg-green-500/10 text-green-500 uppercase">Confirmed</span>
+</td>
+<td class="px-6 py-4 text-sm text-slate-500 dark:text-[#92a4c9]">Oct 12, 2023</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+<td class="px-6 py-4 flex items-center gap-3">
+<div class="size-8 rounded-full bg-primary/20 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-base">shopping_cart</span>
+</div>
+<span class="font-medium">Asset Purchase</span>
+</td>
+<td class="px-6 py-4 font-mono text-xs text-slate-400">0x88d...12c8</td>
+<td class="px-6 py-4 font-bold">- 150.00</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 rounded-full text-[10px] font-bold bg-green-500/10 text-green-500 uppercase">Confirmed</span>
+</td>
+<td class="px-6 py-4 text-sm text-slate-500 dark:text-[#92a4c9]">Oct 10, 2023</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+<td class="px-6 py-4 flex items-center gap-3">
+<div class="size-8 rounded-full bg-red-500/20 flex items-center justify-center text-red-500">
+<span class="material-symbols-outlined text-base">priority_high</span>
+</div>
+<span class="font-medium">Failed Stake</span>
+</td>
+<td class="px-6 py-4 font-mono text-xs text-slate-400">0xef9...442b</td>
+<td class="px-6 py-4 font-bold text-red-400">- 200.00</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 rounded-full text-[10px] font-bold bg-red-500/10 text-red-500 uppercase">Reverted</span>
+</td>
+<td class="px-6 py-4 text-sm text-slate-500 dark:text-[#92a4c9]">Oct 08, 2023</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Orders Preview (from description) -->
+<div class="mb-12">
+<div class="flex items-center justify-between px-2 pb-5">
+<h2 class="text-slate-900 dark:text-white text-[22px] font-bold leading-tight tracking-[-0.015em]">Recent Creative Orders</h2>
+</div>
+<div class="grid grid-cols-1 gap-4">
+<!-- Successful Order -->
+<div class="flex flex-col sm:flex-row items-center gap-6 p-4 rounded-xl border border-slate-200 dark:border-[#324467] bg-white dark:bg-background-dark/20">
+<div class="size-20 rounded-lg bg-cover bg-center shrink-0 border border-slate-200 dark:border-slate-700" data-alt="Cyberpunk style digital art preview" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuB1fivgV23uodLfuwiW71rqqFqo6XzURfn9AMN-E1nDjICmOiQah9FzWFpVp5HIanFOm3UM-t7S73YBhI6CsYJhlNv4-N5g9im9Xw260uAklNwqkZrKeXsDfTnIhG66pdiANdLugF2Pvc3JviBtJmmrtXTfKOPytxm5snfuYsoIizJUg0qZg1xdI4isAfQCNff-w8hkM15SkgwTFUXKwIXwSTru4A2g2dZKXGDz4fFqZAojWPGyeqWmIuvZV8BAoG-KNF-cj1KDro0');"></div>
+<div class="flex-1 text-center sm:text-left">
+<h4 class="text-lg font-bold">Cyberpunk Night City Ad Pack</h4>
+<p class="text-sm text-slate-500 dark:text-[#92a4c9]">Order #ORD-99281 • Oct 11, 2023</p>
+<div class="flex items-center justify-center sm:justify-start gap-2 mt-2">
+<span class="size-2 rounded-full bg-green-500"></span>
+<span class="text-xs font-bold text-green-500 uppercase">Payment Successful</span>
+</div>
+</div>
+<div class="flex flex-col gap-2 w-full sm:w-auto">
+<button class="flex items-center justify-center gap-2 rounded-lg bg-primary text-white font-bold py-2 px-6 hover:bg-blue-700 transition-colors">
+<span class="material-symbols-outlined text-sm">download</span>
+                                        Download
+                                    </button>
+<button class="text-sm text-slate-500 hover:text-white underline">View License</button>
+</div>
+</div>
+<!-- Pending/Error Order -->
+<div class="flex flex-col sm:flex-row items-center gap-6 p-4 rounded-xl border border-slate-200 dark:border-[#324467] bg-white dark:bg-background-dark/20 opacity-80">
+<div class="size-20 rounded-lg bg-slate-200 dark:bg-slate-800 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-3xl text-slate-400">image_not_supported</span>
+</div>
+<div class="flex-1 text-center sm:text-left">
+<h4 class="text-lg font-bold">Minimalist UI Illustration Set</h4>
+<p class="text-sm text-slate-500 dark:text-[#92a4c9]">Order #ORD-99245 • Oct 10, 2023</p>
+<div class="flex items-center justify-center sm:justify-start gap-2 mt-2">
+<span class="size-2 rounded-full bg-red-500"></span>
+<span class="text-xs font-bold text-red-500 uppercase">Payment Failed - Insufficient Gas</span>
+</div>
+</div>
+<div class="flex flex-col gap-2 w-full sm:w-auto">
+<button class="flex items-center justify-center gap-2 rounded-lg bg-slate-200 dark:bg-[#232f48] text-slate-600 dark:text-white font-bold py-2 px-6 hover:bg-primary hover:text-white transition-colors">
+                                        Retry Payment
+                                    </button>
+<button class="text-sm text-slate-500 hover:text-white underline">Contact Support</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer Meta -->
+<footer class="border-t border-slate-200 dark:border-[#232f48] py-8 px-10">
+<div class="max-w-[1024px] mx-auto flex flex-col md:flex-row justify-between items-center gap-6 text-[#92a4c9] text-xs">
+<p>© 2023 CreativeAI Platform. Secured by Base L2 &amp; Ethereum Mainnet.</p>
+<div class="flex gap-6">
+<a class="hover:text-white" href="#">API Documentation</a>
+<a class="hover:text-white" href="#">Terms of Service</a>
+<a class="hover:text-white" href="#">Security Policy</a>
+</div>
+</div>
+</footer>
+</div>
+</div>
+</body></html>

@@ -51,3 +51,10 @@ Worker:
 4. Implement render pipeline (layout engine + node canvas)
 5. Add publish + public page
 6. Add mint endpoint + onchain tx
+
+## Payments / Token
+- Payment medium (bonding curve token): **AICC**
+  - Contract: `0x6F947b45C023Ef623b39331D0C4D21FBC51C1d45`
+  - Parent / base asset: **$OPENWORK**
+    - Contract: `0x299c30DD5974BF4D5bFE42C340CA40462816AB07`
+- Suggested env vars are in `.env.example` (`AICC_TOKEN_ADDRESS`, `OPENWORK_TOKEN_ADDRESS`).

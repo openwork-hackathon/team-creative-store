@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Creator Workspace Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#135bec",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101622",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white min-h-screen">
+<div class="relative flex h-auto min-h-screen w-full flex-col font-display overflow-x-hidden">
+<div class="layout-container flex h-full grow flex-col">
+<!-- TopNavBar -->
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 dark:border-[#232f48] px-10 py-3 bg-white dark:bg-background-dark sticky top-0 z-50">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-4 text-primary">
+<div class="size-6">
+<svg fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path d="M4 4H17.3334V17.3334H30.6666V30.6666H44V44H4V4Z" fill="currentColor"></path>
+</svg>
+</div>
+<h2 class="text-slate-900 dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">Creator Workspace</h2>
+</div>
+<label class="flex flex-col min-w-40 h-10 max-w-64">
+<div class="flex w-full flex-1 items-stretch rounded-lg h-full overflow-hidden">
+<div class="text-slate-500 dark:text-[#92a4c9] flex items-center justify-center pl-4 bg-slate-100 dark:bg-[#232f48]">
+<span class="material-symbols-outlined text-[20px]">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 border-none bg-slate-100 dark:bg-[#232f48] text-slate-900 dark:text-white focus:ring-0 h-full placeholder:text-slate-500 dark:placeholder:text-[#92a4c9] px-4 pl-2 text-sm font-normal" placeholder="Search projects..." value=""/>
+</div>
+</label>
+</div>
+<div class="flex flex-1 justify-end gap-8">
+<div class="hidden md:flex items-center gap-9">
+<a class="text-slate-700 dark:text-white text-sm font-medium hover:text-primary transition-colors" href="#">Dashboard</a>
+<a class="text-slate-700 dark:text-white text-sm font-medium hover:text-primary transition-colors" href="#">Projects</a>
+<a class="text-slate-700 dark:text-white text-sm font-medium hover:text-primary transition-colors" href="#">Assets</a>
+<a class="text-slate-700 dark:text-white text-sm font-medium hover:text-primary transition-colors" href="#">NFTs</a>
+</div>
+<div class="flex gap-2">
+<button class="flex items-center justify-center rounded-lg h-10 w-10 bg-slate-100 dark:bg-[#232f48] text-slate-700 dark:text-white hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="flex items-center justify-center rounded-lg h-10 w-10 bg-slate-100 dark:bg-[#232f48] text-slate-700 dark:text-white hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+<span class="material-symbols-outlined">account_circle</span>
+</button>
+</div>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-primary" data-alt="User avatar placeholder" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDODcKygg8exXwQ9P4Kbaa035T5uoIYWv5k7u-CFt0NeRbL-tqbagIyIX2ocA3Nqa2D0PQGlWCatODi9IqeagtVykUrxCE0EYK0-xrGGTtDsTwYok8hAyezY_kHM2NShYjSSVxPYXK6K1NwmsepT724Jh5TB6muGyFemb34PDzGHp1SCn5De4m2OftzA1c1wVp1wPRob9l9HMXgM5bwcDL1jXiEpbGGgw9ez9oAQIQfG4yuZEvW4jJqZNcuvFoiSXzOXt5R0naiB-M");'></div>
+</div>
+</header>
+<main class="flex-1 flex justify-center py-8">
+<div class="layout-content-container flex flex-col w-full max-w-[1200px] px-6 lg:px-10">
+<!-- PageHeading and ButtonGroup -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
+<div class="flex flex-col gap-2">
+<p class="text-slate-900 dark:text-white text-4xl font-black leading-tight tracking-[-0.033em]">Welcome back, Creator</p>
+<p class="text-slate-500 dark:text-[#92a4c9] text-base font-normal">Manage your creative designs, ad campaigns, and NFT generations from one place.</p>
+</div>
+<div class="flex gap-3">
+<button class="flex min-w-[120px] cursor-pointer items-center justify-center rounded-lg h-12 px-6 bg-primary text-white text-base font-bold transition-transform active:scale-95 shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined mr-2">add</span>
+<span>New Project</span>
+</button>
+<button class="flex min-w-[120px] cursor-pointer items-center justify-center rounded-lg h-12 px-6 bg-slate-200 dark:bg-[#232f48] text-slate-900 dark:text-white text-base font-bold transition-transform active:scale-95">
+<span class="material-symbols-outlined mr-2">auto_fix_high</span>
+<span>Enter Generator</span>
+</button>
+</div>
+</div>
+<!-- Stats -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
+<div class="flex flex-col gap-2 rounded-xl p-6 border border-slate-200 dark:border-[#324467] bg-white dark:bg-[#111722]">
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium uppercase tracking-wider">Daily Generations</p>
+<div class="flex items-end justify-between">
+<p class="text-slate-900 dark:text-white text-3xl font-bold">142</p>
+<p class="text-emerald-500 text-sm font-semibold flex items-center">
+<span class="material-symbols-outlined text-sm mr-1">trending_up</span>+12%
+                                </p>
+</div>
+</div>
+<div class="flex flex-col gap-2 rounded-xl p-6 border border-slate-200 dark:border-[#324467] bg-white dark:bg-[#111722]">
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium uppercase tracking-wider">Published Creatives</p>
+<div class="flex items-end justify-between">
+<p class="text-slate-900 dark:text-white text-3xl font-bold">89</p>
+<p class="text-emerald-500 text-sm font-semibold flex items-center">
+<span class="material-symbols-outlined text-sm mr-1">trending_up</span>+5%
+                                </p>
+</div>
+</div>
+<div class="flex flex-col gap-2 rounded-xl p-6 border border-slate-200 dark:border-[#324467] bg-white dark:bg-[#111722]">
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium uppercase tracking-wider">Monthly Revenue</p>
+<div class="flex items-end justify-between">
+<p class="text-slate-900 dark:text-white text-3xl font-bold">12,450 AICC</p>
+<p class="text-rose-500 text-sm font-semibold flex items-center">
+<span class="material-symbols-outlined text-sm mr-1">trending_down</span>-2%
+                                </p>
+</div>
+</div>
+</div>
+<!-- Recent Projects Section -->
+<div class="flex flex-col">
+<h2 class="text-slate-900 dark:text-white text-[22px] font-bold leading-tight tracking-[-0.015em] pb-5">Recent Projects</h2>
+<div class="overflow-hidden rounded-xl border border-slate-200 dark:border-[#324467] bg-white dark:bg-[#111722]">
+<table class="w-full text-left border-collapse">
+<thead class="bg-slate-50 dark:bg-[#1a2335]">
+<tr>
+<th class="px-6 py-4 text-slate-500 dark:text-[#92a4c9] text-xs font-bold uppercase tracking-wider">Project Name</th>
+<th class="px-6 py-4 text-slate-500 dark:text-[#92a4c9] text-xs font-bold uppercase tracking-wider">Timestamp</th>
+<th class="px-6 py-4 text-slate-500 dark:text-[#92a4c9] text-xs font-bold uppercase tracking-wider">Status</th>
+<th class="px-6 py-4 text-slate-500 dark:text-[#92a4c9] text-xs font-bold uppercase tracking-wider text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100 dark:divide-[#232f48]">
+<tr class="hover:bg-slate-50 dark:hover:bg-[#1a2335] transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-primary/20 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-lg">image</span>
+</div>
+<span class="font-medium">Cyberpunk City Ads</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm text-slate-500 dark:text-[#92a4c9]">2 hours ago</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-400">
+                                                Published
+                                            </span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-primary hover:underline text-sm font-semibold">Preview</button>
+</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-[#1a2335] transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-amber-500/20 flex items-center justify-center text-amber-500">
+<span class="material-symbols-outlined text-lg">token</span>
+</div>
+<span class="font-medium">Neo-Tokyo NFT Set</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm text-slate-500 dark:text-[#92a4c9]">Yesterday, 4:30 PM</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                                                Generating
+                                            </span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-primary hover:underline text-sm font-semibold">View Logs</button>
+</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-[#1a2335] transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-purple-500/20 flex items-center justify-center text-purple-500">
+<span class="material-symbols-outlined text-lg">palette</span>
+</div>
+<span class="font-medium">Vaporwave Assets</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm text-slate-500 dark:text-[#92a4c9]">Oct 24, 2023</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                                                Draft
+                                            </span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-primary hover:underline text-sm font-semibold">Continue</button>
+</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-[#1a2335] transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-sky-500/20 flex items-center justify-center text-sky-500">
+<span class="material-symbols-outlined text-lg">check_circle</span>
+</div>
+<span class="font-medium">Minimalist Logos</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm text-slate-500 dark:text-[#92a4c9]">Oct 22, 2023</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400">
+                                                Ready
+                                            </span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-primary hover:underline text-sm font-semibold mr-4">Publish</button>
+<button class="text-primary hover:underline text-sm font-semibold">Preview</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</main>
+</div>
+</div>
+</body></html>

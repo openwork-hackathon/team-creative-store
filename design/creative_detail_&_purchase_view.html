@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Creative Detail &amp; Purchase View</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#135bec",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101622",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white min-h-screen">
+<!-- TopNavBar Component -->
+<header class="border-b border-solid border-slate-200 dark:border-[#232f48] bg-background-light dark:bg-background-dark sticky top-0 z-50">
+<div class="max-w-[1280px] mx-auto flex items-center justify-between px-6 py-3">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-4 text-primary">
+<div class="size-8 flex items-center justify-center bg-primary text-white rounded-lg">
+<span class="material-symbols-outlined">auto_awesome</span>
+</div>
+<h2 class="text-slate-900 dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] font-display">CreativeStudio AI</h2>
+</div>
+<label class="flex flex-col min-w-64 h-10">
+<div class="flex w-full flex-1 items-stretch rounded-lg h-full">
+<div class="text-slate-400 dark:text-[#92a4c9] flex border-none bg-slate-100 dark:bg-[#232f48] items-center justify-center pl-4 rounded-l-lg" data-icon="search">
+<span class="material-symbols-outlined">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-r-lg text-slate-900 dark:text-white focus:outline-0 focus:ring-0 border-none bg-slate-100 dark:bg-[#232f48] h-full placeholder:text-slate-400 dark:placeholder:text-[#92a4c9] px-4 text-base font-normal" placeholder="Search creatives..." value=""/>
+</div>
+</label>
+</div>
+<div class="flex flex-1 justify-end gap-8 items-center">
+<nav class="hidden md:flex items-center gap-8">
+<a class="text-slate-600 dark:text-white text-sm font-medium hover:text-primary transition-colors" href="#">Marketplace</a>
+<a class="text-slate-600 dark:text-white text-sm font-medium hover:text-primary transition-colors" href="#">My Assets</a>
+<a class="text-slate-600 dark:text-white text-sm font-medium hover:text-primary transition-colors" href="#">Analytics</a>
+</nav>
+<button class="flex min-w-[120px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em]">
+<span class="truncate">Connect Wallet</span>
+</button>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-primary/20" data-alt="User avatar placeholder" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDc2cee6hropVHjdMqAAYrQikPTArO8wSzbQRiSmGvLZO_p9wR96DYXAFEBTSBpBUSR2TsazFNJYn3RHylz9eYD0rIpFZ8gK-Ev9XDJaBTeWN3kEWA0W3b6-nKUABsABEqrrMGLW-dgHgoHrPuAc-AWqPSrzgwReI51IYd7ryq1aknKeemUgbX5gAEP-oHtLX0V9vsx7gttRQ3-BL4dJ5IUBSF2igRfGKD3gfnO1I_UTq_9MWRry5dZnxdYbahEaB7pR3flkJmGgvo");'></div>
+</div>
+</div>
+</header>
+<main class="max-w-[1280px] mx-auto px-6 py-6">
+<!-- Breadcrumbs Component -->
+<div class="flex flex-wrap gap-2 py-4">
+<a class="text-slate-500 dark:text-[#92a4c9] text-sm font-medium hover:text-primary" href="#">Marketplace</a>
+<span class="text-slate-400 dark:text-[#92a4c9] text-sm font-medium">/</span>
+<a class="text-slate-500 dark:text-[#92a4c9] text-sm font-medium hover:text-primary" href="#">Premium Assets</a>
+<span class="text-slate-400 dark:text-[#92a4c9] text-sm font-medium">/</span>
+<span class="text-slate-900 dark:text-white text-sm font-bold">Futuristic Abstract AD Series</span>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+<!-- Left Side: Preview Studio (8/12) -->
+<div class="lg:col-span-8 flex flex-col gap-6">
+<div class="bg-white dark:bg-[#192233] rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+<div class="p-6 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
+<h2 class="text-slate-900 dark:text-white text-xl font-bold font-display">Creative Preview Studio</h2>
+<span class="px-3 py-1 bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 text-xs font-bold rounded-full uppercase tracking-wider">Read Only</span>
+</div>
+<!-- ImageGrid Component adapted for Preview -->
+<div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="flex flex-col gap-3">
+<div class="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-lg border border-slate-200 dark:border-slate-700" data-alt="Abstract futuristic blue background for banner ad" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCFdOzdNz_i6KXZWztTEvOlzjScpiVdv-5D1x86-9Oz9fqTM9C8w-WkDLb_9qNagu7yvt6qh0GDbEccRzL62hyG0aOgt0cenNsvJNtRymDuhaTxkSXy_c7-u59j17Oa7n93-k1MUubyKqg1IrXUknRO6dz5_TUpxpIJioPqePPM2vATxwsz98ly9LdkO9wlila44U6UrLlQpjtQUKZJtAbEPxGQZ4N9LEL_8sv8MIh1LWQ6SAMF-x2ej4K_M2k2qOPSQHJbwqBOCds");'></div>
+<div class="flex justify-between items-center">
+<p class="text-slate-900 dark:text-white text-sm font-semibold">Banner</p>
+<span class="text-slate-400 text-xs">728 x 90</span>
+</div>
+</div>
+<div class="flex flex-col gap-3">
+<div class="w-full bg-center bg-no-repeat aspect-square bg-cover rounded-lg border border-slate-200 dark:border-slate-700" data-alt="Abstract geometric shapes in dark blue theme" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDHinrEs6jloKW7jnQzN130m7QYQntOdaZrfMNNw39zeIvLrBN9jvpY43y5V9j_yM2zdW_0mBa6eVj22Rbb3a7wzcIhy_8gBsVmouQP_JWMdmNUC9xYzH4QuspDmgGrLJZ5rtQ0dB7nKE-ad9te8jlPRkrcfJ9zWi-z3Qa7hGh8IXfaCuf8ysobmonUemKiCJ7K-q3zdd0ZMId54La4sOyxNfIYi7BwJt086dxx6nX8y33XBFcSh6PfyVQMhfxD7SPtBOcoGaMsnNE");'></div>
+<div class="flex justify-between items-center">
+<p class="text-slate-900 dark:text-white text-sm font-semibold">Square</p>
+<span class="text-slate-400 text-xs">250 x 250</span>
+</div>
+</div>
+<div class="flex flex-col gap-3">
+<div class="w-full bg-center bg-no-repeat aspect-[4/1] bg-cover rounded-lg border border-slate-200 dark:border-slate-700" data-alt="Widescreen leaderboard creative with abstract data patterns" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDVAOCcJ6y5FQYWulK-_eTAEsezt6pNEAUhmKBX8wg9VY-9GbYeRHLBiRDd962rbx-9-D0sWl91zXE55IFau05VR7RgdQxi2uXhzXm00oIo08EsdhUlTqmHnDrVuK99XHU1eZpYUZ5Vp_-lukfUNY0ga32XZfGu_4f_PW_I4h4LcY9HvY-6dUaTJ2oqZsRDi_O1qTG1DDEVW4F2Lmx9mZWojiFMQCLJJtDTUgKJ7BBJfQUIIlQmaRxQSGE-37TwEaEDrN4imlisr14");'></div>
+<div class="flex justify-between items-center">
+<p class="text-slate-900 dark:text-white text-sm font-semibold">Leaderboard</p>
+<span class="text-slate-400 text-xs">468 x 60</span>
+</div>
+</div>
+<div class="flex flex-col gap-3">
+<div class="w-full bg-center bg-no-repeat aspect-[1/3] bg-cover rounded-lg border border-slate-200 dark:border-slate-700" data-alt="Vertical skyscraper ad creative with futuristic design" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuC9Dum_39c5mquFAFfP1YTZrs_FDAF_otcpOn3qM4MKWSh7GREQYd5OUOQ3uLXQYX1TDNjHXRd659wyZfO_6s5rtE5o9_RKH53F57Fp6WNiVls7WsDQLtukIXcJBQYM6viUojjt6o-zJKb3DoKPTa4lzTN94giKtgYmedA5D4vt0GVao4dcLN80YS0ae8ifqiJMwzxjiyVNxsU4H6ZyzK_tmeldWAozCFRqupnalTGbQKrcVVjrxSk1IZxajXFee_gtCrdSIR79Xko");'></div>
+<div class="flex justify-between items-center">
+<p class="text-slate-900 dark:text-white text-sm font-semibold">Skyscraper</p>
+<span class="text-slate-400 text-xs">120 x 600</span>
+</div>
+</div>
+</div>
+</div>
+<!-- User Reviews Section -->
+<div class="bg-white dark:bg-[#192233] rounded-xl border border-slate-200 dark:border-slate-800 p-6">
+<div class="flex items-center justify-between mb-6">
+<h3 class="text-slate-900 dark:text-white text-lg font-bold">User Reviews</h3>
+<div class="flex items-center gap-1 text-yellow-500">
+<span class="material-symbols-outlined fill-1">star</span>
+<span class="material-symbols-outlined fill-1">star</span>
+<span class="material-symbols-outlined fill-1">star</span>
+<span class="material-symbols-outlined fill-1">star</span>
+<span class="material-symbols-outlined">star_half</span>
+<span class="text-slate-500 dark:text-slate-400 text-sm ml-2">(124 reviews)</span>
+</div>
+</div>
+<div class="space-y-6">
+<div class="border-b border-slate-100 dark:border-slate-800 pb-4">
+<div class="flex items-center gap-3 mb-2">
+<div class="size-8 rounded-full bg-slate-200 dark:bg-slate-700" data-alt="Reviewer avatar" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDJ31PSzYRNkfWXLdac_NNvSTKLrRBmekQFwGIjeD_dk8Hsi6-wPwWovb-ffrDfvsHEX3iOVjeeTkHrE-TMjo9mpqZ8kJP0Xhiiwfb2YF1WvsWtbvux-PCNQdpkbY0jTf6LMvzi2h14GdVoB8QbQ62myHHaM5UOIBtC8cZhHXguRsdiqg8zDPcssieA3YCdIbY5m4np6s-VmJ8OJ_WQ1XsoEZohyxcrFy-hMo0dK8l0h8Lc5AD5ZRXsopLU1XsuKnEf2oNVkfh433g'); background-size: cover;"></div>
+<span class="font-bold text-sm">Alex Rivers</span>
+<span class="text-slate-400 text-xs">2 days ago</span>
+</div>
+<p class="text-slate-600 dark:text-slate-300 text-sm">The layers are extremely well organized. Perfect for my tech campaign.</p>
+</div>
+<div class="pb-4">
+<div class="flex items-center gap-3 mb-2">
+<div class="size-8 rounded-full bg-slate-200 dark:bg-slate-700" data-alt="Reviewer avatar" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBH_E-EWrvMBgEsC7ERHvL5WVfDQIXdNdusp2oLeJEJ7xpEgUZz-GiuyrdMcsvOQCjTEHsZEPZMOSVgAXLqUgIz4KiFeQwFUvX6RBlke1bksym_IDuAwr5DcqgqQnZXAxA9gVsVWSIrwSnxaozw4TxPTv_9ZjQbTHE8AHDXl5feixifcigm5_rRHq29s99wlLzWmfo-qLPEx6_aWjD2MJjF9BS8xmMuN6t179m_mZXHNdLLkGDbkL1gsQ49V8VbqIpegHQJezMIatY'); background-size: cover;"></div>
+<span class="font-bold text-sm">Sarah Chen</span>
+<span class="text-slate-400 text-xs">1 week ago</span>
+</div>
+<p class="text-slate-600 dark:text-slate-300 text-sm">Stunning visuals. The AI generation base for this is top-notch.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Side: Checkout & Details (4/12) -->
+<div class="lg:col-span-4 flex flex-col gap-6 sticky top-24">
+<!-- Purchase Card Component -->
+<div class="p-6 rounded-xl shadow-lg bg-white dark:bg-[#192233] border border-slate-200 dark:border-slate-800">
+<div class="flex flex-col gap-6">
+<div>
+<p class="text-slate-500 dark:text-[#92a4c9] text-xs font-bold uppercase tracking-wider mb-1">Price</p>
+<div class="flex items-center gap-2">
+<span class="text-primary text-3xl font-bold">500 AICC</span>
+<span class="text-slate-400 text-sm font-normal">≈ $45.20</span>
+</div>
+</div>
+<div class="space-y-3">
+<p class="text-slate-900 dark:text-white font-bold text-sm">Licensing Terms</p>
+<div class="grid grid-cols-2 gap-2">
+<button class="flex flex-col items-start p-3 rounded-lg border-2 border-primary bg-primary/5 text-left">
+<span class="text-primary text-sm font-bold">Standard</span>
+<span class="text-slate-400 text-[10px]">1 Domain</span>
+</button>
+<button class="flex flex-col items-start p-3 rounded-lg border-2 border-slate-200 dark:border-slate-700 hover:border-primary/50 text-left">
+<span class="text-slate-900 dark:text-white text-sm font-bold">Extended</span>
+<span class="text-slate-400 text-[10px]">Unlimited</span>
+</button>
+</div>
+</div>
+<div class="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-lg">
+<div class="flex items-start gap-3">
+<span class="material-symbols-outlined text-primary text-sm mt-1">info</span>
+<p class="text-slate-500 dark:text-[#92a4c9] text-xs leading-normal">
+                                    Ownership is registered as an NFT on-chain. Licensing grants commercial usage rights.
+                                </p>
+</div>
+</div>
+<button class="w-full flex cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-4 bg-primary text-white text-md font-bold hover:brightness-110 transition-all">
+<span class="truncate">Buy Now with Wallet</span>
+</button>
+<div class="flex items-center justify-center gap-4">
+<span class="material-symbols-outlined text-slate-400">share</span>
+<span class="material-symbols-outlined text-slate-400">favorite</span>
+<span class="material-symbols-outlined text-slate-400">flag</span>
+</div>
+</div>
+</div>
+<!-- Version History Component -->
+<div class="bg-white dark:bg-[#192233] rounded-xl border border-slate-200 dark:border-slate-800 p-6">
+<h4 class="text-slate-900 dark:text-white text-sm font-bold mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">history</span>
+                        Version History
+                    </h4>
+<div class="space-y-4">
+<div class="flex items-start gap-3">
+<div class="size-2 rounded-full bg-green-500 mt-1.5"></div>
+<div class="flex flex-col">
+<span class="text-slate-900 dark:text-white text-xs font-bold">v1.2 - Current</span>
+<span class="text-slate-500 text-[10px]">Added mobile optimized sizes</span>
+<span class="text-slate-400 text-[10px]">Oct 12, 2023</span>
+</div>
+</div>
+<div class="flex items-start gap-3">
+<div class="size-2 rounded-full bg-slate-300 dark:bg-slate-700 mt-1.5"></div>
+<div class="flex flex-col">
+<span class="text-slate-500 dark:text-slate-400 text-xs font-bold">v1.1</span>
+<span class="text-slate-500 text-[10px]">Improved color contrast for accessibility</span>
+<span class="text-slate-400 text-[10px]">Oct 05, 2023</span>
+</div>
+</div>
+<div class="flex items-start gap-3">
+<div class="size-2 rounded-full bg-slate-300 dark:bg-slate-700 mt-1.5"></div>
+<div class="flex flex-col">
+<span class="text-slate-500 dark:text-slate-400 text-xs font-bold">v1.0</span>
+<span class="text-slate-500 text-[10px]">Initial release</span>
+<span class="text-slate-400 text-[10px]">Sep 28, 2023</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Creator Info -->
+<div class="bg-white dark:bg-[#192233] rounded-xl border border-slate-200 dark:border-slate-800 p-6">
+<div class="flex items-center gap-4 mb-4">
+<div class="size-12 rounded-full bg-primary/20 border-2 border-primary" data-alt="Creator profile" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDszydAOSuZ-f3f4jKgy1E0Y6J5TCJIuX-Aq2iu2pUW8o-NF4q5EWLIaRp3SmD8oPKCoVUwOEKWIKWlDr2dl_pBoZkHxunU_8IJ_R79_plFk7JBDwkLWihXApLiOJQRtlqq4h2XWPvyJFKgtaW5A5kDo7kFfhtx5J97Zu9gyuyWcmp_l7NKAYTcem9YYiQd94GBR8trYBp78Ar2H7Yk0ys0_WxBdrUfFz-jszZhWh35uEVZiXPGs3H_N-1teauEbKt2I_T-PQvk81M'); background-size: cover;"></div>
+<div>
+<p class="text-slate-400 text-[10px] uppercase font-bold tracking-tighter">Creator</p>
+<p class="text-slate-900 dark:text-white font-bold">NexusLabs.eth</p>
+</div>
+</div>
+<button class="w-full h-8 text-xs font-bold border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800">
+                        View Profile
+                    </button>
+</div>
+</div>
+</div>
+<!-- More From This Creator Section -->
+<div class="mt-12 mb-20">
+<h2 class="text-slate-900 dark:text-white text-[22px] font-bold leading-tight tracking-[-0.015em] pb-6">More from this creator</h2>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+<div class="group cursor-pointer">
+<div class="w-full aspect-video bg-cover rounded-lg mb-3 border border-slate-200 dark:border-slate-800 group-hover:border-primary transition-all" data-alt="Cyberpunk city ad creative" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCraSMKwo0NMCktf1NrBbw_vcQzUNg4-aV5rtuddyVfO0bKajTVjHcaM2BV8dGGLzytrUgXXfaddHHRAZqksPgvbw10XeQhf86Y00BA2kXILjxmap6zMQSS2X83pbm0TyAB-V42QTA-BhW2g_9X9UznBD_fq4RvqVV_heh2rm5JCwvlooMJCndtMfMYZnCAZw4APrS_Cjzk1pipEVtDoYA3CwEu1viu20JjnqCUwMgR9SG7rAZgRoOujchLb6GB7DCNLHMMXkkxWeo");'></div>
+<p class="text-slate-900 dark:text-white text-sm font-bold truncate">Cyberpunk UI Elements</p>
+<p class="text-primary text-xs font-bold mt-1">320 AICC</p>
+</div>
+<div class="group cursor-pointer">
+<div class="w-full aspect-video bg-cover rounded-lg mb-3 border border-slate-200 dark:border-slate-800 group-hover:border-primary transition-all" data-alt="Minimalist data visualization background" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDVbPSoyV3TAD2oiSeLGCL1r-TPyH9x04_irfS-aoEFk931GBTgbrUky60odTDA1-FPtfD2IRFW8ePNqiNpBJ-nTIt-FVHKy4yYAn4FN4izl_B1apXlhW5MUNE5adkQfx8zWb43ftSWZlxBixXzKkYTtocUew487sTWrgYz4Gca0JJYdS3yK4MtArER94k3ihz3KLH38bT4O6CRVDQT_p54sQCC2SDa6ZuJZyb-1uqtD4P5zcCZarLCAueH2_FSVo0UnblMpSpDAbs");'></div>
+<p class="text-slate-900 dark:text-white text-sm font-bold truncate">Minimalist Data Viz</p>
+<p class="text-primary text-xs font-bold mt-1">450 AICC</p>
+</div>
+<div class="group cursor-pointer">
+<div class="w-full aspect-video bg-cover rounded-lg mb-3 border border-slate-200 dark:border-slate-800 group-hover:border-primary transition-all" data-alt="Neon gradient background creative" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuA2TA6mV4j9qSGgubCkodTY3qvG47ZS3suQz52CTxsij-LeyGvKtewd92volEMAWKdiQFgshtS_Ws6A_gvOUdxXoZBptRI57AX9E4A0IJN1li-BKSy2VeyWjCDL6-9Gxt3hojgPXaGBjlON2FafKpraHDLCIC5eMkQsW9BbLBUPSaPdbny_vinGTTu6iwUp5v5WwNve1Z7wvV6h1jRKD-4Zr4RoKKEfkA0EOmC1WgEHywVPx7KdVGP_Wb-_EVea8E33yigEvNUyuC8");'></div>
+<p class="text-slate-900 dark:text-white text-sm font-bold truncate">Neon Pulse Ad Kit</p>
+<p class="text-primary text-xs font-bold mt-1">600 AICC</p>
+</div>
+<div class="group cursor-pointer">
+<div class="w-full aspect-video bg-cover rounded-lg mb-3 border border-slate-200 dark:border-slate-800 group-hover:border-primary transition-all" data-alt="Abstract white and blue fluid background" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuB5UG2aLSriUZcdqxHpdHpdiR51QQAt-Ag8URfLQ1MG86358Wc6HrGeeIk6fb8BImFdUW9a6t1SO1X5NtAmpE3dZLzabQ_FWQ-vP90uTdJMlXmcximpt4vx_E4K60u6OXweXf06XZGpSVSzdmn8wBsvCfW1nSF7Dv0pIYgOQzgFtXLDCEBLuR-agFzSQOHjO7YydMmV18C0QbxzZTm7p9kdgWTiA8LoGjxZMzYiVQINbKltQbK1ErigOln0FDoLSnV1mNdj929Y3vA");'></div>
+<p class="text-slate-900 dark:text-white text-sm font-bold truncate">Clean Fluid Layouts</p>
+<p class="text-primary text-xs font-bold mt-1">280 AICC</p>
+</div>
+</div>
+</div>
+</main>
+<footer class="border-t border-slate-200 dark:border-[#232f48] py-12">
+<div class="max-w-[1280px] mx-auto px-6 text-center">
+<p class="text-slate-400 text-sm">© 2023 CreativeStudio AI. All assets are cryptographically secured.</p>
+</div>
+</footer>
+</body></html>

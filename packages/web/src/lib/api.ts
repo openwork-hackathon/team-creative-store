@@ -42,7 +42,9 @@ export function createApiClient(
       request(`${baseUrl}/uploads/visuals`, {
         method: "POST",
         body: formData
-      }).then((response) => response.json())
+      }).then((response) => response.json()),
+    getDashboardStats: async () =>
+      request(`${baseUrl}/dashboard/stats`).then((response) => response.json())
   };
 }
 

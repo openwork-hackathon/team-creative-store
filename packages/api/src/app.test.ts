@@ -10,12 +10,17 @@ const createMemoryPrisma = () => {
   return {
     project: {
       findMany: async ({ where }: { where: { userId: string } }) =>
-        projects.filter((project) => project.userId === where.userId),
+        projects.filter((project) => project.userId === where.userId).map(p => ({
+          ...p,
+          createdAt: new Date()
+        })),
       create: async ({ data }: { data: Project }) => {
         const project = { ...data, id: data.id ?? `proj_${projects.length + 1}` } as Project;
         projects.push(project);
         return project;
-      }
+      },
+      count: async ({ where }: { where: { userId: string } }) =>
+        projects.filter((project) => project.userId === where.userId).length
     },
     brief: {
       create: async ({ data }: { data: Brief }) => {
@@ -24,10 +29,15 @@ const createMemoryPrisma = () => {
         return brief;
       },
       findUnique: async ({ where }: { where: { id: string } }) =>
-        briefs.find((brief) => brief.id === where.id) ?? null
+        briefs.find((brief) => brief.id === where.id) ?? null,
+      count: async () => briefs.length
     },
     draft: {
-      findMany: async () => []
+      findMany: async () => [],
+      count: async () => 0
+    },
+    creative: {
+      count: async () => 0
     },
     placementSpec: {
       upsert: async () => ({})
@@ -126,5 +136,31 @@ describe("createApp", () => {
     const getBriefResponse = await app.request(`/api/briefs/${briefPayload.brief.id}`);
     const getBriefPayload = await getBriefResponse.json();
     expect(getBriefPayload.brief.id).toBe(briefPayload.brief.id);
+  });
+
+  it("returns dashboard stats for the authenticated user", async () => {
+    const prisma = createMemoryPrisma();
+    const app = createApp({
+      prisma,
+      getSession: async () => ({ user: { id: "user_1" } })
+    });
+
+    // Create some test data
+    await app.request("/api/projects", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: "Test Project" })
+    });
+
+    const response = await app.request("/api/dashboard/stats");
+    const payload = await response.json();
+
+    expect(payload.stats).toBeDefined();
+    expect(payload.stats.dailyGenerations).toEqual({ value: 0, change: 0 });
+    expect(payload.stats.publishedCreatives).toEqual({ value: 0, change: 0 });
+    expect(payload.stats.monthlyRevenue).toEqual({ value: "0 AICC", change: 0 });
+    expect(payload.recentProjects).toBeDefined();
+    expect(payload.recentProjects.length).toBe(1);
+    expect(payload.recentProjects[0].name).toBe("Test Project");
   });
 });

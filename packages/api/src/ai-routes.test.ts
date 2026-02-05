@@ -13,6 +13,7 @@ const generateObjectMock = vi.mocked(generateObject);
 
 afterEach(() => {
   generateObjectMock.mockReset();
+  vi.unstubAllGlobals();
 });
 
 const createMemoryPrisma = () => {
@@ -81,6 +82,29 @@ describe("AI routes", () => {
   });
 
   it("generates creatives and stores a sanitized draft", async () => {
+    const originalApiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+    process.env.GOOGLE_GENERATIVE_AI_API_KEY = "test-key";
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        candidates: [
+          {
+            content: {
+              parts: [
+                {
+                  inlineData: {
+                    mimeType: "image/png",
+                    data: "aGVsbG8="
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      })
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
     generateObjectMock.mockResolvedValueOnce({
       object: {
         html: '<div><script>alert("x")</script><p>Hi</p></div>',
@@ -104,6 +128,14 @@ describe("AI routes", () => {
     const payload = await response.json();
     expect(payload.creative.html).toContain("<p>Hi</p>");
     expect(payload.creative.html).not.toContain("<script");
+    expect(payload.creative.assets).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          dataUrl: "data:image/png;base64,aGVsbG8="
+        })
+      ])
+    );
     expect(payload.draft.draftJson.creative.html).not.toContain("<script");
+    process.env.GOOGLE_GENERATIVE_AI_API_KEY = originalApiKey;
   });
 });

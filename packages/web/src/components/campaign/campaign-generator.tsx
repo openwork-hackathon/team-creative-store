@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   PLACEMENT_SPEC_BY_KEY,
   type AiCreativeOutput,
+  type BrandAsset,
   type PlacementSpecKey
 } from "@creative-store/shared";
 import { CampaignBrief } from "@/components/campaign/campaign-brief";
@@ -28,18 +29,41 @@ export function CampaignGenerator({ api }: CampaignGeneratorProps) {
   const [briefId, setBriefId] = useState<string | null>(null);
   const [intent, setIntent] = useState("");
   const [summary, setSummary] = useState(() => getBriefSummary({}));
+  const [brandAssets, setBrandAssets] = useState<BrandAsset[]>([]);
   const [creatives, setCreatives] = useState<
     Partial<Record<PlacementSpecKey, { creative?: AiCreativeOutput; loading?: boolean; error?: string }>>
   >({});
 
-  const uploadFiles = async (
-    files: FileList | null,
-    uploader: (formData: FormData) => Promise<unknown>
-  ) => {
+  const fileToBrandAsset = (file: File, kind: BrandAsset["kind"]) =>
+    new Promise<BrandAsset>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result !== "string") {
+          reject(new Error("Failed to read file"));
+          return;
+        }
+        const [, dataBase64 = ""] = reader.result.split(",");
+        resolve({
+          kind,
+          mimeType: file.type || "application/octet-stream",
+          dataBase64,
+          name: file.name
+        });
+      };
+      reader.onerror = () => reject(new Error("Failed to read file"));
+      reader.readAsDataURL(file);
+    });
+
+  const handleAssetSelect = async (kind: BrandAsset["kind"], files: FileList | null) => {
     if (!files || files.length === 0) return;
-    const formData = new FormData();
-    Array.from(files).forEach((file) => formData.append("files", file));
-    await uploader(formData);
+    try {
+      const assets = await Promise.all(
+        Array.from(files).map((file) => fileToBrandAsset(file, kind))
+      );
+      setBrandAssets((prev) => [...prev.filter((asset) => asset.kind !== kind), ...assets]);
+    } catch {
+      return;
+    }
   };
 
   useEffect(() => {
@@ -86,7 +110,11 @@ export function CampaignGenerator({ api }: CampaignGeneratorProps) {
       [placement]: { ...prev[placement], loading: true, error: undefined }
     }));
     try {
-      const response = await apiClient.generateCreative({ briefId, placement });
+      const response = await apiClient.generateCreative({
+        briefId,
+        placement,
+        brandAssets: brandAssets.length > 0 ? brandAssets : undefined
+      });
       if (!response?.creative) {
         throw new Error("No creative returned");
       }
@@ -128,19 +156,25 @@ export function CampaignGenerator({ api }: CampaignGeneratorProps) {
           <StepBadge step={2} />
           <h2 className="text-lg font-semibold">Upload Brand Assets</h2>
         </div>
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-3">
           <UploadZone
-            title="Brand Logo"
-            helper="PNG, SVG up to 5MB"
+            title="Logo"
+            helper="PNG, SVG"
             accept="image/png,image/svg+xml"
-            onSelect={(files) => uploadFiles(files, apiClient.uploadLogo)}
+            onSelect={(files) => handleAssetSelect("logo", files)}
           />
           <UploadZone
-            title="Main Visuals"
-            helper="Product shots, lifestyle images"
+            title="Product"
+            helper="Product shots"
+            accept="image/*"
+            onSelect={(files) => handleAssetSelect("product", files)}
+          />
+          <UploadZone
+            title="References"
+            helper="Mood, textures, inspiration"
             accept="image/*"
             multiple
-            onSelect={(files) => uploadFiles(files, apiClient.uploadVisuals)}
+            onSelect={(files) => handleAssetSelect("reference", files)}
           />
         </div>
       </section>

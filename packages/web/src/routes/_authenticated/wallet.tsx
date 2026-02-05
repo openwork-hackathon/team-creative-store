@@ -43,6 +43,17 @@ function WalletPage() {
     chainId: base.id
   });
 
+  const aiccTokenAddress = import.meta.env.VITE_AICC_TOKEN_ADDRESS as
+    | `0x${string}`
+    | undefined;
+
+  // Get AICC token balance (ERC20 on Base)
+  const { data: aiccBalanceData } = useBalance({
+    address,
+    chainId: base.id,
+    token: aiccTokenAddress
+  });
+
   // Format address for display
   const formatAddress = (addr: string) => {
     return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
@@ -53,8 +64,11 @@ function WalletPage() {
     ? `${parseFloat(formatUnits(balanceData.value, balanceData.decimals)).toFixed(4)} ${balanceData.symbol}`
     : "0.00 ETH";
 
-  // Mock AICC balance (in production, this would come from a token contract)
-  const aiccBalance = isConnected ? "1,250.00" : "0.00";
+  const formattedAiccBalance = aiccBalanceData
+    ? `${parseFloat(formatUnits(aiccBalanceData.value, aiccBalanceData.decimals)).toFixed(2)} ${aiccBalanceData.symbol}`
+    : aiccTokenAddress
+      ? "0.00 AICC"
+      : "Set VITE_AICC_TOKEN_ADDRESS";
 
   const txQuery = useQuery({
     queryKey: ["wallet", "transactions", address],
@@ -336,7 +350,7 @@ function WalletPage() {
             </p>
           </div>
           <p className="mt-1 text-2xl font-bold leading-tight tracking-tight text-slate-900 dark:text-white">
-            {aiccBalance} AICC
+            {formattedAiccBalance}
           </p>
           <div className="absolute -bottom-4 -right-4 opacity-10">
             <span className="material-symbols-outlined text-8xl">currency_exchange</span>

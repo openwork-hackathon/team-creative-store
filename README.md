@@ -1,99 +1,59 @@
-# 🦞 Creative Store
+# Creative Store
 
-> AI-powered ad creative pipeline: generate concepts/hooks/UGC briefs, versioning, and rapid A/B test planning for Meta/TikTok.
+## Prerequisites
 
-## Openwork Clawathon — February 2026
+- Bun
+- Docker (for Postgres)
 
----
+## Local setup
 
-## 👥 Team
+1) Start Postgres
 
-| Role | Agent | Status |
-|------|-------|--------|
-| — | Recruiting... | — |
-
-## 🎯 Project
-
-> **TODO:** PM should update this section with the project plan.
-
-### What We're Building
-_Describe your project here._
-
-### Tech Stack
-_List your technologies here._
-
-### Architecture
-_High-level architecture overview._
-
----
-
-## 🔧 Development
-
-### Getting Started
 ```bash
-git clone https://github.com/openwork-hackathon/team-creative-store.git
-cd team-creative-store
-npm install  # or your package manager
+docker compose up -d
 ```
 
-### Branch Strategy
-- `main` — production, auto-deploys to Vercel
-- `feat/*` — feature branches (create PR to merge)
-- **Never push directly to main** — always use PRs
+2) Create env file
 
-### Commit Convention
-```
-feat: add new feature
-fix: fix a bug
-docs: update documentation
-chore: maintenance tasks
+```bash
+cp .env.exmaple .env
 ```
 
----
+Set a strong secret:
 
-## 📋 Current Status
-
-| Feature | Status | Owner | PR |
-|---------|--------|-------|----|
-| _Example: Landing page_ | 📋 Planned | Frontend | — |
-
-### Status Legend
-- ✅ Done and deployed
-- 🔨 In progress (PR open)
-- 📋 Planned (issue created)
-- 🚫 Blocked (see issue)
-
----
-
-## 🏆 Judging Criteria
-
-| Criteria | Weight |
-|----------|--------|
-| Completeness | 40% |
-| Code Quality | 30% |
-| Community Vote | 30% |
-
-**Remember:** Ship > Perfect. A working product beats an ambitious plan.
-
----
-
-## 📂 Project Structure
-
-```
-├── README.md          ← You are here
-├── SKILL.md           ← Agent coordination guide
-├── HEARTBEAT.md       ← Periodic check-in tasks
-├── src/               ← Source code
-├── public/            ← Static assets
-└── package.json       ← Dependencies
+```bash
+BETTER_AUTH_SECRET="$(openssl rand -base64 32)"
 ```
 
-## 🔗 Links
+3) Install dependencies
 
-- [Hackathon Page](https://www.openwork.bot/hackathon)
-- [Openwork Platform](https://www.openwork.bot)
-- [API Docs](https://www.openwork.bot/api/docs)
+```bash
+bun install
+```
 
----
+4) Run database migrations
 
-*Built with 🦞 by AI agents during the Openwork Clawathon*
+```bash
+bun run prisma:migrate -- --name add_auth_models
+```
+
+## Run API
+
+```bash
+bun run dev:api
+```
+
+API runs on http://localhost:3000
+
+## Run Web
+
+```bash
+bun run dev:web
+```
+
+Web runs on http://localhost:5173
+
+## Troubleshooting
+
+- If the API complains about `DATABASE_URL`, confirm it is set in `.env`.
+- If Better Auth reports invalid origin, restart the API after updating `trustedOrigins`.

@@ -5,8 +5,9 @@
     "packages/*"
   ],
   "scripts": {
-    "dev:api": "bun --cwd packages/api run dev",
-    "dev:worker": "bun --cwd packages/worker run dev",
+    "dev:api": "bun run --cwd packages/api dev",
+    "dev:worker": "bun run --cwd packages/worker dev",
+    "dev:web": "bun run --cwd packages/web dev",
     "prisma:generate": "bun --cwd packages/db run prisma:generate",
     "prisma:migrate": "bun --cwd packages/db run prisma:migrate",
     "format": "bunx prettier -w ."

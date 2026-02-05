@@ -1,0 +1,18 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: creative-store-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: creative_store
+      POSTGRES_PASSWORD: creative_store
+      POSTGRES_DB: creative_store
+    ports:
+      - "5432:5432"
+    volumes:
+      - creative_store_pgdata:/var/lib/postgresql/data
+
+volumes:
+  creative_store_pgdata:

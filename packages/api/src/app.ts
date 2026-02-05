@@ -96,6 +96,74 @@ export function createApp({ prisma, getSession }: AppDeps) {
     return c.json({ user });
   });
 
+  // --- Wallet / Orders (mock for now) ---
+  app.get("/api/wallet/summary", async (c) => {
+    const user = c.get("user") as SessionUser | null;
+    if (!user) return c.json({ error: "unauthorized" }, 401);
+
+    return c.json({
+      summary: {
+        address: "0x71C...4f92",
+        aiccBalance: "1250.00"
+      }
+    });
+  });
+
+  app.get("/api/wallet/transactions", async (c) => {
+    const user = c.get("user") as SessionUser | null;
+    if (!user) return c.json({ error: "unauthorized" }, 401);
+
+    return c.json({
+      transactions: [
+        {
+          id: "tx_1",
+          type: "received",
+          hash: "0x3f2...9a21",
+          amount: "500.00",
+          direction: "in",
+          status: "confirmed",
+          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString()
+        },
+        {
+          id: "tx_2",
+          type: "purchase",
+          hash: "0x88d...12c8",
+          amount: "150.00",
+          direction: "out",
+          status: "confirmed",
+          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3).toISOString()
+        },
+        {
+          id: "tx_3",
+          type: "failed",
+          hash: "0xef9...442b",
+          amount: "200.00",
+          direction: "out",
+          status: "reverted",
+          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5).toISOString()
+        }
+      ]
+    });
+  });
+
+  app.get("/api/orders", async (c) => {
+    const user = c.get("user") as SessionUser | null;
+    if (!user) return c.json({ error: "unauthorized" }, 401);
+
+    return c.json({
+      orders: [
+        {
+          id: "order_1",
+          creativeTitle: "Summer Sale Banner Pack",
+          licenseType: "standard",
+          priceAicc: "150.00",
+          status: "confirmed",
+          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3).toISOString()
+        }
+      ]
+    });
+  });
+
   app.post("/api/uploads/logo", async (c) => {
     const user = c.get("user") as SessionUser | null;
     if (!user) return c.json({ error: "unauthorized" }, 401);

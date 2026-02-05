@@ -1,7 +1,13 @@
 import { Bell, Search, Settings } from "lucide-react";
+import { Link, useRouterState } from "@tanstack/react-router";
 import { Input } from "@/components/ui/input";
 
-const tabs = ["Campaigns", "Templates", "Library"];
+const navItems = [
+  { label: "Dashboard", to: "/dashboard" },
+  { label: "Project", to: "/projects" },
+  { label: "Market", to: "/market" },
+  { label: "Wallet", to: "/wallet" }
+] as const;
 
 type TopNavUser = {
   name?: string;
@@ -14,6 +20,8 @@ type TopNavProps = {
 };
 
 export function TopNav({ user }: TopNavProps) {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+
   const initials = user?.name
     ?.split(" ")
     .map((part) => part[0])
@@ -23,25 +31,29 @@ export function TopNav({ user }: TopNavProps) {
 
   return (
     <header className="flex items-center justify-between border-b border-border/70 px-8 py-4">
-      <div className="flex items-center gap-6">
-        {tabs.map((tab) => (
-          <button
-            key={tab}
-            type="button"
-            className={`text-sm font-semibold transition ${
-              tab === "Campaigns"
-                ? "text-foreground"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {tab}
-          </button>
-        ))}
-      </div>
+      <nav className="flex items-center gap-6">
+        {navItems.map((item) => {
+          const active = pathname === item.to;
+          return (
+            <Link
+              key={item.to}
+              to={item.to}
+              className={
+                active
+                  ? "text-sm font-semibold text-foreground"
+                  : "text-sm font-semibold text-muted-foreground hover:text-foreground"
+              }
+            >
+              {item.label}
+            </Link>
+          );
+        })}
+      </nav>
+
       <div className="flex items-center gap-3">
         <div className="relative">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input className="w-64 pl-9" placeholder="Search prompts..." />
+          <Input className="w-64 pl-9" placeholder="Search assets..." />
         </div>
         <button
           type="button"

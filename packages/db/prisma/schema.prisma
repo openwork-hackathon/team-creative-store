@@ -62,8 +62,8 @@ model User {
   sessions      Session[]
   accounts      Account[]
   projects      Project[]
-  marketplaceListings MarketplaceListing[]
-  marketplacePurchases MarketplacePurchase[]
+  publishRecords PublishRecord[] @relation("PublishRecordCreator")
+  purchases     Purchase[]      @relation("PurchaseBuyer")
 }
 
 model Session {
@@ -209,15 +209,24 @@ model PublishRecord {
   creative        Creative        @relation(fields: [creativeId], references: [id])
   versionId       String
   version         CreativeVersion @relation(fields: [versionId], references: [id])
+  creatorId       String
+  creator         User            @relation("PublishRecordCreator", fields: [creatorId], references: [id])
   slug            String          @unique
   title           String
   description     String?
+  imageUrl        String?
   category        PublishCategory @default(ads)
+  assetType       AssetType       @default(ad_kit)
   licenseType     LicenseType     @default(standard)
   tags            String[]
   priceAicc       Decimal         @db.Decimal(18, 2)
+  rating          Decimal         @default(0) @db.Decimal(2, 1)
+  reviewCount     Int             @default(0)
+  isPremium       Boolean         @default(false)
+  status          ListingStatus   @default(active)
   includeSourceFiles Boolean      @default(false)
   publishedAt     DateTime        @default(now())
+  purchases       Purchase[]
 }
 
 model NftRecord {
@@ -252,33 +261,13 @@ enum AssetType {
   scene_3d
 }
 
-model MarketplaceListing {
-  id          String        @id @default(uuid())
-  title       String
-  description String?
-  imageUrl    String
-  creatorId   String
-  creator     User          @relation(fields: [creatorId], references: [id])
-  priceAicc   Decimal       @db.Decimal(18, 2)
-  assetType   AssetType
-  licenseType LicenseType   @default(standard)
-  rating      Decimal       @default(0) @db.Decimal(2, 1)
-  reviewCount Int           @default(0)
-  isPremium   Boolean       @default(false)
-  tags        String[]
-  status      ListingStatus @default(active)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  purchases   MarketplacePurchase[]
-}
-
-model MarketplacePurchase {
-  id          String   @id @default(uuid())
-  listingId   String
-  listing     MarketplaceListing @relation(fields: [listingId], references: [id])
-  buyerId     String
-  buyer       User     @relation(fields: [buyerId], references: [id])
-  priceAicc   Decimal  @db.Decimal(18, 2)
-  txHash      String?
-  createdAt   DateTime @default(now())
+model Purchase {
+  id              String        @id @default(uuid())
+  publishRecordId String
+  publishRecord   PublishRecord @relation(fields: [publishRecordId], references: [id])
+  buyerId         String
+  buyer           User          @relation("PurchaseBuyer", fields: [buyerId], references: [id])
+  priceAicc       Decimal       @db.Decimal(18, 2)
+  txHash          String?
+  createdAt       DateTime      @default(now())
 }

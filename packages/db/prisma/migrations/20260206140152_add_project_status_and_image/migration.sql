@@ -22,27 +22,6 @@ ADD COLUMN     "status" "ProjectStatus" NOT NULL DEFAULT 'draft',
 ADD COLUMN     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
 
 -- CreateTable
-CREATE TABLE "MarketplaceListing" (
-    "id" TEXT NOT NULL,
-    "title" TEXT NOT NULL,
-    "description" TEXT,
-    "imageUrl" TEXT NOT NULL,
-    "creatorId" TEXT NOT NULL,
-    "priceAicc" DECIMAL(18,2) NOT NULL,
-    "assetType" "AssetType" NOT NULL,
-    "licenseType" "LicenseType" NOT NULL DEFAULT 'standard',
-    "rating" DECIMAL(2,1) NOT NULL DEFAULT 0,
-    "reviewCount" INTEGER NOT NULL DEFAULT 0,
-    "isPremium" BOOLEAN NOT NULL DEFAULT false,
-    "tags" TEXT[],
-    "status" "ListingStatus" NOT NULL DEFAULT 'active',
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "MarketplaceListing_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
 CREATE TABLE "MarketplacePurchase" (
     "id" TEXT NOT NULL,
     "listingId" TEXT NOT NULL,

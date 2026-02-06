@@ -14,9 +14,11 @@ export interface ProjectFilter {
   recency?: string;
 }
 
-export type LicenseType = "standard" | "extended";
+export type LicenseType = "standard" | "extended" | "exclusive";
 
 export type PublishCategory = "ads" | "branding" | "e-commerce" | "gaming";
+
+export type AssetType = "ad_kit" | "branding" | "character" | "ui_kit" | "background" | "template" | "logo" | "scene_3d";
 
 export interface DeliverablePackage {
   id: string;
@@ -30,10 +32,13 @@ export interface DeliverablePackage {
 export interface PublishFormData {
   title: string;
   description: string;
+  imageUrl?: string;
   category: PublishCategory;
+  assetType?: AssetType;
   licenseType: LicenseType;
   tags: string[];
   price: number;
+  isPremium?: boolean;
   deliverables: DeliverablePackage[];
   includeSourceFiles: boolean;
 }

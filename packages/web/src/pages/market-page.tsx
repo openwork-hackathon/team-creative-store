@@ -209,14 +209,6 @@ export function MarketPage() {
           <p className="mb-6 max-w-md text-muted-foreground">
             We couldn't find any creatives matching your search criteria. Try adjusting your filters or search terms.
           </p>
-          <button
-            type="button"
-            onClick={handleClearFilters}
-            className="flex items-center gap-2 rounded-lg bg-primary px-6 py-3 font-bold text-primary-foreground transition-colors hover:bg-primary/90"
-          >
-            <span className="material-symbols-outlined">refresh</span>
-            Clear All Filters
-          </button>
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

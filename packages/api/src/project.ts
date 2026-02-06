@@ -41,13 +41,17 @@ type ProjectRecord = {
 type PublishRecordData = {
   creativeId: string;
   versionId: string;
+  creatorId: string;
   slug: string;
   title: string;
   description?: string;
+  imageUrl?: string;
   category: "ads" | "branding" | "e_commerce" | "gaming";
+  assetType: "ad_kit" | "branding" | "character" | "ui_kit" | "background" | "template" | "logo" | "scene_3d";
   licenseType: "standard" | "extended" | "exclusive";
   tags: string[];
   priceAicc: number;
+  isPremium?: boolean;
   includeSourceFiles: boolean;
 };
 
@@ -167,10 +171,13 @@ export function createProjectRoutes({ prisma }: ProjectRoutesDeps) {
   const publishInputSchema = z.object({
     title: z.string().min(1),
     description: z.string().optional(),
+    imageUrl: z.string().optional(),
     category: z.enum(["ads", "branding", "e_commerce", "gaming"]).default("ads"),
+    assetType: z.enum(["ad_kit", "branding", "character", "ui_kit", "background", "template", "logo", "scene_3d"]).default("ad_kit"),
     licenseType: z.enum(["standard", "extended", "exclusive"]).default("standard"),
     tags: z.array(z.string()).default([]),
     price: z.number().min(0),
+    isPremium: z.boolean().default(false),
     includeSourceFiles: z.boolean().default(false),
   });
 
@@ -216,13 +223,17 @@ export function createProjectRoutes({ prisma }: ProjectRoutesDeps) {
         data: {
           creativeId: creative.id,
           versionId: version.id,
+          creatorId: user.id,
           slug,
           title: input.title,
           description: input.description,
+          imageUrl: input.imageUrl,
           category: input.category,
+          assetType: input.assetType,
           licenseType: input.licenseType,
           tags: input.tags,
           priceAicc: input.price,
+          isPremium: input.isPremium,
           includeSourceFiles: input.includeSourceFiles,
         }
       });

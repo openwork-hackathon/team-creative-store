@@ -8,7 +8,7 @@ type PublishRecordWithCreator = {
   description: string | null;
   imageUrl: string | null;
   creatorId: string;
-  creator: { id: string; name: string | null };
+  creator: { id: string; name: string | null; walletAddress: string | null };
   priceAicc: unknown;
   assetType: string;
   licenseType: string;
@@ -24,14 +24,14 @@ type PrismaLike = {
   publishRecord: {
     findMany: (args: {
       where?: Record<string, unknown>;
-      include?: { creator: { select: { id: boolean; name: boolean } } };
+      include?: { creator: { select: { id: boolean; name: boolean; walletAddress: boolean } } };
       orderBy?: Record<string, string>;
       skip?: number;
       take?: number;
     }) => Promise<PublishRecordWithCreator[]>;
     findUnique: (args: {
       where: { id: string };
-      include?: { creator: { select: { id: boolean; name: boolean } } };
+      include?: { creator: { select: { id: boolean; name: boolean; walletAddress: boolean } } };
     }) => Promise<PublishRecordWithCreator | null>;
     count: (args?: { where?: Record<string, unknown> }) => Promise<number>;
   };
@@ -100,7 +100,8 @@ export function createMarketRoutes({ prisma }: MarketRoutesDeps) {
         creator: {
           select: {
             id: true,
-            name: true
+            name: true,
+            walletAddress: true
           }
         }
       },
@@ -118,7 +119,8 @@ export function createMarketRoutes({ prisma }: MarketRoutesDeps) {
       creatorId: record.creatorId,
       creator: {
         id: record.creator.id,
-        name: record.creator.name
+        name: record.creator.name,
+        walletAddress: record.creator.walletAddress
       },
       priceAicc: String(record.priceAicc),
       assetType: record.assetType,
@@ -151,7 +153,8 @@ export function createMarketRoutes({ prisma }: MarketRoutesDeps) {
         creator: {
           select: {
             id: true,
-            name: true
+            name: true,
+            walletAddress: true
           }
         }
       }
@@ -169,7 +172,8 @@ export function createMarketRoutes({ prisma }: MarketRoutesDeps) {
       creatorId: record.creatorId,
       creator: {
         id: record.creator.id,
-        name: record.creator.name
+        name: record.creator.name,
+        walletAddress: record.creator.walletAddress
       },
       priceAicc: String(record.priceAicc),
       assetType: record.assetType,

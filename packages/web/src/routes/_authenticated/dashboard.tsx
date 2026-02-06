@@ -27,9 +27,9 @@ function DashboardRoute() {
   const recentProjects =
     projectsData?.projects?.slice(0, 5).map((p) => ({
       id: p.id,
-      name: p.name,
-      timestamp: "Recently",
-      status: "draft" as const
+      name: p.title,
+      timestamp: new Date(p.updatedAt).toLocaleDateString(),
+      status: p.status
     })) || [];
 
   const handleNewProject = () => {

@@ -81,6 +81,7 @@ export type MarketplaceListing = {
   creator: {
     id: string;
     name: string | null;
+    walletAddress: string | null;
   };
   priceAicc: string;
   assetType: string;

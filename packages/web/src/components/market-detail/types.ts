@@ -26,14 +26,5 @@ export const devicePresets = [
 export type DevicePreset = (typeof devicePresets)[number]
 export type DevicePresetId = DevicePreset["id"]
 
-// Listing type (based on API response)
-export interface MarketListing {
-  id: string
-  title: string
-  description: string | null
-  imageUrl: string
-  priceAicc: string | number
-  isPremium: boolean
-  creatorId?: string
-  createdAt?: string
-}
+// Re-export MarketplaceListing from api as MarketListing for backward compatibility
+export type { MarketplaceListing as MarketListing } from "@/lib/api"

@@ -15,6 +15,54 @@ type GenerateCreativeInput = {
   brandAssets?: BrandAsset[];
 };
 
+export type MarketplaceListing = {
+  id: string;
+  title: string;
+  description: string | null;
+  imageUrl: string;
+  creatorId: string;
+  creator: { id: string; name: string | null };
+  priceAicc: string;
+  assetType: string;
+  licenseType: string;
+  rating: string;
+  reviewCount: number;
+  isPremium: boolean;
+  tags: string[];
+  status: string;
+  createdAt: string;
+};
+
+export type MarketplaceListingsResponse = {
+  listings: MarketplaceListing[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+};
+
+export type MarketplaceQuery = {
+  search?: string;
+  assetType?: string;
+  priceMin?: number;
+  priceMax?: number;
+  licenseType?: string;
+  page?: number;
+  limit?: number;
+};
+
+export type AssetType = {
+  value: string;
+  label: string;
+};
+
+export type LicenseType = {
+  value: string;
+  label: string;
+};
+
 export function createApiClient(
   fetcher: typeof fetch = fetch,
   baseUrl = "/api"
@@ -62,7 +110,27 @@ export function createApiClient(
       request(`${baseUrl}/uploads/visuals`, {
         method: "POST",
         body: formData
-      }).then((response) => response.json())
+      }).then((response) => response.json()),
+    // Marketplace API
+    getMarketplaceListings: async (query: MarketplaceQuery = {}): Promise<MarketplaceListingsResponse> => {
+      const params = new URLSearchParams();
+      if (query.search) params.set("search", query.search);
+      if (query.assetType) params.set("assetType", query.assetType);
+      if (query.priceMin !== undefined) params.set("priceMin", String(query.priceMin));
+      if (query.priceMax !== undefined) params.set("priceMax", String(query.priceMax));
+      if (query.licenseType) params.set("licenseType", query.licenseType);
+      if (query.page) params.set("page", String(query.page));
+      if (query.limit) params.set("limit", String(query.limit));
+      const queryString = params.toString();
+      const url = queryString ? `${baseUrl}/marketplace/listings?${queryString}` : `${baseUrl}/marketplace/listings`;
+      return request(url).then((response) => response.json());
+    },
+    getMarketplaceListing: async (id: string): Promise<{ listing: MarketplaceListing }> =>
+      request(`${baseUrl}/marketplace/listings/${id}`).then((response) => response.json()),
+    getAssetTypes: async (): Promise<{ assetTypes: AssetType[] }> =>
+      request(`${baseUrl}/marketplace/asset-types`).then((response) => response.json()),
+    getLicenseTypes: async (): Promise<{ licenseTypes: LicenseType[] }> =>
+      request(`${baseUrl}/marketplace/license-types`).then((response) => response.json())
   };
 }
 

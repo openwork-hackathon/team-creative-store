@@ -42,6 +42,8 @@ model User {
   sessions      Session[]
   accounts      Account[]
   projects      Project[]
+  marketplaceListings MarketplaceListing[]
+  marketplacePurchases MarketplacePurchase[]
 }
 
 model Session {
@@ -200,4 +202,59 @@ model NftRecord {
   contentHash  String
   status       NftStatus @default(pending)
   mintedAt     DateTime?
+}
+
+// Marketplace models
+enum ListingStatus {
+  active
+  sold
+  delisted
+}
+
+enum AssetType {
+  ad_kit
+  branding
+  character
+  ui_kit
+  background
+  template
+  logo
+  scene_3d
+}
+
+enum LicenseType {
+  standard
+  extended
+  exclusive
+}
+
+model MarketplaceListing {
+  id          String        @id @default(uuid())
+  title       String
+  description String?
+  imageUrl    String
+  creatorId   String
+  creator     User          @relation(fields: [creatorId], references: [id])
+  priceAicc   Decimal       @db.Decimal(18, 2)
+  assetType   AssetType
+  licenseType LicenseType   @default(standard)
+  rating      Decimal       @default(0) @db.Decimal(2, 1)
+  reviewCount Int           @default(0)
+  isPremium   Boolean       @default(false)
+  tags        String[]
+  status      ListingStatus @default(active)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  purchases   MarketplacePurchase[]
+}
+
+model MarketplacePurchase {
+  id          String   @id @default(uuid())
+  listingId   String
+  listing     MarketplaceListing @relation(fields: [listingId], references: [id])
+  buyerId     String
+  buyer       User     @relation(fields: [buyerId], references: [id])
+  priceAicc   Decimal  @db.Decimal(18, 2)
+  txHash      String?
+  createdAt   DateTime @default(now())
 }

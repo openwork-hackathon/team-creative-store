@@ -12,7 +12,12 @@ import { Route as rootRouteImport } from "./routes/__root"
 import { Route as LoginRouteImport } from "./routes/login"
 import { Route as AuthenticatedRouteImport } from "./routes/_authenticated"
 import { Route as IndexRouteImport } from "./routes/index"
+import { Route as AuthenticatedWalletRouteImport } from "./routes/_authenticated/wallet"
+import { Route as AuthenticatedProjectsRouteImport } from "./routes/_authenticated/projects"
+import { Route as AuthenticatedMarketRouteImport } from "./routes/_authenticated/market"
+import { Route as AuthenticatedDashboardRouteImport } from "./routes/_authenticated/dashboard"
 import { Route as AuthenticatedCreativeStudioRouteImport } from "./routes/_authenticated/creative-studio"
+import { Route as AuthenticatedMarketIdRouteImport } from "./routes/_authenticated/market_.$id"
 
 const LoginRoute = LoginRouteImport.update({
   id: "/login",
@@ -28,22 +33,57 @@ const IndexRoute = IndexRouteImport.update({
   path: "/",
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedWalletRoute = AuthenticatedWalletRouteImport.update({
+  id: "/wallet",
+  path: "/wallet",
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedProjectsRoute = AuthenticatedProjectsRouteImport.update({
+  id: "/projects",
+  path: "/projects",
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedMarketRoute = AuthenticatedMarketRouteImport.update({
+  id: "/market",
+  path: "/market",
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: "/dashboard",
+  path: "/dashboard",
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedCreativeStudioRoute =
   AuthenticatedCreativeStudioRouteImport.update({
     id: "/creative-studio",
     path: "/creative-studio",
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedMarketIdRoute = AuthenticatedMarketIdRouteImport.update({
+  id: "/market_/$id",
+  path: "/market/$id",
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   "/": typeof IndexRoute
   "/login": typeof LoginRoute
   "/creative-studio": typeof AuthenticatedCreativeStudioRoute
+  "/dashboard": typeof AuthenticatedDashboardRoute
+  "/market": typeof AuthenticatedMarketRoute
+  "/projects": typeof AuthenticatedProjectsRoute
+  "/wallet": typeof AuthenticatedWalletRoute
+  "/market/$id": typeof AuthenticatedMarketIdRoute
 }
 export interface FileRoutesByTo {
   "/": typeof IndexRoute
   "/login": typeof LoginRoute
   "/creative-studio": typeof AuthenticatedCreativeStudioRoute
+  "/dashboard": typeof AuthenticatedDashboardRoute
+  "/market": typeof AuthenticatedMarketRoute
+  "/projects": typeof AuthenticatedProjectsRoute
+  "/wallet": typeof AuthenticatedWalletRoute
+  "/market/$id": typeof AuthenticatedMarketIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -51,18 +91,44 @@ export interface FileRoutesById {
   "/_authenticated": typeof AuthenticatedRouteWithChildren
   "/login": typeof LoginRoute
   "/_authenticated/creative-studio": typeof AuthenticatedCreativeStudioRoute
+  "/_authenticated/dashboard": typeof AuthenticatedDashboardRoute
+  "/_authenticated/market": typeof AuthenticatedMarketRoute
+  "/_authenticated/projects": typeof AuthenticatedProjectsRoute
+  "/_authenticated/wallet": typeof AuthenticatedWalletRoute
+  "/_authenticated/market_/$id": typeof AuthenticatedMarketIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: "/" | "/login" | "/creative-studio"
+  fullPaths:
+    | "/"
+    | "/login"
+    | "/creative-studio"
+    | "/dashboard"
+    | "/market"
+    | "/projects"
+    | "/wallet"
+    | "/market/$id"
   fileRoutesByTo: FileRoutesByTo
-  to: "/" | "/login" | "/creative-studio"
+  to:
+    | "/"
+    | "/login"
+    | "/creative-studio"
+    | "/dashboard"
+    | "/market"
+    | "/projects"
+    | "/wallet"
+    | "/market/$id"
   id:
     | "__root__"
     | "/"
     | "/_authenticated"
     | "/login"
     | "/_authenticated/creative-studio"
+    | "/_authenticated/dashboard"
+    | "/_authenticated/market"
+    | "/_authenticated/projects"
+    | "/_authenticated/wallet"
+    | "/_authenticated/market_/$id"
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -94,6 +160,34 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    "/_authenticated/wallet": {
+      id: "/_authenticated/wallet"
+      path: "/wallet"
+      fullPath: "/wallet"
+      preLoaderRoute: typeof AuthenticatedWalletRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    "/_authenticated/projects": {
+      id: "/_authenticated/projects"
+      path: "/projects"
+      fullPath: "/projects"
+      preLoaderRoute: typeof AuthenticatedProjectsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    "/_authenticated/market": {
+      id: "/_authenticated/market"
+      path: "/market"
+      fullPath: "/market"
+      preLoaderRoute: typeof AuthenticatedMarketRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    "/_authenticated/dashboard": {
+      id: "/_authenticated/dashboard"
+      path: "/dashboard"
+      fullPath: "/dashboard"
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     "/_authenticated/creative-studio": {
       id: "/_authenticated/creative-studio"
       path: "/creative-studio"
@@ -101,15 +195,32 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof AuthenticatedCreativeStudioRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    "/_authenticated/market_/$id": {
+      id: "/_authenticated/market_/$id"
+      path: "/market/$id"
+      fullPath: "/market/$id"
+      preLoaderRoute: typeof AuthenticatedMarketIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
   }
 }
 
 interface AuthenticatedRouteChildren {
   AuthenticatedCreativeStudioRoute: typeof AuthenticatedCreativeStudioRoute
+  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedMarketRoute: typeof AuthenticatedMarketRoute
+  AuthenticatedProjectsRoute: typeof AuthenticatedProjectsRoute
+  AuthenticatedWalletRoute: typeof AuthenticatedWalletRoute
+  AuthenticatedMarketIdRoute: typeof AuthenticatedMarketIdRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedCreativeStudioRoute: AuthenticatedCreativeStudioRoute,
+  AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedMarketRoute: AuthenticatedMarketRoute,
+  AuthenticatedProjectsRoute: AuthenticatedProjectsRoute,
+  AuthenticatedWalletRoute: AuthenticatedWalletRoute,
+  AuthenticatedMarketIdRoute: AuthenticatedMarketIdRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(

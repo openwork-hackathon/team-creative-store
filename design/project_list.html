@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Projects Management Grid</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#135bec",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101622",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen">
+<div class="flex flex-col min-h-screen">
+<!-- TopNavBar -->
+<header class="sticky top-0 z-50 w-full border-b border-slate-200 dark:border-slate-800 bg-background-light dark:bg-background-dark/80 backdrop-blur-md">
+<div class="max-w-[1440px] mx-auto px-6 h-16 flex items-center justify-between gap-8">
+<div class="flex items-center gap-8 flex-1">
+<div class="flex items-center gap-3">
+<div class="size-8 bg-primary rounded flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-xl">auto_awesome</span>
+</div>
+<h2 class="text-lg font-bold tracking-tight">Creative AI Hub</h2>
+</div>
+<div class="flex-1 max-w-md">
+<div class="relative group">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 group-focus-within:text-primary transition-colors">
+<span class="material-symbols-outlined text-xl">search</span>
+</div>
+<input class="block w-full pl-10 pr-3 py-2 border-none bg-slate-100 dark:bg-slate-800 rounded-lg text-sm placeholder-slate-500 focus:ring-2 focus:ring-primary transition-all" placeholder="Search projects, assets, or NFTs..." type="text"/>
+</div>
+</div>
+</div>
+<nav class="hidden lg:flex items-center gap-6">
+<a class="text-sm font-medium text-primary" href="#">Projects</a>
+<a class="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-primary transition-colors" href="#">Assets</a>
+<a class="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-primary transition-colors" href="#">AI Generator</a>
+<a class="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-primary transition-colors" href="#">NFT Gallery</a>
+</nav>
+<div class="flex items-center gap-4">
+<button class="flex items-center gap-2 bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg text-sm font-bold transition-all shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-lg">add</span>
+<span>New Project</span>
+</button>
+<div class="w-10 h-10 rounded-full border-2 border-slate-200 dark:border-slate-700 bg-cover bg-center" data-alt="User profile avatar circle" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBVaL1Gjsd4cUHxP2newpZM-bRHqbLhsG-6w140ioFElTLGuvpACnCE7SxojNIB6lmW7fZXJu1dmlPYNG4YN_zTxSZsaDNciK1q1ZNKeJ9BzZt-5d3GMQe31MQKZZwR3BuLsraSAzsxvWzrdtpV25tC6bPQkoAPoTqg5HnJa4wOFH-Wb4DtYU0EK74ucU__Fw5kKXLUlx4jhBQVw3tZiWEvUttjbHiF6zRfJrrs2c_YariqSdwrrC9DYVjX95tm4YcRX6nYfpGTswI");'></div>
+</div>
+</div>
+</header>
+<main class="max-w-[1440px] mx-auto w-full px-6 py-6 flex flex-col gap-6">
+<!-- Filter Bar & ToolBar -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-800">
+<div class="flex flex-wrap gap-2">
+<button class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-xs font-medium hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+<span>Status</span>
+<span class="material-symbols-outlined text-sm">expand_more</span>
+</button>
+<button class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-semibold border border-primary/20">
+<span>Ready</span>
+<span class="material-symbols-outlined text-sm">close</span>
+</button>
+<button class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-xs font-medium hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+<span>Industry</span>
+<span class="material-symbols-outlined text-sm">expand_more</span>
+</button>
+<button class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-xs font-medium hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+<span>Recency</span>
+<span class="material-symbols-outlined text-sm">expand_more</span>
+</button>
+</div>
+<div class="flex items-center gap-1 border-l border-slate-200 dark:border-slate-800 pl-4">
+<span class="text-xs text-slate-500 font-medium mr-2">Selection:</span>
+<button class="p-2 text-slate-500 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 rounded transition-colors" title="Edit Selection">
+<span class="material-symbols-outlined">edit</span>
+</button>
+<button class="p-2 text-slate-500 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 rounded transition-colors" title="Preview Selection">
+<span class="material-symbols-outlined">visibility</span>
+</button>
+<button class="p-2 text-slate-500 hover:text-amber-500 hover:bg-amber-500/10 rounded transition-colors" title="Archive Selection">
+<span class="material-symbols-outlined">archive</span>
+</button>
+<button class="p-2 text-slate-500 hover:text-red-500 hover:bg-red-500/10 rounded transition-colors" title="Delete Selection">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+</div>
+<!-- ImageGrid -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+<!-- Card 1 -->
+<div class="group relative flex flex-col bg-white dark:bg-slate-900 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 hover:border-primary transition-all shadow-sm hover:shadow-xl">
+<div class="absolute top-3 left-3 z-10">
+<input class="rounded border-slate-300 dark:border-slate-700 text-primary focus:ring-primary bg-white/20 backdrop-blur-sm size-5" type="checkbox"/>
+</div>
+<div class="relative aspect-video overflow-hidden">
+<div class="w-full h-full bg-center bg-cover transition-transform duration-500 group-hover:scale-105" data-alt="Cyberpunk style AI generated character art" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBTxrNP2Tl5z9pyClfWiUSOTgUdvUEGpCvA9USbxKsZ5pnA6f60BDUykkWd7otcxFmS6JVAyWSR7Hk5a_cgVZBEL5z7jo51TGIWbGVXQHJAO-ki5KkzbGlbljrJe4KpwXWynU_2pkIYqGsUjcDMf_kC56diRu9vBJC5Tf6VqMa3NyuN8nNB6mEjem-qr71iMWw2GcXGeL1dqINVDxwmUWX0h9wXVDlw8VOU0kSzVXUTyML7-hDSl8NkHSZeSaPM7zGYyw39X_Y4M6c");'></div>
+<div class="absolute top-3 right-3">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">Published</span>
+</div>
+</div>
+<div class="p-4 flex flex-col gap-1">
+<div class="flex items-center justify-between">
+<h3 class="font-bold text-slate-900 dark:text-white truncate">Project Alpha Neon</h3>
+<button class="text-slate-400 hover:text-primary"><span class="material-symbols-outlined text-lg">more_vert</span></button>
+</div>
+<p class="text-xs text-slate-500 dark:text-slate-400">Updated 2 hours ago</p>
+<div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
+<div class="flex -space-x-2">
+<div class="size-6 rounded-full border-2 border-white dark:border-slate-900 bg-cover" data-alt="Team member small icon" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAJbeAzAKPcXUNUOpE05Ri4sCADNGC_VchhaiSuYBVEWu3mmr7bcMbLzy5Vw8dR-QG5izmeKRFugybTf0nqdRr-xPXyWhumzm5VVkcn0yLuWgbJvJVCYzQK3TDQIB6R3Q869j0RklFA5dJsieFx7WRjEW-W-U885kHupubq0-J8kvAKYG9YvxfHtCjnYzRNvpo5EngRNVZ4RUY4XohD1r6g7CC-FCLZo53E96Fv7cj_V6DpIpyq-hfGuZ-send6aljdUrmIuzTvFFs");'></div>
+<div class="size-6 rounded-full border-2 border-white dark:border-slate-900 bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-[10px] font-bold">+2</div>
+</div>
+<div class="flex gap-2">
+<span class="material-symbols-outlined text-xl text-slate-400 hover:text-primary cursor-pointer transition-colors">edit</span>
+<span class="material-symbols-outlined text-xl text-slate-400 hover:text-primary cursor-pointer transition-colors">visibility</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="group relative flex flex-col bg-white dark:bg-slate-900 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 hover:border-primary transition-all shadow-sm hover:shadow-xl">
+<div class="absolute top-3 left-3 z-10">
+<input class="rounded border-slate-300 dark:border-slate-700 text-primary focus:ring-primary bg-white/20 backdrop-blur-sm size-5" type="checkbox"/>
+</div>
+<div class="relative aspect-video overflow-hidden">
+<div class="w-full h-full bg-center bg-cover transition-transform duration-500 group-hover:scale-105" data-alt="Abstract futuristic wave gradient background" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDJh4gjMpZhDz-jB7hwQ6XUYfVkrbgbyLWqBLo5pq4XJvLORkOHGwyq_w2PSXu6gimMxBqHYVxq6X-Yba0FYXmywIK55QEW76kAkLAn_5wPKq3PA14v2oNJmKE8gDamPh1HPEFCO3j9bXeFCPAapngXSjgl4idhZ6SHkStVrdiAWjROLP58Ng69fI2PsxkDfm4mA2XmNlex2a75pQi5zLrgUk9Xbr6vmwnVVR2wNM05VzDXkWUn8VsCr3QSl32wFS1BhRM3Rlz0cxY");'></div>
+<div class="absolute top-3 right-3">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 border border-amber-200 dark:border-amber-800">Generating</span>
+</div>
+</div>
+<div class="p-4 flex flex-col gap-1">
+<div class="flex items-center justify-between">
+<h3 class="font-bold text-slate-900 dark:text-white truncate">Beta Ad Campaign</h3>
+<button class="text-slate-400 hover:text-primary"><span class="material-symbols-outlined text-lg">more_vert</span></button>
+</div>
+<p class="text-xs text-slate-500 dark:text-slate-400">Updated 10 mins ago</p>
+<div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
+<div class="flex -space-x-2">
+<div class="size-6 rounded-full border-2 border-white dark:border-slate-900 bg-cover" data-alt="Collaborator avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBDcvf6U_DJCAnu9sT3Xsk_40eHSKxZKnscfp6qma8jG9Qvld-F5j-qIyNmx0BiWIXYXEfoeij0-mnPckM3HvvDPBgrvVki_dBWIoJ3JBfL05-LKkjtXWKAJTlRi1gutHjytY6e53x59A12INI_WnCbDLchirUTN0u0AZVRNmN0aOHRq8G6XxvgzIoMM4BKaYYevSOb3CvJw32xwR50lo3379tb7LpkXMoRZuHHddBg8uWEArojbydqGzyS7KJ3eMx2k47wjdEDP3U");'></div>
+</div>
+<div class="flex gap-2">
+<span class="material-symbols-outlined text-xl text-slate-400 hover:text-primary cursor-pointer transition-colors">edit</span>
+<span class="material-symbols-outlined text-xl text-slate-400 hover:text-primary cursor-pointer transition-colors">visibility</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="group relative flex flex-col bg-white dark:bg-slate-900 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 hover:border-primary transition-all shadow-sm hover:shadow-xl">
+<div class="absolute top-3 left-3 z-10">
+<input class="rounded border-slate-300 dark:border-slate-700 text-primary focus:ring-primary bg-white/20 backdrop-blur-sm size-5" type="checkbox"/>
+</div>
+<div class="relative aspect-video overflow-hidden">
+<div class="w-full h-full bg-center bg-cover transition-transform duration-500 group-hover:scale-105" data-alt="3D digital collectibles NFT display" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBXeCQmXFTKvjlyyT201BDgijy4si9-XvWd7vMvOxPXswfEsmTOLQvh6a-nKUPMJzN1RY9QjXiAxkHUAd3t5V7yiTPc9nn36FW3j18CgVmh2ogQVLG7qXavevuZNbn_YJq-bkWObeNpzjWGcBvyApP1Kcl_73zJej_Ym40RfjDV6H3Zx_ci-8d9nwYlZXRjSfp7zYZMqwKZZXJPjhYIzG6EOKuDs_fho2rv1QWn6UZoYsYEUBbZV6bNpmrKFBLN5RkioyxWnx9edP8");'></div>
+<div class="absolute top-3 right-3">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-400 border border-slate-200 dark:border-slate-700">Draft</span>
+</div>
+</div>
+<div class="p-4 flex flex-col gap-1">
+<div class="flex items-center justify-between">
+<h3 class="font-bold text-slate-900 dark:text-white truncate">Metasphere NFTs</h3>
+<button class="text-slate-400 hover:text-primary"><span class="material-symbols-outlined text-lg">more_vert</span></button>
+</div>
+<p class="text-xs text-slate-500 dark:text-slate-400">Updated 1 day ago</p>
+<div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
+<div class="flex -space-x-2">
+<div class="size-6 rounded-full border-2 border-white dark:border-slate-900 bg-cover" data-alt="Artist avatar icon" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCj9uNoogLeOcxk4tKPBxkRN2ZnjoEaoQsAHYeUHn9IqxwqmCE9dMklSZNj6TdS7P4yZnO6VkxHvRMwmnDXqT9yhtEEYwkLlB3g7DyaeotMfm0VsfiXdTloIeU4Jd3MpZlw8LPkOsOMdNzgdN7aavzXfgGByW4av9hHUuFj8Gd55VXDZ6I1ZBkMq8jeJCnb3GuURnU_f2DehbtkTZeY254c-nw8c3HP6Bo8-kcPdgaLyBPJiPsZrGwKOIVfc2U1voFSjmIV4onwf70");'></div>
+</div>
+<div class="flex gap-2">
+<span class="material-symbols-outlined text-xl text-slate-400 hover:text-primary cursor-pointer transition-colors">edit</span>
+<span class="material-symbols-outlined text-xl text-slate-400 hover:text-primary cursor-pointer transition-colors">visibility</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 4 -->
+<div class="group relative flex flex-col bg-white dark:bg-slate-900 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 hover:border-primary transition-all shadow-sm hover:shadow-xl ring-2 ring-primary">
+<div class="absolute top-3 left-3 z-10">
+<input checked="" class="rounded border-slate-300 dark:border-slate-700 text-primary focus:ring-primary bg-white/20 backdrop-blur-sm size-5" type="checkbox"/>
+</div>
+<div class="relative aspect-video overflow-hidden">
+<div class="w-full h-full bg-center bg-cover transition-transform duration-500 group-hover:scale-105" data-alt="Sleek branding identity social media posts" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBoDVIaNlQImpWNIq55oXQjoBFq7l_tfhVB4c0NTnZlXt_DNrsbfNqu1BQeryhiBYrmFHO1SDGY7TSG4KYfT-ieKEqmcZqePo3zYXuoCr1yB6xzyc_pjzc7y2jnSbu3vcqZwR6yikSPQ9XAEAGWn1-2CTjJJQ4cU8VuwcWUOJGdVpnrJZXJ8c8OTC-9O3Zt-r-RmtxlZuZRDhQgyYksJBpKfqJPP-njWCzXljY0AByXjUk23AoNCgSh8-uedZN9DxUgP4nxoLbezpk");'></div>
+<div class="absolute top-3 right-3">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary/20 text-primary border border-primary/30">Ready</span>
+</div>
+</div>
+<div class="p-4 flex flex-col gap-1">
+<div class="flex items-center justify-between">
+<h3 class="font-bold text-slate-900 dark:text-white truncate">Social Launch Kit</h3>
+<button class="text-slate-400 hover:text-primary"><span class="material-symbols-outlined text-lg">more_vert</span></button>
+</div>
+<p class="text-xs text-slate-500 dark:text-slate-400">Updated 5 hours ago</p>
+<div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
+<div class="flex -space-x-2">
+<div class="size-6 rounded-full border-2 border-white dark:border-slate-900 bg-cover" data-alt="Team member icon" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuA7dA2ddfvLOVXoGb7zhhHwvjTYK7b19ybXMOrckDOzcaBXgP_xg-16QCh5Sy_kkiwezxNQDk2-eMlpGmIB1Cx0EqvYQrguMLjt6C5YfpyBtd7A5KVW4mcakSKi0Y7ORYI3CbxWvA2zfBwwI2r0IebnxEbJ-4N34xsS61-OdUyJB_gdNF9hQLdjuYeHCTXJi6RR7FG8ldEj9fwrhC0WjfTtFps5vUin_JXPhZgI93OEucf43CFOl2i6gH38fg5aWnOdZ7PqzaXTqKA");'></div>
+</div>
+<div class="flex gap-2">
+<span class="material-symbols-outlined text-xl text-slate-400 hover:text-primary cursor-pointer transition-colors">edit</span>
+<span class="material-symbols-outlined text-xl text-slate-400 hover:text-primary cursor-pointer transition-colors">visibility</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 5 -->
+<div class="group relative flex flex-col bg-white dark:bg-slate-900 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 hover:border-primary transition-all shadow-sm hover:shadow-xl">
+<div class="absolute top-3 left-3 z-10">
+<input class="rounded border-slate-300 dark:border-slate-700 text-primary focus:ring-primary bg-white/20 backdrop-blur-sm size-5" type="checkbox"/>
+</div>
+<div class="relative aspect-video overflow-hidden">
+<div class="w-full h-full bg-center bg-cover transition-transform duration-500 group-hover:scale-105" data-alt="Colorful modern graphic banners" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDX0-nro4QDsxDtEvoJg6G-uxneSuk-33n95MEkyoq4c21vWdFNzizqoqe_0tqKoT5R_UkApbBNjvIkffoX-iYy9i66W599KI41N5KuQjFmmMnyCehTqhNJxOa9sJv1DfnVsto8JHI_jxvOISJqxm_xzVNIBwhBQ7hTAxjXG4QyqUImXQCw9vOXuz_KfAbPJfhcWeBF0xIIX-2ZRsWYK3FWyanXD0bCgegkvDFgBSSgVl_oytE_91irZr3c5bSOFPIj5OqavmqtfHs");'></div>
+<div class="absolute top-3 right-3">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">Published</span>
+</div>
+</div>
+<div class="p-4 flex flex-col gap-1">
+<div class="flex items-center justify-between">
+<h3 class="font-bold text-slate-900 dark:text-white truncate">Q3 Marketing Kit</h3>
+<button class="text-slate-400 hover:text-primary"><span class="material-symbols-outlined text-lg">more_vert</span></button>
+</div>
+<p class="text-xs text-slate-500 dark:text-slate-400">Updated 3 days ago</p>
+<div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
+<div class="flex -space-x-2">
+<div class="size-6 rounded-full border-2 border-white dark:border-slate-900 bg-cover" data-alt="Team member profile" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAJJkcSdb0vfG5Tb7k1sHt082NKAHzF2cPcSbojCp9PoUCttCLPnsOgC5chnYckBMZkb35TJbm5-DxGiLmuOnmnSxkQitzUo2lvu-unr6D5Fmf-7UwaM3q_on4wLEqNomVnjQMgUtuWQp2GoNg5J18Q0_FQMF1Snbtr8WoVhUxaLGrR9OS4GP-bS3HBTjDnzEaTZByfiqd47t4fYqYsB7dPC-NQEuoogAaUo-0-F7Bg6_3S06wtyapQh8xA9oT2J_Pa-QRE2vugh4Y");'></div>
+</div>
+<div class="flex gap-2">
+<span class="material-symbols-outlined text-xl text-slate-400 hover:text-primary cursor-pointer transition-colors">edit</span>
+<span class="material-symbols-outlined text-xl text-slate-400 hover:text-primary cursor-pointer transition-colors">visibility</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 6 -->
+<div class="group relative flex flex-col bg-white dark:bg-slate-900 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 hover:border-primary transition-all shadow-sm hover:shadow-xl">
+<div class="absolute top-3 left-3 z-10">
+<input class="rounded border-slate-300 dark:border-slate-700 text-primary focus:ring-primary bg-white/20 backdrop-blur-sm size-5" type="checkbox"/>
+</div>
+<div class="relative aspect-video overflow-hidden">
+<div class="w-full h-full bg-center bg-cover transition-transform duration-500 group-hover:scale-105" data-alt="Clean corporate logo design variants" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCKh5JNt6La1MpFBKXXM4REKdK78u0EjUwRhc3faKK2z8wO6FyTT8PdlZBmmw5jHnfMlu_4H9pfUOhzmXgxiH2tJhXYY7WuH4Llnd_lh--jvGP-MY9rz4UY7e0JiP0talyZavhiSjczvXH4Jfal8sGWI8FDAWNHsChopgmx0GHkwXnjLfEfrQYzuDxMbuKv5-Y9alnFarbHV9ejdVQRKHQWnISMW-MQwnUx9UjDh1gKhz2TZPRmMdh8HPRYCvoiih51hjhpv2FDT_8");'></div>
+<div class="absolute top-3 right-3">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-400 border border-slate-200 dark:border-slate-700">Draft</span>
+</div>
+</div>
+<div class="p-4 flex flex-col gap-1">
+<div class="flex items-center justify-between">
+<h3 class="font-bold text-slate-900 dark:text-white truncate">Eco-Brand Identity</h3>
+<button class="text-slate-400 hover:text-primary"><span class="material-symbols-outlined text-lg">more_vert</span></button>
+</div>
+<p class="text-xs text-slate-500 dark:text-slate-400">Updated 4 hours ago</p>
+<div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
+<div class="flex -space-x-2">
+<div class="size-6 rounded-full border-2 border-white dark:border-slate-900 bg-cover" data-alt="Designer small photo" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBwUyIUZFPDQ-cunyWbmKfse6WFzj5t9Z1Qty6KCZDt06YIIIOjge4PQ9TuRSE-VQz6plANMeOMM9g9DLAQ0SvsJzIRXQ20GlhIddQ_UQyxFLGMyIfZJ4th2mQBuP-Kd6UVQCiUmn7jMNOHBVejfM7C9bUb_idVRho7I4AgYP274qiE1YEL24Be2vmRLfA7dLmJLNOVOa2JvRwPygLjVnuvoWxM8qlT-sz_I0E5v4BwA_WjBAsFvzqHflA9QFAgK8vV2lg5R9XEkTA");'></div>
+</div>
+<div class="flex gap-2">
+<span class="material-symbols-outlined text-xl text-slate-400 hover:text-primary cursor-pointer transition-colors">edit</span>
+<span class="material-symbols-outlined text-xl text-slate-400 hover:text-primary cursor-pointer transition-colors">visibility</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 7 -->
+<div class="group relative flex flex-col bg-white dark:bg-slate-900 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 hover:border-primary transition-all shadow-sm hover:shadow-xl">
+<div class="absolute top-3 left-3 z-10">
+<input class="rounded border-slate-300 dark:border-slate-700 text-primary focus:ring-primary bg-white/20 backdrop-blur-sm size-5" type="checkbox"/>
+</div>
+<div class="relative aspect-video overflow-hidden">
+<div class="w-full h-full bg-center bg-cover transition-transform duration-500 group-hover:scale-105" data-alt="Summer sale vibrant retail advertisement" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDBguNRQDisXS_WqRL5hvJuxVP5muAl_07cFXFO-5nu_ts7Kx_v6LTnstEcCmdEqCBKoI6-x9a1-T3gOKxX_XHcH1f8voztg6P2XpkLbSA5U0VQgjmliaQXCK9wlihzjFBSBjlZGx4atY_-XNp3pcFeOkvuanvyiY2FNV9Ac390p7SSMEugI18WM1tA-FrBfgRdQZuhw98mEJIfkETdnVLCKcHel2m3pWa1ov-03HAADRlPZzUoy3squdfuPbJxkoBiPIA-d7qOz7c");'></div>
+<div class="absolute top-3 right-3">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary/20 text-primary border border-primary/30">Ready</span>
+</div>
+</div>
+<div class="p-4 flex flex-col gap-1">
+<div class="flex items-center justify-between">
+<h3 class="font-bold text-slate-900 dark:text-white truncate">Summer Flash Sale</h3>
+<button class="text-slate-400 hover:text-primary"><span class="material-symbols-outlined text-lg">more_vert</span></button>
+</div>
+<p class="text-xs text-slate-500 dark:text-slate-400">Updated 6 hours ago</p>
+<div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
+<div class="flex -space-x-2">
+<div class="size-6 rounded-full border-2 border-white dark:border-slate-900 bg-cover" data-alt="Marketing manager avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCU_Z4vQDvSAAgqnhsnS2tHrhaWgslL6Hn6n9UZDEGmsD-dpCk2pW-dc1f7lMY2yHaDpKlwKWFpeuY6CYZwAG7sAGNCjym0FcDS-0XY3BaAZsuQH15bwPiHaF-QTSGsEPBHgnmascI77W9hLW6eVvqCGv8BmM1yXyHJ-dW5G8JB7Mn4Npt0JO1LU6-S1RqnbqWLLlQHiclUbHvFsQmYSl7HjpMlsrXtLjHMxv0LqRm3ErPhgaqBTS7aZ8ICKXo803XeWSxq4MSRe9k");'></div>
+</div>
+<div class="flex gap-2">
+<span class="material-symbols-outlined text-xl text-slate-400 hover:text-primary cursor-pointer transition-colors">edit</span>
+<span class="material-symbols-outlined text-xl text-slate-400 hover:text-primary cursor-pointer transition-colors">visibility</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 8 -->
+<div class="group relative flex flex-col bg-white dark:bg-slate-900 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 hover:border-primary transition-all shadow-sm hover:shadow-xl">
+<div class="absolute top-3 left-3 z-10">
+<input class="rounded border-slate-300 dark:border-slate-700 text-primary focus:ring-primary bg-white/20 backdrop-blur-sm size-5" type="checkbox"/>
+</div>
+<div class="relative aspect-video overflow-hidden">
+<div class="w-full h-full bg-center bg-cover transition-transform duration-500 group-hover:scale-105" data-alt="Animated digital ad preview frames" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAiDvTFcXRvVS6ywRSq4YPdaW9h5s1VSEW1yjjLIokK-38QxJdLKptyD095KU7OnNaUni9s-XMbyHBZGcfRHOBkRimj3EAaE2fXgRdQcuY2o5DzIWuLg-ag5pdv8R0AoOeRAfj4dHkTaffmxJ-hh00XPL_d4bhdzo5d9PP7GvoiexV3kxa8vbzCC81CSB6aZG3aP49ZxfKpGQBebfuJ9RZ6s3xsoUcJnf-F-6Ecw1-YTyV1vVKGlHIMXsGw7pTcnBHFC4jfA4aldI4");'></div>
+<div class="absolute top-3 right-3">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 border border-amber-200 dark:border-amber-800">Generating</span>
+</div>
+</div>
+<div class="p-4 flex flex-col gap-1">
+<div class="flex items-center justify-between">
+<h3 class="font-bold text-slate-900 dark:text-white truncate">AI Motion Graphics</h3>
+<button class="text-slate-400 hover:text-primary"><span class="material-symbols-outlined text-lg">more_vert</span></button>
+</div>
+<p class="text-xs text-slate-500 dark:text-slate-400">Updated 1 hour ago</p>
+<div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
+<div class="flex -space-x-2">
+<div class="size-6 rounded-full border-2 border-white dark:border-slate-900 bg-cover" data-alt="Collaborator small icon" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuB9fFXLwi_B-o5WkDUzmPFTYJEh_AkUoeYSxjjnMyf0v5dwFQXF_OxdkTg6EtxkoOHZjHFgJISMkGYDB3zXH4VWO7mEl0muoauVS5VMwS61r35GMF1egyNbEvtjWzq3e2_CzYv1pYRjLXQtXrE-8yWztFcU7fxATzwu_9x6v8jdvTlSBXXBoAxD8ZHLMm78vn1WSzIyg8LMHxszugLatG2wbdBZh-YHdDi8sn73YSMwRFm-IyxWFhF4AUs3DoA-Uf4rEsa3wDcQMvA");'></div>
+</div>
+<div class="flex gap-2">
+<span class="material-symbols-outlined text-xl text-slate-400 hover:text-primary cursor-pointer transition-colors">edit</span>
+<span class="material-symbols-outlined text-xl text-slate-400 hover:text-primary cursor-pointer transition-colors">visibility</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- FAB (Bottom Mobile/Desktop Quick Action) -->
+<div class="fixed bottom-8 right-8 z-50">
+<button class="flex items-center justify-center size-14 rounded-full bg-primary text-white shadow-2xl hover:scale-110 active:scale-95 transition-all group">
+<span class="material-symbols-outlined text-3xl group-hover:rotate-90 transition-transform">add</span>
+</button>
+</div>
+</div>
+</body></html>

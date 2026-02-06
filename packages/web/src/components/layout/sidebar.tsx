@@ -1,15 +1,17 @@
-import { BarChart3, FolderOpen, LayoutDashboard, Palette, Sparkles, WalletCards } from "lucide-react";
+import { LayoutDashboard, Layers, Store, Sparkles, WalletCards } from "lucide-react";
+import { Link, useRouterState } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 
 const navItems = [
-  { label: "Dashboard", icon: LayoutDashboard },
-  { label: "Creative Studio", icon: Palette, active: true },
-  { label: "Ad Manager", icon: BarChart3 },
-  { label: "Assets", icon: FolderOpen },
-  { label: "NFT Gallery", icon: WalletCards }
-];
+  { label: "Dashboard", icon: LayoutDashboard, to: "/dashboard" },
+  { label: "Project", icon: Layers, to: "/projects" },
+  { label: "Market", icon: Store, to: "/market" },
+  { label: "Wallet", icon: WalletCards, to: "/wallet" }
+] as const;
 
 export function Sidebar() {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+
   return (
     <aside className="flex h-full w-[260px] flex-col border-r border-border/70 bg-card/80 px-5 py-6">
       <div className="flex items-center gap-3">
@@ -25,19 +27,20 @@ export function Sidebar() {
       <nav className="mt-8 flex flex-1 flex-col gap-2">
         {navItems.map((item) => {
           const Icon = item.icon;
+          const active = pathname === item.to;
           return (
-            <button
-              key={item.label}
-              type="button"
-              className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition ${
-                item.active
-                  ? "bg-primary/20 text-primary"
-                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
-              }`}
+            <Link
+              key={item.to}
+              to={item.to}
+              className={
+                active
+                  ? "flex items-center gap-3 rounded-lg bg-primary/20 px-3 py-2 text-sm font-medium text-primary"
+                  : "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition hover:bg-muted/50 hover:text-foreground"
+              }
             >
               <Icon className="h-4 w-4" />
               {item.label}
-            </button>
+            </Link>
           );
         })}
       </nav>

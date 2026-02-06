@@ -1,11 +1,13 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import {
   ProjectFilterBar,
   ProjectGrid,
   ProjectFab,
+  PublishModal,
   type Project,
-  type ProjectStatus
+  type ProjectStatus,
+  type PublishFormData
 } from "@/components/project";
 
 // Mock data for demonstration
@@ -153,6 +155,16 @@ export function ProjectsPage() {
   // Selection state
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
+  // Publish modal state
+  const [publishModalOpen, setPublishModalOpen] = useState(false);
+  const [publishingProjectId, setPublishingProjectId] = useState<string | null>(null);
+
+  // Get the project being published
+  const publishingProject = useMemo(() => {
+    if (!publishingProjectId) return null;
+    return mockProjects.find((p) => p.id === publishingProjectId) ?? null;
+  }, [publishingProjectId]);
+
   // Filter projects
   const filteredProjects = useMemo(() => {
     return mockProjects.filter((project) => {
@@ -220,6 +232,31 @@ export function ProjectsPage() {
     setSelectedIds(new Set());
   };
 
+  // Publish handlers
+  const handlePublishClick = useCallback((id: string) => {
+    setPublishingProjectId(id);
+    setPublishModalOpen(true);
+  }, []);
+
+  const handlePublishClose = useCallback(() => {
+    setPublishModalOpen(false);
+    setPublishingProjectId(null);
+  }, []);
+
+  const handlePublishSubmit = useCallback((data: PublishFormData) => {
+    console.log("Publishing project:", publishingProjectId, data);
+    // TODO: Call API to publish project
+    setPublishModalOpen(false);
+    setPublishingProjectId(null);
+  }, [publishingProjectId]);
+
+  const handleSaveDraft = useCallback((data: PublishFormData) => {
+    console.log("Saving draft:", publishingProjectId, data);
+    // TODO: Call API to save draft
+    setPublishModalOpen(false);
+    setPublishingProjectId(null);
+  }, [publishingProjectId]);
+
   return (
     <div className="mx-auto w-full max-w-[1440px] px-6 py-6">
       {/* Page Header */}
@@ -257,10 +294,20 @@ export function ProjectsPage() {
         onEdit={handleEdit}
         onPreview={handlePreview}
         onMenuClick={handleMenuClick}
+        onPublish={handlePublishClick}
       />
 
       {/* Floating Action Button */}
       <ProjectFab onClick={handleNewProject} />
+
+      {/* Publish Modal */}
+      <PublishModal
+        isOpen={publishModalOpen}
+        projectTitle={publishingProject?.title}
+        onClose={handlePublishClose}
+        onPublish={handlePublishSubmit}
+        onSaveDraft={handleSaveDraft}
+      />
     </div>
   );
 }

@@ -9,6 +9,7 @@ import {
 } from "@creative-store/shared";
 import { generateCreativeWithAi, parseBriefWithAi, AiCreativeError } from "./ai-creative";
 import { createProjectRoutes, AppEnv, SessionUser } from "./project";
+import { createMarketRoutes } from "./market";
 
 type Session = { user: SessionUser } | null;
 
@@ -268,6 +269,10 @@ export function createApp({ prisma, getSession }: AppDeps) {
     });
     return c.json({ drafts });
   });
+
+  // --- Marketplace API ---
+  const marketRoutes = createMarketRoutes();
+  app.route("/api/marketplace", marketRoutes);
 
   return app;
 }

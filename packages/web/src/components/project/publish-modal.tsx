@@ -6,6 +6,7 @@ import type {
   PublishFormData,
   LicenseType,
   PublishCategory,
+  AssetType,
   DeliverablePackage,
 } from "./types";
 
@@ -43,6 +44,17 @@ const CATEGORIES: { value: PublishCategory; label: string }[] = [
   { value: "gaming", label: "Gaming" },
 ];
 
+const ASSET_TYPES: { value: AssetType; label: string }[] = [
+  { value: "ad_kit", label: "Ad Kit" },
+  { value: "branding", label: "Branding" },
+  { value: "character", label: "Character" },
+  { value: "ui_kit", label: "UI Kit" },
+  { value: "background", label: "Background" },
+  { value: "template", label: "Template" },
+  { value: "logo", label: "Logo" },
+  { value: "scene_3d", label: "3D Scene" },
+];
+
 const DEFAULT_DESCRIPTION =
   "Elevate your digital presence with this creative collection. This package features AI-optimized assets across 15+ dimensions, ensuring your creative message lands perfectly on every device from mobile to TV displays.";
 
@@ -56,9 +68,11 @@ export function PublishModal({
     title: projectTitle,
     description: DEFAULT_DESCRIPTION,
     category: "ads",
+    assetType: "ad_kit",
     licenseType: "standard",
     tags: [],
     price: 1250,
+    isPremium: false,
     deliverables: DEFAULT_DELIVERABLES,
     includeSourceFiles: false,
   });
@@ -179,7 +193,7 @@ export function PublishModal({
                 />
               </div>
 
-              {/* Category & License */}
+              {/* Category & Asset Type */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-semibold mb-2 text-foreground">
@@ -204,32 +218,66 @@ export function PublishModal({
                 </div>
                 <div>
                   <label className="block text-sm font-semibold mb-2 text-foreground">
-                    License Type
+                    Asset Type
                   </label>
-                  <div className="flex p-1 bg-muted rounded-xl border border-border">
-                    <button
-                      type="button"
-                      onClick={() => handleLicenseChange("standard")}
-                      className={`flex-1 text-xs font-bold py-2 rounded-lg transition-all ${
-                        formData.licenseType === "standard"
-                          ? "bg-card shadow-sm text-primary"
-                          : "text-muted-foreground"
-                      }`}
-                    >
-                      Standard
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleLicenseChange("extended")}
-                      className={`flex-1 text-xs font-bold py-2 rounded-lg transition-all ${
-                        formData.licenseType === "extended"
-                          ? "bg-card shadow-sm text-primary"
-                          : "text-muted-foreground"
-                      }`}
-                    >
-                      Extended
-                    </button>
-                  </div>
+                  <select
+                    value={formData.assetType}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "assetType",
+                        e.target.value as AssetType
+                      )
+                    }
+                    className="w-full bg-card border border-border rounded-xl px-4 py-3 text-sm text-foreground focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                  >
+                    {ASSET_TYPES.map((type) => (
+                      <option key={type.value} value={type.value}>
+                        {type.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* License Type */}
+              <div>
+                <label className="block text-sm font-semibold mb-2 text-foreground">
+                  License Type
+                </label>
+                <div className="flex p-1 bg-muted rounded-xl border border-border">
+                  <button
+                    type="button"
+                    onClick={() => handleLicenseChange("standard")}
+                    className={`flex-1 text-xs font-bold py-2 rounded-lg transition-all ${
+                      formData.licenseType === "standard"
+                        ? "bg-card shadow-sm text-primary"
+                        : "text-muted-foreground"
+                    }`}
+                  >
+                    Standard
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleLicenseChange("extended")}
+                    className={`flex-1 text-xs font-bold py-2 rounded-lg transition-all ${
+                      formData.licenseType === "extended"
+                        ? "bg-card shadow-sm text-primary"
+                        : "text-muted-foreground"
+                    }`}
+                  >
+                    Extended
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleLicenseChange("exclusive")}
+                    className={`flex-1 text-xs font-bold py-2 rounded-lg transition-all ${
+                      formData.licenseType === "exclusive"
+                        ? "bg-card shadow-sm text-primary"
+                        : "text-muted-foreground"
+                    }`}
+                  >
+                    Exclusive
+                  </button>
                 </div>
               </div>
 

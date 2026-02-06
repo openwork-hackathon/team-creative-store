@@ -29,13 +29,59 @@ type GenerateCreativeInput = {
   brandAssets?: BrandAsset[];
 };
 
+export type MarketplaceQuery = {
+  search?: string;
+  assetType?: string;
+  priceMin?: number;
+  priceMax?: number;
+  licenseType?: string;
+  page?: number;
+  limit?: number;
+};
+
+export type AssetType = {
+  value: string;
+  label: string;
+};
+
+export type PublishProjectInput = {
+  title: string;
+  description?: string;
+  imageUrl?: string;
+  category: "ads" | "branding" | "e_commerce" | "gaming";
+  assetType?: "ad_kit" | "branding" | "character" | "ui_kit" | "background" | "template" | "logo" | "scene_3d";
+  licenseType: "standard" | "extended" | "exclusive";
+  tags: string[];
+  price: number;
+  isPremium?: boolean;
+  includeSourceFiles: boolean;
+};
+
+export type PublishProjectResponse = {
+  publishRecord: {
+    id: string;
+    slug: string;
+    title: string;
+    publishedAt: string;
+  };
+};
+
+export type LicenseType = {
+  value: string;
+  label: string;
+};
+
+// MarketplaceListing type based on PublishRecord
 export type MarketplaceListing = {
   id: string;
   title: string;
   description: string | null;
   imageUrl: string;
   creatorId: string;
-  creator: { id: string; name: string | null };
+  creator: {
+    id: string;
+    name: string | null;
+  };
   priceAicc: string;
   assetType: string;
   licenseType: string;
@@ -57,43 +103,8 @@ export type MarketplaceListingsResponse = {
   };
 };
 
-export type MarketplaceQuery = {
-  search?: string;
-  assetType?: string;
-  priceMin?: number;
-  priceMax?: number;
-  licenseType?: string;
-  page?: number;
-  limit?: number;
-};
-
-export type AssetType = {
-  value: string;
-  label: string;
-};
-
-export type PublishProjectInput = {
-  title: string;
-  description?: string;
-  category: "ads" | "branding" | "e_commerce" | "gaming";
-  licenseType: "standard" | "extended";
-  tags: string[];
-  price: number;
-  includeSourceFiles: boolean;
-};
-
-export type PublishProjectResponse = {
-  publishRecord: {
-    id: string;
-    slug: string;
-    title: string;
-    publishedAt: string;
-  };
-};
-
-export type LicenseType = {
-  value: string;
-  label: string;
+export type MarketplaceListingResponse = {
+  listing: MarketplaceListing;
 };
 
 export function createApiClient(
@@ -144,22 +155,6 @@ export function createApiClient(
         method: "POST",
         body: formData
       }).then((response) => response.json()),
-    // Marketplace API
-    getMarketplaceListings: async (query: MarketplaceQuery = {}): Promise<MarketplaceListingsResponse> => {
-      const params = new URLSearchParams();
-      if (query.search) params.set("search", query.search);
-      if (query.assetType) params.set("assetType", query.assetType);
-      if (query.priceMin !== undefined) params.set("priceMin", String(query.priceMin));
-      if (query.priceMax !== undefined) params.set("priceMax", String(query.priceMax));
-      if (query.licenseType) params.set("licenseType", query.licenseType);
-      if (query.page) params.set("page", String(query.page));
-      if (query.limit) params.set("limit", String(query.limit));
-      const queryString = params.toString();
-      const url = queryString ? `${baseUrl}/marketplace/listings?${queryString}` : `${baseUrl}/marketplace/listings`;
-      return request(url).then((response) => response.json());
-    },
-    getMarketplaceListing: async (id: string): Promise<{ listing: MarketplaceListing }> =>
-      request(`${baseUrl}/marketplace/listings/${id}`).then((response) => response.json()),
     getAssetTypes: async (): Promise<{ assetTypes: AssetType[] }> =>
       request(`${baseUrl}/marketplace/asset-types`).then((response) => response.json()),
     getLicenseTypes: async (): Promise<{ licenseTypes: LicenseType[] }> =>
@@ -170,7 +165,21 @@ export function createApiClient(
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(input)
-      }).then((response) => response.json())
+      }).then((response) => response.json()),
+    // Marketplace API
+    getMarketplaceListings: async (query: MarketplaceQuery): Promise<MarketplaceListingsResponse> => {
+      const params = new URLSearchParams();
+      if (query.search) params.set("search", query.search);
+      if (query.assetType) params.set("assetType", query.assetType);
+      if (query.priceMin !== undefined) params.set("priceMin", String(query.priceMin));
+      if (query.priceMax !== undefined) params.set("priceMax", String(query.priceMax));
+      if (query.licenseType) params.set("licenseType", query.licenseType);
+      if (query.page !== undefined) params.set("page", String(query.page));
+      if (query.limit !== undefined) params.set("limit", String(query.limit));
+      return request(`${baseUrl}/marketplace/listings?${params.toString()}`).then((response) => response.json());
+    },
+    getMarketplaceListing: async (id: string): Promise<MarketplaceListingResponse> =>
+      request(`${baseUrl}/marketplace/listings/${id}`).then((response) => response.json())
   };
 }
 

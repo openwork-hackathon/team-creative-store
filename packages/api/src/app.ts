@@ -13,11 +13,11 @@ import { createMarketRoutes } from "./market";
 
 type Session = { user: SessionUser } | null;
 
-type MarketplaceListing = {
+type PublishRecordWithCreator = {
   id: string;
   title: string;
   description: string | null;
-  imageUrl: string;
+  imageUrl: string | null;
   creatorId: string;
   creator: { id: string; name: string | null };
   priceAicc: unknown;
@@ -28,7 +28,7 @@ type MarketplaceListing = {
   isPremium: boolean;
   tags: string[];
   status: string;
-  createdAt: Date;
+  publishedAt: Date;
 };
 
 type ProjectRecord = {
@@ -62,16 +62,20 @@ type PrismaLike = {
       update: { width: number; height: number; safeArea: unknown; rules: unknown; category: string };
     }) => Promise<unknown>;
   };
-  marketplaceListing: {
+  publishRecord: {
     findMany: (args: {
       where?: Record<string, unknown>;
-      include?: { creator: boolean };
+      include?: { creator: { select: { id: boolean; name: boolean } } };
       orderBy?: Record<string, string>;
       skip?: number;
       take?: number;
-    }) => Promise<MarketplaceListing[]>;
-    findUnique: (args: { where: { id: string }; include?: { creator: boolean } }) => Promise<MarketplaceListing | null>;
+    }) => Promise<PublishRecordWithCreator[]>;
+    findUnique: (args: {
+      where: { id: string };
+      include?: { creator: { select: { id: boolean; name: boolean } } };
+    }) => Promise<PublishRecordWithCreator | null>;
     count: (args?: { where?: Record<string, unknown> }) => Promise<number>;
+    create: (args: { data: Record<string, unknown> }) => Promise<{ id: string; slug: string; title: string; publishedAt: Date }>;
   };
 };
 
@@ -271,7 +275,7 @@ export function createApp({ prisma, getSession }: AppDeps) {
   });
 
   // --- Marketplace API ---
-  const marketRoutes = createMarketRoutes();
+  const marketRoutes = createMarketRoutes({ prisma });
   app.route("/api/marketplace", marketRoutes);
 
   return app;

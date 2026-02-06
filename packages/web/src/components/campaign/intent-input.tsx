@@ -1,6 +1,3 @@
-import { Bot, History, Mic, Sparkles, Zap } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 
 type IntentInputProps = {
@@ -14,37 +11,52 @@ export function IntentInput({ value, onChange, onGenerate, className }: IntentIn
   return (
     <div
       className={cn(
-        "rounded-2xl border border-border bg-card/80 p-6 shadow-[0_18px_40px_rgba(15,23,42,0.35)]",
+        "rounded-xl border border-border bg-card p-5 transition-all duration-300 hover:shadow-lg",
         className
       )}
     >
       <div className="flex items-start gap-4">
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/20 text-primary">
-          <Bot className="h-6 w-6" />
+        <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+          <span className="material-symbols-outlined text-2xl">smart_toy</span>
         </div>
-        <Textarea
-          value={value}
-          onChange={(event) => onChange(event.target.value)}
-          placeholder="Describe your campaign goal (e.g., 'Launch a summer sale for eco-friendly sneakers targeting Gen Z with a minimalist, high-energy aesthetic')"
-          className="min-h-[140px] border-border/60 bg-transparent"
-        />
+        <div className="flex-1">
+          <textarea
+            value={value}
+            onChange={(event) => onChange(event.target.value)}
+            placeholder="Describe your campaign goal (e.g., 'Launch a summer sale for eco-friendly sneakers targeting Gen Z with a minimalist, high-energy aesthetic')"
+            className="min-h-[120px] w-full resize-none rounded-lg border border-border bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+          />
+        </div>
       </div>
-      <div className="mt-4 flex items-center justify-between">
-        <div className="flex items-center gap-3 text-muted-foreground">
-          <button type="button" className="rounded-full p-2 transition hover:text-foreground">
-            <Sparkles className="h-4 w-4" />
+      <div className="mt-4 flex items-center justify-between border-t border-border pt-4">
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            className="flex size-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          >
+            <span className="material-symbols-outlined text-[20px]">auto_awesome</span>
           </button>
-          <button type="button" className="rounded-full p-2 transition hover:text-foreground">
-            <Mic className="h-4 w-4" />
+          <button
+            type="button"
+            className="flex size-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          >
+            <span className="material-symbols-outlined text-[20px]">mic</span>
           </button>
-          <button type="button" className="rounded-full p-2 transition hover:text-foreground">
-            <History className="h-4 w-4" />
+          <button
+            type="button"
+            className="flex size-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          >
+            <span className="material-symbols-outlined text-[20px]">history</span>
           </button>
         </div>
-        <Button onClick={onGenerate} className="gap-2">
-          <Zap className="h-4 w-4" />
+        <button
+          type="button"
+          onClick={onGenerate}
+          className="flex h-10 items-center justify-center gap-2 rounded-lg bg-primary px-5 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/20 transition-colors hover:bg-primary/90"
+        >
+          <span className="material-symbols-outlined text-[18px]">bolt</span>
           Generate Brief
-        </Button>
+        </button>
       </div>
     </div>
   );

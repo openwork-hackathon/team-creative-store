@@ -1,4 +1,3 @@
-import { ImageUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type UploadZoneProps = {
@@ -21,20 +20,23 @@ export function UploadZone({
   return (
     <label
       className={cn(
-        "flex cursor-pointer flex-col gap-3 rounded-2xl border border-dashed border-border/70 bg-card/60 p-6 transition hover:border-primary/70",
+        "group flex cursor-pointer flex-col rounded-xl border border-border bg-card p-5 transition-all duration-300 hover:border-primary hover:shadow-lg",
         className
       )}
     >
-      <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted">
-          <ImageUp className="h-5 w-5 text-muted-foreground" />
+      <div className="flex items-center gap-4">
+        <div className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground transition-colors group-hover:bg-primary/10 group-hover:text-primary">
+          <span className="material-symbols-outlined text-2xl">upload_file</span>
         </div>
-        <div>
-          <p className="text-sm font-semibold text-foreground">{title}</p>
+        <div className="flex-1">
+          <p className="text-sm font-bold text-foreground">{title}</p>
           <p className="text-xs text-muted-foreground">{helper}</p>
         </div>
       </div>
-      <span className="text-xs font-semibold text-primary">Click to upload</span>
+      <div className="mt-4 flex items-center gap-2 text-primary">
+        <span className="material-symbols-outlined text-[16px]">add_circle</span>
+        <span className="text-xs font-semibold">Click to upload</span>
+      </div>
       <input
         type="file"
         accept={accept}

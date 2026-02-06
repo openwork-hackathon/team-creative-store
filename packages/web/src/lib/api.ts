@@ -1,5 +1,19 @@
 import type { PlacementSpecKey, AiCreativeOutput, BrandAsset } from "@creative-store/shared";
 
+export type ProjectStatus = "draft" | "generating" | "ready" | "published";
+
+export type Project = {
+  id: string;
+  title: string;
+  status: ProjectStatus;
+  imageUrl: string;
+  updatedAt: string;
+};
+
+export type ProjectsResponse = {
+  projects: Project[];
+};
+
 type CreateBriefInput = {
   intentText: string;
   placements: PlacementSpecKey[];
@@ -77,7 +91,7 @@ export function createApiClient(
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name })
       }).then((response) => response.json()),
-    listProjects: async () =>
+    listProjects: async (): Promise<ProjectsResponse> =>
       request(`${baseUrl}/projects`).then((response) => response.json()),
     createBrief: async (projectId: string, input: CreateBriefInput) =>
       request(`${baseUrl}/projects/${projectId}/briefs`, {

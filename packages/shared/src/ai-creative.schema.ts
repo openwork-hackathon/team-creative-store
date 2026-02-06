@@ -21,8 +21,7 @@ export const zBrandAsset = z.object({
 export const zAiCreativeOutput = z.object({
   html: z.string().min(1),
   assets: z.array(zAiCreativeAsset).default([]),
-  warnings: z.array(z.string()).optional(),
-  metadata: z.record(z.string(), z.unknown()).optional()
+  warnings: z.array(z.string()).optional()
 });
 
 export type AiCreativeAsset = z.infer<typeof zAiCreativeAsset>;

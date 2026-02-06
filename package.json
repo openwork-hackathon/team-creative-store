@@ -6,18 +6,18 @@
     "frontend"
   ],
   "scripts": {
-    "dev:api": "bun --cwd packages/api run dev",
-    "dev:worker": "bun --cwd packages/worker run dev",
-    "dev:web": "bun --cwd packages/web run dev",
+    "dev:api": "bun run --cwd packages/api dev",
+    "dev:worker": "bun run --cwd packages/worker dev",
+    "dev:web": "bun run --cwd packages/web dev",
 
     "dev:frontend": "npm --prefix frontend run dev",
     "build:frontend": "npm --prefix frontend run build",
     "install:frontend": "npm --prefix frontend ci",
 
-    "build:web": "bun --cwd packages/web run build",
+    "build:web": "bun run --cwd packages/web build",
 
-    "prisma:generate": "bun --cwd packages/db run prisma:generate",
-    "prisma:migrate": "bun --cwd packages/db run prisma:migrate",
+    "prisma:generate": "bun run --cwd packages/db prisma:generate",
+    "prisma:migrate": "bun run --cwd packages/db prisma:migrate",
     "format": "bunx prettier -w ."
   },
   "overrides": {

@@ -51,7 +51,6 @@ export function PublishModal({
   projectTitle = "",
   onClose,
   onPublish,
-  onSaveDraft,
 }: PublishModalProps) {
   const [formData, setFormData] = useState<PublishFormData>({
     title: projectTitle,
@@ -112,10 +111,6 @@ export function PublishModal({
     },
     [formData, onPublish]
   );
-
-  const handleSaveDraft = useCallback(() => {
-    onSaveDraft?.(formData);
-  }, [formData, onSaveDraft]);
 
   if (!isOpen) return null;
 
@@ -386,13 +381,6 @@ export function PublishModal({
 
         {/* Footer */}
         <div className="px-8 py-6 border-t border-border bg-muted/50 flex items-center justify-between">
-          <button
-            type="button"
-            onClick={handleSaveDraft}
-            className="px-6 py-3 rounded-xl text-sm font-bold text-muted-foreground hover:text-foreground transition-colors"
-          >
-            Save as Draft
-          </button>
           <div className="flex gap-4">
             <Button
               type="button"

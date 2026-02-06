@@ -4,6 +4,7 @@ import { zValidator } from "@hono/zod-validator";
 import { zCreateBriefInput } from "@creative-store/shared";
 import { buildBriefJsonFromInput } from "./brief-analysis";
 import { parseBriefWithAi } from "./ai-creative";
+import { nanoid } from "nanoid";
 
 // Helper function to format relative time
 function formatRelativeTime(date: Date): string {
@@ -37,15 +38,38 @@ type ProjectRecord = {
   updatedAt: Date;
 };
 
+type PublishRecordData = {
+  creativeId: string;
+  versionId: string;
+  slug: string;
+  title: string;
+  description?: string;
+  category: "ads" | "branding" | "e_commerce" | "gaming";
+  licenseType: "standard" | "extended" | "exclusive";
+  tags: string[];
+  priceAicc: number;
+  includeSourceFiles: boolean;
+};
+
+type PublishRecordResult = {
+  id: string;
+  slug: string;
+  title: string;
+  publishedAt: Date;
+};
+
 type PrismaLike = {
   project: {
     findMany: (args: { where: { userId: string }; orderBy?: { updatedAt: "desc" } }) => Promise<ProjectRecord[]>;
-    findUnique: (args: { where: { id: string } }) => Promise<ProjectRecord | null>;
+    findUnique: (args: { where: { id: string }; include?: { creatives?: { include?: { versions?: boolean } } } }) => Promise<ProjectRecord & { creatives?: Array<{ id: string; versions?: Array<{ id: string }> }> } | null>;
     create: (args: { data: { name: string; userId: string; status?: string; imageUrl?: string } }) => Promise<ProjectRecord>;
     update: (args: { where: { id: string }; data: { name?: string; status?: string; imageUrl?: string } }) => Promise<ProjectRecord>;
   };
   brief: {
     create: (args: { data: { projectId: string; intentText: string; briefJson: unknown; constraints: unknown } }) => Promise<unknown>;
+  };
+  publishRecord: {
+    create: (args: { data: PublishRecordData }) => Promise<PublishRecordResult>;
   };
 };
 
@@ -136,6 +160,87 @@ export function createProjectRoutes({ prisma }: ProjectRoutesDeps) {
       });
 
       return c.json({ brief });
+    }
+  );
+
+  // Publish project endpoint
+  const publishInputSchema = z.object({
+    title: z.string().min(1),
+    description: z.string().optional(),
+    category: z.enum(["ads", "branding", "e_commerce", "gaming"]).default("ads"),
+    licenseType: z.enum(["standard", "extended", "exclusive"]).default("standard"),
+    tags: z.array(z.string()).default([]),
+    price: z.number().min(0),
+    includeSourceFiles: z.boolean().default(false),
+  });
+
+  routes.post(
+    "/:projectId/publish",
+    zValidator("json", publishInputSchema),
+    async (c) => {
+      const user = c.get("user") as SessionUser | null;
+      if (!user) return c.json({ error: "unauthorized" }, 401);
+
+      const { projectId } = c.req.param();
+      const input = c.req.valid("json");
+
+      // Get project with creatives and versions
+      const project = await prisma.project.findUnique({
+        where: { id: projectId },
+        include: {
+          creatives: {
+            include: {
+              versions: true
+            }
+          }
+        }
+      });
+
+      if (!project) {
+        return c.json({ error: "project not found" }, 404);
+      }
+
+      // Get the first creative and version (or handle multiple)
+      const creative = project.creatives?.[0];
+      const version = creative?.versions?.[0];
+
+      if (!creative || !version) {
+        return c.json({ error: "no creative or version found for this project" }, 400);
+      }
+
+      // Generate unique slug
+      const slug = `${input.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${nanoid(8)}`;
+
+      // Create publish record
+      const publishRecord = await prisma.publishRecord.create({
+        data: {
+          creativeId: creative.id,
+          versionId: version.id,
+          slug,
+          title: input.title,
+          description: input.description,
+          category: input.category,
+          licenseType: input.licenseType,
+          tags: input.tags,
+          priceAicc: input.price,
+          includeSourceFiles: input.includeSourceFiles,
+        }
+      });
+
+      // Update project status to published
+      await prisma.project.update({
+        where: { id: projectId },
+        data: { status: "published" }
+      });
+
+      return c.json({
+        publishRecord: {
+          id: publishRecord.id,
+          slug: publishRecord.slug,
+          title: publishRecord.title,
+          publishedAt: publishRecord.publishedAt
+        }
+      });
     }
   );
 

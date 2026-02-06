@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   ProjectFilterBar,
   ProjectGrid,
@@ -10,17 +10,42 @@ import {
   type ProjectStatus,
   type PublishFormData
 } from "@/components/project";
-import { createApiClient } from "@/lib/api";
+import { createApiClient, type PublishProjectInput } from "@/lib/api";
 
 const api = createApiClient();
 
+// Helper function to convert frontend category to API category
+function convertCategory(category: string): PublishProjectInput["category"] {
+  if (category === "e-commerce") return "e_commerce";
+  return category as PublishProjectInput["category"];
+}
+
 export function ProjectsPage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   // Fetch projects from API
   const { data, isLoading, error } = useQuery({
     queryKey: ["projects"],
     queryFn: () => api.listProjects()
+  });
+
+  // Publish mutation
+  const publishMutation = useMutation({
+    mutationFn: ({ projectId, data }: { projectId: string; data: PublishFormData }) =>
+      api.publishProject(projectId, {
+        title: data.title,
+        description: data.description,
+        category: convertCategory(data.category),
+        licenseType: data.licenseType,
+        tags: data.tags,
+        price: data.price,
+        includeSourceFiles: data.includeSourceFiles
+      }),
+    onSuccess: () => {
+      // Invalidate projects query to refresh the list
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+    }
   });
 
   const projects = data?.projects ?? [];
@@ -122,11 +147,22 @@ export function ProjectsPage() {
   }, []);
 
   const handlePublishSubmit = useCallback((data: PublishFormData) => {
-    console.log("Publishing project:", publishingProjectId, data);
-    // TODO: Call API to publish project
-    setPublishModalOpen(false);
-    setPublishingProjectId(null);
-  }, [publishingProjectId]);
+    if (!publishingProjectId) return;
+    
+    publishMutation.mutate(
+      { projectId: publishingProjectId, data },
+      {
+        onSuccess: () => {
+          setPublishModalOpen(false);
+          setPublishingProjectId(null);
+        },
+        onError: (error) => {
+          console.error("Failed to publish project:", error);
+          // TODO: Show error toast to user
+        }
+      }
+    );
+  }, [publishingProjectId, publishMutation]);
 
   const handleSaveDraft = useCallback((data: PublishFormData) => {
     console.log("Saving draft:", publishingProjectId, data);

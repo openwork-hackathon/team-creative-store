@@ -72,6 +72,25 @@ export type AssetType = {
   label: string;
 };
 
+export type PublishProjectInput = {
+  title: string;
+  description?: string;
+  category: "ads" | "branding" | "e_commerce" | "gaming";
+  licenseType: "standard" | "extended";
+  tags: string[];
+  price: number;
+  includeSourceFiles: boolean;
+};
+
+export type PublishProjectResponse = {
+  publishRecord: {
+    id: string;
+    slug: string;
+    title: string;
+    publishedAt: string;
+  };
+};
+
 export type LicenseType = {
   value: string;
   label: string;
@@ -144,7 +163,14 @@ export function createApiClient(
     getAssetTypes: async (): Promise<{ assetTypes: AssetType[] }> =>
       request(`${baseUrl}/marketplace/asset-types`).then((response) => response.json()),
     getLicenseTypes: async (): Promise<{ licenseTypes: LicenseType[] }> =>
-      request(`${baseUrl}/marketplace/license-types`).then((response) => response.json())
+      request(`${baseUrl}/marketplace/license-types`).then((response) => response.json()),
+    // Project publish API
+    publishProject: async (projectId: string, input: PublishProjectInput): Promise<PublishProjectResponse> =>
+      request(`${baseUrl}/projects/${projectId}/publish`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(input)
+      }).then((response) => response.json())
   };
 }
 

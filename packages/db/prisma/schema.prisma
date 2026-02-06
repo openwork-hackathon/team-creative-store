@@ -38,6 +38,19 @@ enum NftStatus {
   failed
 }
 
+enum PublishCategory {
+  ads
+  branding
+  e_commerce
+  gaming
+}
+
+enum LicenseType {
+  standard
+  extended
+  exclusive
+}
+
 model User {
   id            String    @id @default(uuid())
   name          String?
@@ -191,13 +204,20 @@ model Render {
 }
 
 model PublishRecord {
-  id         String   @id @default(uuid())
-  creativeId String
-  creative   Creative @relation(fields: [creativeId], references: [id])
-  versionId  String
-  version    CreativeVersion @relation(fields: [versionId], references: [id])
-  slug       String   @unique
-  publishedAt DateTime @default(now())
+  id              String          @id @default(uuid())
+  creativeId      String
+  creative        Creative        @relation(fields: [creativeId], references: [id])
+  versionId       String
+  version         CreativeVersion @relation(fields: [versionId], references: [id])
+  slug            String          @unique
+  title           String
+  description     String?
+  category        PublishCategory @default(ads)
+  licenseType     LicenseType     @default(standard)
+  tags            String[]
+  priceAicc       Decimal         @db.Decimal(18, 2)
+  includeSourceFiles Boolean      @default(false)
+  publishedAt     DateTime        @default(now())
 }
 
 model NftRecord {
@@ -230,12 +250,6 @@ enum AssetType {
   template
   logo
   scene_3d
-}
-
-enum LicenseType {
-  standard
-  extended
-  exclusive
 }
 
 model MarketplaceListing {

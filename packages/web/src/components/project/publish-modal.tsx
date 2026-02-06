@@ -57,7 +57,7 @@ export function PublishModal({
     description: DEFAULT_DESCRIPTION,
     category: "ads",
     licenseType: "standard",
-    tags: ["NFT", "Digital Art", "Creative"],
+    tags: [],
     price: 1250,
     deliverables: DEFAULT_DELIVERABLES,
     includeSourceFiles: false,
@@ -168,12 +168,6 @@ export function PublishModal({
                   <label className="block text-sm font-semibold text-foreground">
                     Description
                   </label>
-                  <span className="flex items-center gap-1 text-[10px] bg-primary/20 text-primary px-2 py-0.5 rounded font-bold uppercase tracking-wider">
-                    <span className="material-symbols-outlined text-[12px]">
-                      auto_awesome
-                    </span>{" "}
-                    AI Generated
-                  </span>
                 </div>
                 <Textarea
                   value={formData.description}
@@ -183,12 +177,6 @@ export function PublishModal({
                   className="rounded-xl px-4 py-3 text-sm leading-relaxed"
                   rows={4}
                 />
-                <button
-                  type="button"
-                  className="absolute bottom-3 right-3 text-xs text-primary font-bold hover:underline"
-                >
-                  Regenerate
-                </button>
               </div>
 
               {/* Category & License */}
@@ -248,7 +236,7 @@ export function PublishModal({
               {/* Tags */}
               <div>
                 <label className="block text-sm font-semibold mb-2 text-foreground">
-                  Tags (Up to 10)
+                  Tags
                 </label>
                 <div className="flex flex-wrap gap-2 p-3 bg-muted border border-border rounded-xl min-h-[48px]">
                   {formData.tags.map((tag) => (

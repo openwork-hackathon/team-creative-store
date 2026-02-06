@@ -46,13 +46,6 @@ export function ProjectCard({
       <div className="flex flex-col gap-1 p-4">
         <div className="flex items-center justify-between">
           <h3 className="truncate font-bold text-foreground">{project.title}</h3>
-          <button
-            type="button"
-            onClick={() => onMenuClick?.(project.id)}
-            className="text-muted-foreground hover:text-primary"
-          >
-            <span className="material-symbols-outlined text-lg">more_vert</span>
-          </button>
         </div>
         <p className="text-xs text-muted-foreground">{project.updatedAt}</p>
 

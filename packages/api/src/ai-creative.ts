@@ -69,16 +69,37 @@ export async function generateImageWithGeminiFlash(input: GeminiImageInput): Pro
     ]
   });
 
+  console.log("[AI] generateText result.text:", result.text?.substring(0, 100));
+  console.log("[AI] generateText result.files:", result.files);
+
   // Extract generated image from result.files
+  if (!result.files || result.files.length === 0) {
+    throw new AiCreativeError(
+      "Image generation response did not contain any files. Text: " + result.text?.substring(0, 200),
+      "NO_FILES_IN_RESPONSE"
+    );
+  }
+
+  // Look for image in files
   for (const file of result.files) {
-    if (file.mediaType.startsWith("image/")) {
-      // Return as data URL
-      return `data:${file.mediaType};base64,${file.base64}`;
+    console.log("[AI] File:", file);
+    
+    // Check both base64 and base64Data properties
+    const base64 = (file as any).base64 || (file as any).base64Data;
+    const mediaType = (file as any).mediaType || (file as any).mimeType || "image/png";
+    
+    if (base64) {
+      console.log("[AI] Found image with mediaType:", mediaType);
+      // Return as data URL (base64Data is already a full data URL from Gemini)
+      if (base64.startsWith("data:")) {
+        return base64;
+      }
+      return `data:${mediaType};base64,${base64}`;
     }
   }
 
   throw new AiCreativeError(
-    "Image generation did not return an image",
+    "Image generation did not return an image file in files array",
     "NO_IMAGE_GENERATED"
   );
 }
@@ -165,7 +186,7 @@ export async function generateCreativeWithAi(input: CreativeGenerateInput) {
     schema: zAiCreativeOutput,
     prompt: [
       "You are generating HTML for an ad creative.",
-      "Return JSON with keys: html, assets, warnings, metadata.",
+      "Return JSON with keys: html, assets, warnings.",
       "HTML must be self-contained, no external scripts or stylesheets, and no external asset URLs.",
       "Prefer inline styles or utility classes. Avoid <script> and <link> tags.",
       `Canvas size: ${spec.width}x${spec.height}.`,

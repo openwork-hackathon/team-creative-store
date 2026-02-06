@@ -219,12 +219,25 @@ export function createApp({ prisma, getSession }: AppDeps) {
 
       const { projectId } = c.req.param();
       const input = c.req.valid("json");
-      const briefJson = buildBriefJsonFromInput({
-        intentText: input.intentText,
-        industry: input.industry,
-        placements: input.placements,
-        sensitiveWords: input.sensitiveWords
-      });
+
+      let briefJson;
+      try {
+        const result = await parseBriefWithAi({
+          intentText: input.intentText,
+          industry: input.industry,
+          placements: input.placements,
+          sensitiveWords: input.sensitiveWords
+        });
+        briefJson = result.briefJson;
+      } catch (error) {
+        console.error("[Brief] AI parsing failed, using fallback:", error);
+        briefJson = buildBriefJsonFromInput({
+          intentText: input.intentText,
+          industry: input.industry,
+          placements: input.placements,
+          sensitiveWords: input.sensitiveWords
+        });
+      }
 
       const constraints = {
         placements: input.placements

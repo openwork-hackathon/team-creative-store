@@ -25,6 +25,19 @@ Set a strong secret:
 BETTER_AUTH_SECRET="$(openssl rand -base64 32)"
 ```
 
+**Optional: Google SSO**
+
+To enable Google Sign-In, create OAuth 2.0 credentials in the [Google Cloud Console](https://console.cloud.google.com/apis/credentials):
+
+1. Create a new OAuth 2.0 Client ID (Web application)
+2. Add authorized redirect URI: `http://localhost:3000/api/auth/callback/google`
+3. Copy Client ID and Client Secret to `.env`:
+
+```bash
+GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=your-client-secret
+```
+
 3) Install dependencies
 
 ```bash

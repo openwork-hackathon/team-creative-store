@@ -64,4 +64,22 @@ describe("LoginCard", () => {
     await user.click(screen.getByRole("button", { name: /create account/i }));
     expect(handleModeChange).toHaveBeenCalledWith("sign-up");
   });
+
+  it("triggers Google sign-in when button is clicked", async () => {
+    const user = userEvent.setup();
+    const handleGoogleSignIn = vi.fn();
+
+    render(
+      <LoginCard
+        mode="sign-in"
+        onModeChange={vi.fn()}
+        onSignIn={vi.fn()}
+        onSignUp={vi.fn()}
+        onGoogleSignIn={handleGoogleSignIn}
+      />
+    );
+
+    await user.click(screen.getByRole("button", { name: /sign in with google/i }));
+    expect(handleGoogleSignIn).toHaveBeenCalledTimes(1);
+  });
 });

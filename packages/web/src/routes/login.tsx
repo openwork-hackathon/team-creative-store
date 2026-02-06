@@ -17,7 +17,17 @@ function LoginRoute() {
     return authClient.signUp.email({ name, email, password });
   };
 
-  return <LoginPage onSignIn={handleSignIn} onSignUp={handleSignUp} />;
+  const handleGoogleSignIn = async () => {
+    return authClient.signIn.social({ provider: "google" });
+  };
+
+  return (
+    <LoginPage
+      onSignIn={handleSignIn}
+      onSignUp={handleSignUp}
+      onGoogleSignIn={handleGoogleSignIn}
+    />
+  );
 }
 
 export const Route = createFileRoute("/login")({

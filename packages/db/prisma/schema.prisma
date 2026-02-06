@@ -13,6 +13,13 @@ enum CreativeStatus {
   archived
 }
 
+enum ProjectStatus {
+  draft
+  generating
+  ready
+  published
+}
+
 enum VersionStatus {
   draft
   published
@@ -87,11 +94,14 @@ model Verification {
 }
 
 model Project {
-  id        String   @id @default(uuid())
+  id        String        @id @default(uuid())
   userId    String
-  user      User     @relation(fields: [userId], references: [id])
+  user      User          @relation(fields: [userId], references: [id])
   name      String
-  createdAt DateTime @default(now())
+  status    ProjectStatus @default(draft)
+  imageUrl  String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
   briefs    Brief[]
   creatives Creative[]
 }

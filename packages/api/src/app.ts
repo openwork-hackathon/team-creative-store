@@ -1,8 +1,14 @@
 import { Hono } from "hono";
 import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
-import { PLACEMENT_SPECS, zCreateBriefInput } from "@creative-store/shared";
+import {
+  PLACEMENT_SPECS,
+  zCreateBriefInput,
+  zBrandAsset,
+  zPlacementSpecKey
+} from "@creative-store/shared";
 import { buildBriefJsonFromInput } from "./brief-analysis";
+import { generateCreativeWithAi, parseBriefWithAi, AiCreativeError } from "./ai-creative";
 
 type SessionUser = { id: string };
 type Session = { user: SessionUser } | null;
@@ -35,6 +41,7 @@ type PrismaLike = {
     findUnique: (args: { where: { id: string } }) => Promise<unknown | null>;
   };
   draft: {
+    create: (args: { data: { briefId: string; draftJson: unknown } }) => Promise<unknown>;
     findMany: (args: { where: { briefId: string }; orderBy: { createdAt: "desc" } }) => Promise<unknown[]>;
   };
   placementSpec: {
@@ -87,6 +94,11 @@ export function createApp({ prisma, getSession }: AppDeps) {
   });
 
   app.get("/health", (c) => c.json({ ok: true }));
+
+  app.get("/debug/env", (c) => c.json({ 
+    hasGeminiKey: !!process.env.GEMINI_API_KEY,
+    keyLength: process.env.GEMINI_API_KEY?.length || 0
+  }));
 
   app.post("/api/admin/seed/placement-specs", async (c) => {
     for (const spec of PLACEMENT_SPECS) {
@@ -210,6 +222,75 @@ export function createApp({ prisma, getSession }: AppDeps) {
   });
 
   app.post(
+    "/api/ai/brief/parse",
+    zValidator(
+      "json",
+      zCreateBriefInput.omit({ projectId: true })
+    ),
+    async (c) => {
+      const user = c.get("user") as SessionUser | null;
+      if (!user) return c.json({ error: "unauthorized" }, 401);
+      const input = c.req.valid("json");
+      try {
+        const parsed = await parseBriefWithAi(input);
+        return c.json(parsed);
+      } catch (error) {
+        if (error instanceof AiCreativeError) {
+          return c.json({ error: error.message, code: error.code }, 500);
+        }
+        const message = error instanceof Error ? error.message : "AI brief parsing failed";
+        return c.json({ error: message, code: "AI_ERROR" }, 500);
+      }
+    }
+  );
+
+  app.post(
+    "/api/ai/creative/generate",
+    zValidator(
+      "json",
+      z.object({
+        briefId: z.string().min(1),
+        placement: zPlacementSpecKey,
+        brandAssets: z.array(zBrandAsset).optional()
+      })
+    ),
+    async (c) => {
+      const user = c.get("user") as SessionUser | null;
+      if (!user) return c.json({ error: "unauthorized" }, 401);
+      const input = c.req.valid("json");
+      const brief = await prisma.brief.findUnique({ where: { id: input.briefId } });
+      if (!brief) return c.json({ error: "not_found" }, 404);
+
+      try {
+        const creative = await generateCreativeWithAi({
+          placement: input.placement,
+          brief: (brief as { briefJson?: unknown }).briefJson ?? {},
+          intentText: (brief as { intentText?: string }).intentText,
+          brandAssets: input.brandAssets
+        });
+
+        const draft = await prisma.draft.create({
+          data: {
+            briefId: input.briefId,
+            draftJson: {
+              placement: input.placement,
+              creative
+            }
+          }
+        });
+
+        return c.json({ draft, creative });
+      } catch (error) {
+        if (error instanceof AiCreativeError) {
+          return c.json({ error: error.message, code: error.code }, 500);
+        }
+        const message = error instanceof Error ? error.message : "AI creative generation failed";
+        return c.json({ error: message, code: "AI_ERROR" }, 500);
+      }
+    }
+  );
+
+  app.post(
     "/api/projects",
     zValidator("json", z.object({ name: z.string().min(1) })),
     async (c) => {
@@ -235,12 +316,25 @@ export function createApp({ prisma, getSession }: AppDeps) {
 
       const { projectId } = c.req.param();
       const input = c.req.valid("json");
-      const briefJson = buildBriefJsonFromInput({
-        intentText: input.intentText,
-        industry: input.industry,
-        placements: input.placements,
-        sensitiveWords: input.sensitiveWords
-      });
+
+      let briefJson;
+      try {
+        const result = await parseBriefWithAi({
+          intentText: input.intentText,
+          industry: input.industry,
+          placements: input.placements,
+          sensitiveWords: input.sensitiveWords
+        });
+        briefJson = result.briefJson;
+      } catch (error) {
+        console.error("[Brief] AI parsing failed, using fallback:", error);
+        briefJson = buildBriefJsonFromInput({
+          intentText: input.intentText,
+          industry: input.industry,
+          placements: input.placements,
+          sensitiveWords: input.sensitiveWords
+        });
+      }
 
       const constraints = {
         placements: input.placements

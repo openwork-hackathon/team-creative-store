@@ -3,10 +3,12 @@ import { createApp } from "./app";
 
 type Project = { id: string; name: string; userId: string };
 type Brief = { id: string; projectId: string; intentText: string; briefJson: unknown; constraints: unknown };
+type Draft = { id: string; briefId: string; draftJson: unknown };
 
 const createMemoryPrisma = () => {
   const projects: Project[] = [];
   const briefs: Brief[] = [];
+  const drafts: Draft[] = [];
   return {
     project: {
       findMany: async ({ where }: { where: { userId: string } }) =>
@@ -27,6 +29,11 @@ const createMemoryPrisma = () => {
         briefs.find((brief) => brief.id === where.id) ?? null
     },
     draft: {
+      create: async ({ data }: { data: Draft }) => {
+        const draft = { ...data, id: data.id ?? `draft_${drafts.length + 1}` } as Draft;
+        drafts.push(draft);
+        return draft;
+      },
       findMany: async () => []
     },
     placementSpec: {

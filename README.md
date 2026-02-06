@@ -53,6 +53,14 @@ bun run dev:web
 
 Web runs on http://localhost:5173
 
+## AI Creative Generator
+
+Set the following env var to enable Gemini-powered parsing/generation:
+
+```bash
+GOOGLE_GENERATIVE_AI_API_KEY="your_key_here"
+```
+
 ## Troubleshooting
 
 - If the API complains about `DATABASE_URL`, confirm it is set in `.env`.

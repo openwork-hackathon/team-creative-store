@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createApp } from "./app";
 
-type Project = { id: string; name: string; userId: string };
+type Project = { id: string; name: string; userId: string; status: string; imageUrl: string | null; createdAt: Date; updatedAt: Date };
 type Brief = { id: string; projectId: string; intentText: string; briefJson: unknown; constraints: unknown };
 type Draft = { id: string; briefId: string; draftJson: unknown };
 
@@ -13,8 +13,17 @@ const createMemoryPrisma = () => {
     project: {
       findMany: async ({ where }: { where: { userId: string } }) =>
         projects.filter((project) => project.userId === where.userId),
-      create: async ({ data }: { data: Project }) => {
-        const project = { ...data, id: data.id ?? `proj_${projects.length + 1}` } as Project;
+      create: async ({ data }: { data: { name: string; userId: string } }) => {
+        const now = new Date();
+        const project: Project = {
+          id: `proj_${projects.length + 1}`,
+          name: data.name,
+          userId: data.userId,
+          status: "draft",
+          imageUrl: null,
+          createdAt: now,
+          updatedAt: now
+        };
         projects.push(project);
         return project;
       }

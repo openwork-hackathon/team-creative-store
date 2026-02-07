@@ -64,7 +64,7 @@ type PublishRecordResult = {
 
 type PrismaLike = {
   project: {
-    findMany: (args: { where: { userId: string; name?: { contains: string; mode: "insensitive" }; status?: string }; orderBy?: { updatedAt: "desc" } }) => Promise<ProjectRecord[]>;
+    findMany: (args: { where: { userId: string; name?: { contains: string; mode: "insensitive" }; status?: string; updatedAt?: { gte: Date } }; orderBy?: { updatedAt: "desc" } }) => Promise<ProjectRecord[]>;
     findUnique: (args: { where: { id: string }; include?: { creatives?: { include?: { versions?: boolean } } } }) => Promise<(ProjectRecord & { userId: string; creatives?: Array<{ id: string; versions?: Array<{ id: string }> }> }) | null>;
     create: (args: { data: { name: string; userId: string; status?: string; imageUrl?: string } }) => Promise<ProjectRecord>;
     update: (args: { where: { id: string }; data: { name?: string; status?: string; imageUrl?: string } }) => Promise<ProjectRecord>;
@@ -92,8 +92,9 @@ export function createProjectRoutes({ prisma }: ProjectRoutesDeps) {
     // Query params for search and filter
     const search = c.req.query("search") || "";
     const status = c.req.query("status") || "";
+    const recency = c.req.query("recency") || "";
     
-    const where: { userId: string; name?: { contains: string; mode: "insensitive" }; status?: string } = {
+    const where: { userId: string; name?: { contains: string; mode: "insensitive" }; status?: string; updatedAt?: { gte: Date } } = {
       userId: user.id
     };
     
@@ -103,6 +104,29 @@ export function createProjectRoutes({ prisma }: ProjectRoutesDeps) {
     
     if (status && ["draft", "generating", "ready", "published"].includes(status)) {
       where.status = status;
+    }
+    
+    // Apply recency filter
+    if (recency) {
+      const now = new Date();
+      let dateThreshold: Date | undefined;
+      
+      switch (recency) {
+        case "today":
+          dateThreshold = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+          break;
+        case "week":
+          dateThreshold = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          break;
+        case "month":
+          dateThreshold = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+          break;
+        // "all" means no date filter
+      }
+      
+      if (dateThreshold) {
+        where.updatedAt = { gte: dateThreshold };
+      }
     }
     
     const projects = await prisma.project.findMany({
@@ -116,7 +140,8 @@ export function createProjectRoutes({ prisma }: ProjectRoutesDeps) {
       title: p.name,
       status: p.status,
       imageUrl: p.imageUrl ?? "https://placehold.co/600x400/1a1a2e/ffffff?text=No+Preview",
-      updatedAt: formatRelativeTime(p.updatedAt)
+      updatedAt: formatRelativeTime(p.updatedAt),
+      createdAt: p.createdAt.toISOString()
     }));
     
     return c.json({ projects: formattedProjects });

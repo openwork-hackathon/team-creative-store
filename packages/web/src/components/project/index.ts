@@ -1,7 +1,8 @@
 export type {
   Project,
   ProjectStatus,
-  ProjectFilter,
+  ProjectFilters,
+  RecencyFilter,
   PublishFormData,
   LicenseType,
   PublishCategory,

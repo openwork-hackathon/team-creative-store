@@ -12,7 +12,7 @@ export function AppLayout({ children }: AppLayoutProps) {
     <div className="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden bg-background-light font-display text-slate-900 dark:bg-background-dark dark:text-white">
       <div className="layout-container flex h-full grow flex-col">
         <TopNav user={user} />
-        <main className="flex-1 overflow-y-auto">{children}</main>
+        <main className="flex-1 overflow-y-auto px-4 py-8 md:px-10">{children}</main>
         {/* Footer */}
         <footer className="border-t border-slate-200 px-10 py-8 dark:border-[#232f48]">
           <div className="mx-auto flex max-w-[1024px] flex-col items-center justify-between gap-6 text-xs text-[#92a4c9] md:flex-row">

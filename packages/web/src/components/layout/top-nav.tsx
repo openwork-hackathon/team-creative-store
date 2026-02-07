@@ -81,22 +81,6 @@ export function TopNav({ user }: TopNavProps) {
           })}
         </nav>
 
-        {/* Action Buttons */}
-        <div className="flex gap-2">
-          <button
-            type="button"
-            className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-slate-600 transition-colors hover:bg-slate-200 dark:bg-[#232f48] dark:text-white dark:hover:bg-[#324467]"
-          >
-            <span className="material-symbols-outlined text-xl">notifications</span>
-          </button>
-          <button
-            type="button"
-            className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-slate-600 transition-colors hover:bg-slate-200 dark:bg-[#232f48] dark:text-white dark:hover:bg-[#324467]"
-          >
-            <span className="material-symbols-outlined text-xl">settings</span>
-          </button>
-        </div>
-
         {/* User Avatar */}
         {user?.image ? (
           <div

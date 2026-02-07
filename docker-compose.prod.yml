@@ -1,0 +1,133 @@
+version: "3.9"
+
+services:
+  # ============================================
+  # PostgreSQL Database
+  # ============================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: creative-store-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-creative_store}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-creative_store}
+      POSTGRES_DB: ${POSTGRES_DB:-creative_store}
+    ports:
+      - "5432:5432"
+    volumes:
+      - creative_store_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-creative_store} -d ${POSTGRES_DB:-creative_store}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================
+  # Redis (for BullMQ worker)
+  # ============================================
+  redis:
+    image: redis:7-alpine
+    container_name: creative-store-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - creative_store_redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================
+  # API Server (Hono + Bun)
+  # ============================================
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: api
+    container_name: creative-store-api
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: postgresql://${POSTGRES_USER:-creative_store}:${POSTGRES_PASSWORD:-creative_store}@postgres:5432/${POSTGRES_DB:-creative_store}?schema=public
+      REDIS_URL: redis://redis:6379
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:3000}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      GOOGLE_GENERATIVE_AI_API_KEY: ${GOOGLE_GENERATIVE_AI_API_KEY}
+      OPENWORK_TOKEN_ADDRESS: ${OPENWORK_TOKEN_ADDRESS}
+      AICC_TOKEN_ADDRESS: ${AICC_TOKEN_ADDRESS}
+      CREATIVE_PROOF_CONTRACT: ${CREATIVE_PROOF_CONTRACT}
+      BASE_RPC_URL: ${BASE_RPC_URL}
+      BASE_PRIVATE_KEY: ${BASE_PRIVATE_KEY}
+      DEFAULT_METADATA_URI: ${DEFAULT_METADATA_URI}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ============================================
+  # Background Worker (BullMQ + Bun)
+  # ============================================
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: worker
+    container_name: creative-store-worker
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER:-creative_store}:${POSTGRES_PASSWORD:-creative_store}@postgres:5432/${POSTGRES_DB:-creative_store}?schema=public
+      REDIS_URL: redis://redis:6379
+      GOOGLE_GENERATIVE_AI_API_KEY: ${GOOGLE_GENERATIVE_AI_API_KEY}
+      CREATIVE_PROOF_CONTRACT: ${CREATIVE_PROOF_CONTRACT}
+      BASE_RPC_URL: ${BASE_RPC_URL}
+      BASE_PRIVATE_KEY: ${BASE_PRIVATE_KEY}
+      DEFAULT_METADATA_URI: ${DEFAULT_METADATA_URI}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # ============================================
+  # Web Frontend (Nginx serving static files)
+  # ============================================
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: web
+    container_name: creative-store-web
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  creative_store_pgdata:
+  creative_store_redis:
+
+networks:
+  default:
+    name: creative-store-network

@@ -36,16 +36,6 @@ export function ProjectCard({
       }`}
       onClick={() => onClick?.(project.id)}
     >
-      {/* Checkbox */}
-      <div className="absolute left-3 top-3 z-10">
-        <input
-          type="checkbox"
-          checked={isSelected}
-          onChange={handleCheckboxChange}
-          className="size-5 rounded border-slate-300 bg-white/20 text-primary backdrop-blur-sm focus:ring-primary dark:border-slate-700"
-        />
-      </div>
-
       {/* Image */}
       <div className="relative aspect-video overflow-hidden">
         <div
@@ -60,17 +50,7 @@ export function ProjectCard({
       {/* Content */}
       <div className="flex flex-col gap-1 p-4">
         <div className="flex items-center justify-between">
-          <h3 className="truncate font-bold text-slate-900 dark:text-white">{project.title}</h3>
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onMenuClick?.(project.id);
-            }}
-            className="text-slate-400 hover:text-primary"
-          >
-            <span className="material-symbols-outlined text-lg">more_vert</span>
-          </button>
+          <h3 className="truncate font-bold text-slate-900 dark:text-white">{project.title}</h3>         
         </div>
         <p className="text-xs text-slate-500 dark:text-slate-400">{project.updatedAt}</p>
 
@@ -113,8 +93,8 @@ export function ProjectCard({
             </button>
           </div>
 
-          {/* Publish Button - only show when ready */}
-          {project.status === "ready" && (
+          {/* Publish Button - show when draft or ready */}
+          {(project.status === "draft" || project.status === "ready") && (
             <button
               type="button"
               onClick={(e) => {

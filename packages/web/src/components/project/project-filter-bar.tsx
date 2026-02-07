@@ -107,49 +107,6 @@ export function ProjectFilterBar({
           />
         )}
       </div>
-
-      {/* Bulk Actions */}
-      <div className="flex items-center gap-1 border-l border-slate-200 pl-4 dark:border-slate-800">
-        <span className="mr-2 text-xs font-medium text-slate-500">
-          {hasSelection ? `${selectionCount} selected` : "Selection:"}
-        </span>
-        <button
-          type="button"
-          onClick={onEditSelection}
-          disabled={!hasSelection}
-          className="rounded p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-primary disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-slate-500 dark:hover:bg-slate-800"
-          title="Edit Selection"
-        >
-          <span className="material-symbols-outlined">edit</span>
-        </button>
-        <button
-          type="button"
-          onClick={onPreviewSelection}
-          disabled={!hasSelection}
-          className="rounded p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-primary disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-slate-500 dark:hover:bg-slate-800"
-          title="Preview Selection"
-        >
-          <span className="material-symbols-outlined">visibility</span>
-        </button>
-        <button
-          type="button"
-          onClick={onArchiveSelection}
-          disabled={!hasSelection}
-          className="rounded p-2 text-slate-500 transition-colors hover:bg-amber-500/10 hover:text-amber-500 disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-slate-500"
-          title="Archive Selection"
-        >
-          <span className="material-symbols-outlined">archive</span>
-        </button>
-        <button
-          type="button"
-          onClick={onDeleteSelection}
-          disabled={!hasSelection}
-          className="rounded p-2 text-slate-500 transition-colors hover:bg-red-500/10 hover:text-red-500 disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-slate-500"
-          title="Delete Selection"
-        >
-          <span className="material-symbols-outlined">delete</span>
-        </button>
-      </div>
     </div>
   );
 }

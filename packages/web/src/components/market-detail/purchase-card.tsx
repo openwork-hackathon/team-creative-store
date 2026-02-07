@@ -1,10 +1,13 @@
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useAccount, useConnect, useWriteContract, useWaitForTransactionReceipt, useReadContract } from "wagmi"
 import { parseUnits, formatUnits } from "viem"
 import { base } from "wagmi/chains"
 import type { MarketListing } from "./types"
 import { ConnectWalletModal } from "../wallet/connect-wallet-modal"
 import { erc20Abi } from "../wallet/types"
+import { createApiClient } from "@/lib/api"
+
+const api = createApiClient()
 
 // Extended ERC20 ABI with transfer function
 const erc20TransferAbi = [
@@ -41,6 +44,8 @@ export function PurchaseCard({ listing }: PurchaseCardProps) {
   const [showConnectModal, setShowConnectModal] = useState(false)
   const [purchaseStep, setPurchaseStep] = useState<PurchaseStep>("idle")
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [orderId, setOrderId] = useState<string | null>(null)
+  const orderCreatedRef = useRef(false)
 
   // Wagmi hooks
   const { address, isConnected, isConnecting } = useAccount()
@@ -151,6 +156,32 @@ export function PurchaseCard({ listing }: PurchaseCardProps) {
     }
   }
 
+  // Create order after transaction is confirmed
+  useEffect(() => {
+    const createOrder = async () => {
+      if (isConfirmed && txHash && !orderCreatedRef.current) {
+        orderCreatedRef.current = true
+        try {
+          const response = await api.createOrder({
+            publishRecordId: listing.id,
+            txHash: txHash,
+            licenseType: listing.licenseType as "standard" | "extended" | "exclusive"
+          })
+          setOrderId(response.order.id)
+          // Update order status to confirmed
+          await api.updateOrder(response.order.id, {
+            status: "confirmed",
+            txHash: txHash
+          })
+        } catch (err) {
+          console.error("Failed to create order:", err)
+          // Don't show error to user since payment was successful
+        }
+      }
+    }
+    createOrder()
+  }, [isConfirmed, txHash, listing.id, listing.licenseType])
+
   // Update step based on transaction state
   if (isWritePending && purchaseStep === "confirming") {
     // Still waiting for user to confirm in wallet
@@ -158,7 +189,6 @@ export function PurchaseCard({ listing }: PurchaseCardProps) {
     setPurchaseStep("pending")
   } else if (isConfirmed && purchaseStep !== "success") {
     setPurchaseStep("success")
-    // TODO: Call API to create order record
   } else if (writeError && purchaseStep !== "error") {
     setErrorMessage(writeError.message)
     setPurchaseStep("error")

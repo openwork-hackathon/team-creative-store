@@ -1,18 +1,3 @@
--- DropForeignKey
-ALTER TABLE "MarketplaceListing" DROP CONSTRAINT IF EXISTS "MarketplaceListing_creatorId_fkey";
-
--- DropForeignKey
-ALTER TABLE "MarketplacePurchase" DROP CONSTRAINT IF EXISTS "MarketplacePurchase_listingId_fkey";
-
--- DropForeignKey
-ALTER TABLE "MarketplacePurchase" DROP CONSTRAINT IF EXISTS "MarketplacePurchase_buyerId_fkey";
-
--- DropTable
-DROP TABLE IF EXISTS "MarketplacePurchase";
-
--- DropTable
-DROP TABLE IF EXISTS "MarketplaceListing";
-
 -- CreateTable
 CREATE TABLE "Purchase" (
     "id" TEXT NOT NULL,

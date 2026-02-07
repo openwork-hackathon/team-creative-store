@@ -71,6 +71,71 @@ export type LicenseType = {
   label: string;
 };
 
+export type Order = {
+  id: string;
+  orderNumber: string;
+  creativeTitle: string;
+  imageUrl: string | null;
+  licenseType: string;
+  priceAicc: string;
+  status: "pending" | "confirmed" | "failed";
+  statusMessage: string | null;
+  txHash: string | null;
+  createdAt: string;
+};
+
+export type OrdersQuery = {
+  status?: "pending" | "confirmed" | "failed";
+  page?: number;
+  limit?: number;
+};
+
+export type OrdersResponse = {
+  orders: Order[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+};
+
+export type OrderResponse = {
+  order: Order;
+};
+
+export type CreateOrderInput = {
+  publishRecordId: string;
+  txHash?: string;
+  licenseType?: "standard" | "extended" | "exclusive";
+};
+
+export type CreateOrderResponse = {
+  order: {
+    id: string;
+    orderNumber: string;
+    status: string;
+    createdAt: string;
+  };
+};
+
+export type UpdateOrderInput = {
+  status?: "pending" | "confirmed" | "failed";
+  statusMessage?: string;
+  txHash?: string;
+};
+
+export type UpdateOrderResponse = {
+  order: {
+    id: string;
+    orderNumber: string;
+    status: string;
+    statusMessage: string | null;
+    txHash: string | null;
+    updatedAt: string;
+  };
+};
+
 // MarketplaceListing type based on PublishRecord
 export type MarketplaceListing = {
   id: string;
@@ -196,7 +261,34 @@ export function createApiClient(
       return request(`${baseUrl}/marketplace/listings?${params.toString()}`).then((response) => response.json());
     },
     getMarketplaceListing: async (id: string): Promise<MarketplaceListingResponse> =>
-      request(`${baseUrl}/marketplace/listings/${id}`).then((response) => response.json())
+      request(`${baseUrl}/marketplace/listings/${id}`).then((response) => response.json()),
+    // Orders API
+    getOrders: async (query: OrdersQuery = {}): Promise<OrdersResponse> => {
+      const params = new URLSearchParams();
+      if (query.status) params.set("status", query.status);
+      if (query.page !== undefined) params.set("page", String(query.page));
+      if (query.limit !== undefined) params.set("limit", String(query.limit));
+      const queryStr = params.toString();
+      return request(`${baseUrl}/orders${queryStr ? `?${queryStr}` : ""}`).then((response) => response.json());
+    },
+    getOrder: async (id: string): Promise<OrderResponse> =>
+      request(`${baseUrl}/orders/${id}`).then((response) => response.json()),
+    createOrder: async (input: CreateOrderInput): Promise<CreateOrderResponse> =>
+      request(`${baseUrl}/orders`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(input)
+      }).then((response) => response.json()),
+    updateOrder: async (id: string, input: UpdateOrderInput): Promise<UpdateOrderResponse> =>
+      request(`${baseUrl}/orders/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(input)
+      }).then((response) => response.json()),
+    deleteOrder: async (id: string): Promise<{ ok: boolean }> =>
+      request(`${baseUrl}/orders/${id}`, {
+        method: "DELETE"
+      }).then((response) => response.json())
   };
 }
 

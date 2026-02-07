@@ -66,26 +66,6 @@ export function PreviewToolbar({
           View: {deviceLabel} Grid ({sizeCount} Sizes)
         </button>
       </div>
-      <div className="flex items-center gap-4">
-        <div className="flex -space-x-2">
-          <div className="size-8 rounded-full border-2 border-background bg-muted flex items-center justify-center text-[10px] font-bold">
-            JD
-          </div>
-          <div className="size-8 rounded-full border-2 border-background bg-muted flex items-center justify-center text-[10px] font-bold">
-            AS
-          </div>
-          <div className="size-8 rounded-full border-2 border-background bg-primary flex items-center justify-center text-[10px] font-bold text-primary-foreground">
-            +4
-          </div>
-        </div>
-        <button
-          type="button"
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-muted border border-border text-foreground text-sm font-bold hover:bg-muted/70 transition-colors"
-        >
-          <span className="material-symbols-outlined text-sm">download</span>
-          <span>Export All</span>
-        </button>
-      </div>
     </div>
   )
 }

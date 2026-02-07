@@ -16,17 +16,6 @@ export class AiCreativeError extends Error {
   }
 }
 
-const getGeminiApiKey = () => {
-  const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
-  if (!apiKey) {
-    throw new AiCreativeError(
-      "GOOGLE_GENERATIVE_AI_API_KEY environment variable is not set",
-      "MISSING_API_KEY"
-    );
-  }
-  return apiKey;
-};
-
 type BriefParseInput = {
   intentText: string;
   industry?: string;
@@ -34,7 +23,16 @@ type BriefParseInput = {
   sensitiveWords?: string[];
 };
 
-const model = () => google("gemini-3-flash-preview", { apiKey: getGeminiApiKey() });
+const model = () => {
+  const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+  if (!apiKey) {
+    throw new AiCreativeError(
+      "GOOGLE_GENERATIVE_AI_API_KEY environment variable is not set",
+      "MISSING_API_KEY"
+    );
+  }
+  return google("gemini-3-flash-preview", { apiKey });
+};
 
 type GeminiImageInput = {
   prompt: string;
@@ -42,7 +40,13 @@ type GeminiImageInput = {
 };
 
 export async function generateImageWithGeminiFlash(input: GeminiImageInput): Promise<string> {
-  const apiKey = getGeminiApiKey();
+  const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+  if (!apiKey) {
+    throw new AiCreativeError(
+      "GOOGLE_GENERATIVE_AI_API_KEY environment variable is not set",
+      "MISSING_API_KEY"
+    );
+  }
 
   // Build message content with text prompt and brand assets as file parts
   const contentParts: Array<

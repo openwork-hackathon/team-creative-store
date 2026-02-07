@@ -115,7 +115,7 @@ services:
     container_name: creative-store-web
     restart: unless-stopped
     ports:
-      - "80:80"
+      - "8080:80"
     depends_on:
       - api
     healthcheck:

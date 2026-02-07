@@ -22,8 +22,8 @@ COPY packages/shared/package.json ./packages/shared/
 COPY packages/web/package.json ./packages/web/
 COPY packages/worker/package.json ./packages/worker/
 
-# Install all dependencies
-RUN bun install --frozen-lockfile
+# Install all dependencies (including devDependencies for build stage)
+RUN bun install
 
 # ============================================
 # Stage 3: Build shared packages & generate Prisma client
@@ -47,11 +47,8 @@ FROM base AS api
 ENV NODE_ENV=production
 WORKDIR /app
 
-# Copy dependencies
+# Copy dependencies (hoisted to root node_modules in Bun workspaces)
 COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/packages/api/node_modules ./packages/api/node_modules
-COPY --from=deps /app/packages/db/node_modules ./packages/db/node_modules
-COPY --from=deps /app/packages/shared/node_modules ./packages/shared/node_modules
 
 # Copy source code
 COPY packages/api ./packages/api
@@ -75,11 +72,8 @@ FROM base AS worker
 ENV NODE_ENV=production
 WORKDIR /app
 
-# Copy dependencies
+# Copy dependencies (hoisted to root node_modules in Bun workspaces)
 COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/packages/worker/node_modules ./packages/worker/node_modules
-COPY --from=deps /app/packages/db/node_modules ./packages/db/node_modules
-COPY --from=deps /app/packages/shared/node_modules ./packages/shared/node_modules
 
 # Copy source code
 COPY packages/worker ./packages/worker

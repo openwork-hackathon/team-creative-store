@@ -64,10 +64,11 @@ type PublishRecordResult = {
 
 type PrismaLike = {
   project: {
-    findMany: (args: { where: { userId: string }; orderBy?: { updatedAt: "desc" } }) => Promise<ProjectRecord[]>;
-    findUnique: (args: { where: { id: string }; include?: { creatives?: { include?: { versions?: boolean } } } }) => Promise<ProjectRecord & { creatives?: Array<{ id: string; versions?: Array<{ id: string }> }> } | null>;
+    findMany: (args: { where: { userId: string; name?: { contains: string; mode: "insensitive" }; status?: string }; orderBy?: { updatedAt: "desc" } }) => Promise<ProjectRecord[]>;
+    findUnique: (args: { where: { id: string }; include?: { creatives?: { include?: { versions?: boolean } } } }) => Promise<(ProjectRecord & { userId: string; creatives?: Array<{ id: string; versions?: Array<{ id: string }> }> }) | null>;
     create: (args: { data: { name: string; userId: string; status?: string; imageUrl?: string } }) => Promise<ProjectRecord>;
     update: (args: { where: { id: string }; data: { name?: string; status?: string; imageUrl?: string } }) => Promise<ProjectRecord>;
+    delete: (args: { where: { id: string } }) => Promise<ProjectRecord>;
   };
   brief: {
     create: (args: { data: { projectId: string; intentText: string; briefJson: unknown; constraints: unknown } }) => Promise<unknown>;
@@ -87,8 +88,25 @@ export function createProjectRoutes({ prisma }: ProjectRoutesDeps) {
   routes.get("/", async (c) => {
     const user = c.get("user") as SessionUser | null;
     if (!user) return c.json({ error: "unauthorized" }, 401);
+    
+    // Query params for search and filter
+    const search = c.req.query("search") || "";
+    const status = c.req.query("status") || "";
+    
+    const where: { userId: string; name?: { contains: string; mode: "insensitive" }; status?: string } = {
+      userId: user.id
+    };
+    
+    if (search) {
+      where.name = { contains: search, mode: "insensitive" };
+    }
+    
+    if (status && ["draft", "generating", "ready", "published"].includes(status)) {
+      where.status = status;
+    }
+    
     const projects = await prisma.project.findMany({
-      where: { userId: user.id },
+      where,
       orderBy: { updatedAt: "desc" }
     });
     
@@ -104,6 +122,36 @@ export function createProjectRoutes({ prisma }: ProjectRoutesDeps) {
     return c.json({ projects: formattedProjects });
   });
 
+  // Get single project with details
+  routes.get("/:projectId", async (c) => {
+    const user = c.get("user") as SessionUser | null;
+    if (!user) return c.json({ error: "unauthorized" }, 401);
+    
+    const { projectId } = c.req.param();
+    
+    const project = await prisma.project.findUnique({
+      where: { id: projectId },
+      include: {
+        creatives: {
+          include: {
+            versions: true
+          }
+        }
+      }
+    });
+    
+    if (!project) {
+      return c.json({ error: "project not found" }, 404);
+    }
+    
+    // Check ownership
+    if (project.userId !== user.id) {
+      return c.json({ error: "forbidden" }, 403);
+    }
+    
+    return c.json({ project });
+  });
+
   routes.post(
     "/",
     zValidator("json", z.object({ name: z.string().min(1) })),
@@ -117,6 +165,33 @@ export function createProjectRoutes({ prisma }: ProjectRoutesDeps) {
       return c.json({ project });
     }
   );
+
+  // Delete project
+  routes.delete("/:projectId", async (c) => {
+    const user = c.get("user") as SessionUser | null;
+    if (!user) return c.json({ error: "unauthorized" }, 401);
+    
+    const { projectId } = c.req.param();
+    
+    // Check ownership before deleting
+    const project = await prisma.project.findUnique({
+      where: { id: projectId }
+    });
+    
+    if (!project) {
+      return c.json({ error: "project not found" }, 404);
+    }
+    
+    if (project.userId !== user.id) {
+      return c.json({ error: "forbidden" }, 403);
+    }
+    
+    await prisma.project.delete({
+      where: { id: projectId }
+    });
+    
+    return c.json({ success: true });
+  });
 
   routes.post(
     "/:projectId/briefs",

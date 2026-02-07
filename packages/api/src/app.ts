@@ -11,6 +11,7 @@ import { generateCreativeImage, AiCreativeError } from "./ai-creative";
 import { parseBriefWithAi, AiBriefError } from "./ai-brief";
 import { createProjectRoutes, AppEnv, SessionUser } from "./project";
 import { createMarketRoutes } from "./market";
+import { createOrderRoutes } from "./order";
 import { dataUrlToBuffer, mimeTypeToExtension, StorageError, type S3Storage } from "./storage";
 
 type Session = { user: SessionUser } | null;
@@ -21,7 +22,7 @@ type PublishRecordWithCreator = {
   description: string | null;
   imageUrl: string | null;
   creatorId: string;
-  creator: { id: string; name: string | null };
+  creator: { id: string; name: string | null; walletAddress: string | null };
   priceAicc: unknown;
   assetType: string;
   licenseType: string;
@@ -38,6 +39,25 @@ type ProjectRecord = {
   name: string;
   status: string;
   imageUrl: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+type OrderRecord = {
+  id: string;
+  orderNumber: string;
+  publishRecordId: string;
+  publishRecord: {
+    id: string;
+    title: string;
+    imageUrl: string | null;
+  };
+  buyerId: string;
+  priceAicc: unknown;
+  licenseType: string;
+  txHash: string | null;
+  status: string;
+  statusMessage: string | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -67,17 +87,34 @@ type PrismaLike = {
   publishRecord: {
     findMany: (args: {
       where?: Record<string, unknown>;
-      include?: { creator: { select: { id: boolean; name: boolean } } };
+      include?: { creator: { select: { id: boolean; name: boolean; walletAddress: boolean } } };
       orderBy?: Record<string, string>;
       skip?: number;
       take?: number;
     }) => Promise<PublishRecordWithCreator[]>;
     findUnique: (args: {
       where: { id: string };
-      include?: { creator: { select: { id: boolean; name: boolean } } };
+      include?: { creator: { select: { id: boolean; name: boolean; walletAddress: boolean } } };
     }) => Promise<PublishRecordWithCreator | null>;
     count: (args?: { where?: Record<string, unknown> }) => Promise<number>;
     create: (args: { data: Record<string, unknown> }) => Promise<{ id: string; slug: string; title: string; publishedAt: Date }>;
+  };
+  order: {
+    findMany: (args: {
+      where?: Record<string, unknown>;
+      include?: { publishRecord: { select: { id: boolean; title: boolean; imageUrl: boolean } } };
+      orderBy?: Record<string, string>;
+      skip?: number;
+      take?: number;
+    }) => Promise<OrderRecord[]>;
+    findUnique: (args: {
+      where: { id: string } | { orderNumber: string };
+      include?: { publishRecord: { select: { id: boolean; title: boolean; imageUrl: boolean } } };
+    }) => Promise<OrderRecord | null>;
+    count: (args?: { where?: Record<string, unknown> }) => Promise<number>;
+    create: (args: { data: Record<string, unknown> }) => Promise<OrderRecord>;
+    update: (args: { where: { id: string }; data: Record<string, unknown> }) => Promise<OrderRecord>;
+    delete: (args: { where: { id: string } }) => Promise<OrderRecord>;
   };
 };
 
@@ -145,28 +182,13 @@ export function createApp({ prisma, getSession, storage }: AppDeps) {
   // Mount project routes
   app.route("/api/projects", createProjectRoutes({ prisma }));
 
+  // Mount order routes
+  app.route("/api/orders", createOrderRoutes({ prisma }));
+
   app.get("/api/user/@me", async (c) => {
     const user = c.get("user");
     if (!user) return c.json({ error: "unauthorized" }, 401);
     return c.json({ user });
-  });
-
-  app.get("/api/orders", async (c) => {
-    const user = c.get("user");
-    if (!user) return c.json({ error: "unauthorized" }, 401);
-
-    return c.json({
-      orders: [
-        {
-          id: "order_1",
-          creativeTitle: "Summer Sale Banner Pack",
-          licenseType: "standard",
-          priceAicc: "150.00",
-          status: "confirmed",
-          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3).toISOString()
-        }
-      ]
-    });
   });
 
   app.post("/api/uploads/logo", async (c) => {

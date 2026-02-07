@@ -65,6 +65,7 @@ model User {
   projects      Project[]
   publishRecords PublishRecord[] @relation("PublishRecordCreator")
   purchases     Purchase[]      @relation("PurchaseBuyer")
+  orders        Order[]         @relation("OrderBuyer")
 }
 
 model Session {
@@ -228,6 +229,7 @@ model PublishRecord {
   includeSourceFiles Boolean      @default(false)
   publishedAt     DateTime        @default(now())
   purchases       Purchase[]
+  orders          Order[]
 }
 
 model NftRecord {
@@ -260,6 +262,28 @@ enum AssetType {
   template
   logo
   scene_3d
+}
+
+enum OrderStatus {
+  pending
+  confirmed
+  failed
+}
+
+model Order {
+  id              String        @id @default(uuid())
+  orderNumber     String        @unique
+  publishRecordId String
+  publishRecord   PublishRecord @relation(fields: [publishRecordId], references: [id])
+  buyerId         String
+  buyer           User          @relation("OrderBuyer", fields: [buyerId], references: [id])
+  priceAicc       Decimal       @db.Decimal(18, 2)
+  licenseType     LicenseType   @default(standard)
+  txHash          String?
+  status          OrderStatus   @default(pending)
+  statusMessage   String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 }
 
 model Purchase {

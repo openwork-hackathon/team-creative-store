@@ -13,11 +13,12 @@ export type Order = {
   id: string;
   orderNumber: string;
   creativeTitle: string;
-  imageUrl?: string;
-  licenseType: "standard" | "extended";
+  imageUrl: string | null;
+  licenseType: string;
   priceAicc: string;
   status: "confirmed" | "pending" | "failed";
-  statusMessage?: string;
+  statusMessage: string | null;
+  txHash: string | null;
   createdAt: string;
 };
 

@@ -23,16 +23,7 @@ type BriefParseInput = {
   sensitiveWords?: string[];
 };
 
-const model = () => {
-  const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
-  if (!apiKey) {
-    throw new AiCreativeError(
-      "GOOGLE_GENERATIVE_AI_API_KEY environment variable is not set",
-      "MISSING_API_KEY"
-    );
-  }
-  return google("gemini-3-flash-preview", { apiKey });
-};
+const model = () => google("gemini-3-flash-preview");
 
 type GeminiImageInput = {
   prompt: string;
@@ -40,14 +31,6 @@ type GeminiImageInput = {
 };
 
 export async function generateImageWithGeminiFlash(input: GeminiImageInput): Promise<string> {
-  const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
-  if (!apiKey) {
-    throw new AiCreativeError(
-      "GOOGLE_GENERATIVE_AI_API_KEY environment variable is not set",
-      "MISSING_API_KEY"
-    );
-  }
-
   // Build message content with text prompt and brand assets as file parts
   const contentParts: Array<
     | { type: "text"; text: string }
@@ -64,7 +47,7 @@ export async function generateImageWithGeminiFlash(input: GeminiImageInput): Pro
   }
 
   const result = await generateText({
-    model: google("gemini-2.5-flash-image", { apiKey }),
+    model: google("gemini-2.5-flash-image"),
     messages: [
       {
         role: "user",

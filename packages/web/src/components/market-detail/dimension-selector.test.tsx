@@ -4,18 +4,23 @@ import { DimensionSelector } from "./dimension-selector";
 import { dimensionOptions } from "./types";
 
 describe("DimensionSelector", () => {
-  it("renders section title", () => {
+  it("renders section titles for both categories", () => {
     render(<DimensionSelector selectedIndex={0} onDimensionChange={vi.fn()} />);
 
-    expect(screen.getByText("Dimensions")).toBeInTheDocument();
+    expect(screen.getByText("Social Media")).toBeInTheDocument();
+    expect(screen.getByText("Display Ads")).toBeInTheDocument();
   });
 
   it("renders all dimension options", () => {
     render(<DimensionSelector selectedIndex={0} onDimensionChange={vi.fn()} />);
 
-    expect(screen.getByText("1080 x 1920")).toBeInTheDocument();
-    expect(screen.getByText("1080 x 1080")).toBeInTheDocument();
-    expect(screen.getByText("1280 x 720")).toBeInTheDocument();
+    // Social media sizes
+    expect(screen.getByText("1080 × 1920")).toBeInTheDocument();
+    expect(screen.getByText("1080 × 1080")).toBeInTheDocument();
+    // Display ad sizes
+    expect(screen.getByText("970 × 250")).toBeInTheDocument();
+    expect(screen.getByText("728 × 90")).toBeInTheDocument();
+    expect(screen.getByText("300 × 250")).toBeInTheDocument();
   });
 
   it("renders all ratio labels", () => {
@@ -23,13 +28,15 @@ describe("DimensionSelector", () => {
 
     expect(screen.getByText("9:16")).toBeInTheDocument();
     expect(screen.getByText("1:1")).toBeInTheDocument();
-    expect(screen.getByText("16:9")).toBeInTheDocument();
+    expect(screen.getByText("Billboard")).toBeInTheDocument();
+    expect(screen.getByText("Leaderboard")).toBeInTheDocument();
+    expect(screen.getByText("Medium Rectangle")).toBeInTheDocument();
   });
 
   it("highlights selected dimension with border", () => {
     render(<DimensionSelector selectedIndex={0} onDimensionChange={vi.fn()} />);
 
-    const selectedButton = screen.getByText("1080 x 1920").closest("button");
+    const selectedButton = screen.getByText("1080 × 1920").closest("button");
     expect(selectedButton).toHaveClass("bg-muted");
     expect(selectedButton).toHaveClass("border");
     expect(selectedButton).toHaveClass("border-border");
@@ -38,7 +45,7 @@ describe("DimensionSelector", () => {
   it("shows non-selected dimensions with muted styling", () => {
     render(<DimensionSelector selectedIndex={0} onDimensionChange={vi.fn()} />);
 
-    const nonSelectedButton = screen.getByText("1080 x 1080").closest("button");
+    const nonSelectedButton = screen.getByText("1080 × 1080").closest("button");
     expect(nonSelectedButton).toHaveClass("text-muted-foreground");
     expect(nonSelectedButton).not.toHaveClass("border-border");
   });
@@ -46,7 +53,7 @@ describe("DimensionSelector", () => {
   it("applies uppercase to selected dimension text", () => {
     render(<DimensionSelector selectedIndex={1} onDimensionChange={vi.fn()} />);
 
-    const selectedText = screen.getByText("1080 x 1080");
+    const selectedText = screen.getByText("1080 × 1350");
     expect(selectedText).toHaveClass("uppercase");
     expect(selectedText).toHaveClass("text-foreground");
   });
@@ -64,16 +71,18 @@ describe("DimensionSelector", () => {
     const onDimensionChange = vi.fn();
     render(<DimensionSelector selectedIndex={0} onDimensionChange={onDimensionChange} />);
 
-    fireEvent.click(screen.getByText("1080 x 1080"));
+    // Click on second social media size (4:5)
+    fireEvent.click(screen.getByText("1080 × 1350"));
     expect(onDimensionChange).toHaveBeenCalledWith(1);
   });
 
-  it("calls onDimensionChange with correct index for each option", () => {
+  it("calls onDimensionChange with correct index for display ad sizes", () => {
     const onDimensionChange = vi.fn();
     render(<DimensionSelector selectedIndex={0} onDimensionChange={onDimensionChange} />);
 
-    fireEvent.click(screen.getByText("1280 x 720"));
-    expect(onDimensionChange).toHaveBeenCalledWith(2);
+    // Click on Billboard (first display ad, index 3 in full array)
+    fireEvent.click(screen.getByText("970 × 250"));
+    expect(onDimensionChange).toHaveBeenCalledWith(3);
   });
 
   it("renders correct number of dimension buttons", () => {
@@ -93,5 +102,14 @@ describe("DimensionSelector", () => {
       expect(button).toHaveClass("justify-between");
       expect(button).toHaveClass("rounded-lg");
     }
+  });
+
+  it("renders category icons", () => {
+    const { container } = render(
+      <DimensionSelector selectedIndex={0} onDimensionChange={vi.fn()} />
+    );
+
+    const icons = container.querySelectorAll(".material-symbols-outlined");
+    expect(icons.length).toBeGreaterThanOrEqual(2);
   });
 });

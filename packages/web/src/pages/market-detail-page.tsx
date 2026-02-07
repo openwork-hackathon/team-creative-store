@@ -2,17 +2,14 @@ import { useState, useCallback } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { createApiClient } from "@/lib/api"
 import {
-  type DeviceId,
-  type DevicePresetId,
   PurchaseCard,
-  DeviceSelector,
   DimensionSelector,
   PreviewToolbar,
-  DevicePresetTabs,
-  PhonePreview,
+  CreativePreview,
   LoadingSkeleton,
   ErrorState,
 } from "@/components/market-detail"
+import type { DeviceCategory } from "@/components/market-detail"
 
 const api = createApiClient()
 
@@ -26,9 +23,7 @@ interface MarketDetailPageProps {
 }
 
 export function MarketDetailPage({ id }: MarketDetailPageProps) {
-  const [selectedDevice, setSelectedDevice] = useState<DeviceId>("mobile")
-  const [selectedDimension, setSelectedDimension] = useState(0)
-  const [selectedPreset, setSelectedPreset] = useState<DevicePresetId>("iphone14")
+  const [selectedDevice, setSelectedDevice] = useState<DeviceCategory>("mobile")
   const [zoom, setZoom] = useState(DEFAULT_ZOOM)
 
   const handleZoomIn = useCallback(() => {
@@ -61,16 +56,15 @@ export function MarketDetailPage({ id }: MarketDetailPageProps) {
   return (
     <div className="flex h-[calc(100vh-4rem)] overflow-hidden">
       {/* Left Sidebar - Purchase Info & Controls */}
-      <aside className="w-72 shrink-0 border-r border-border bg-card flex flex-col overflow-y-auto">
+      <aside className="w-72 shrink-0 border-r border-border bg-card flex flex-col overflow-y-auto scrollbar-none">
         {/* Purchase Card */}
         <PurchaseCard listing={listing} />
 
         {/* Device Selection */}
-        <div className="p-4 space-y-6">
-          <DeviceSelector selectedDevice={selectedDevice} onDeviceChange={setSelectedDevice} />
+        <div className="p-4">
           <DimensionSelector
-            selectedIndex={selectedDimension}
-            onDimensionChange={setSelectedDimension}
+            selectedDevice={selectedDevice}
+            onDeviceChange={setSelectedDevice}
           />
         </div>
       </aside>
@@ -80,16 +74,18 @@ export function MarketDetailPage({ id }: MarketDetailPageProps) {
         {/* Top Toolbar */}
         <PreviewToolbar
           zoom={zoom}
+          selectedDevice={selectedDevice}
           onZoomIn={handleZoomIn}
           onZoomOut={handleZoomOut}
           onResetZoom={handleResetZoom}
         />
 
-        {/* Device Preset Tabs */}
-        <DevicePresetTabs selectedPreset={selectedPreset} onPresetChange={setSelectedPreset} />
-
-        {/* Canvas Preview Area */}
-        <PhonePreview listing={listing} zoom={zoom} />
+        {/* Canvas Preview Area - Masonry Grid */}
+        <CreativePreview
+          listing={listing}
+          zoom={zoom}
+          selectedDevice={selectedDevice}
+        />
       </main>
     </div>
   )

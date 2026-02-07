@@ -82,6 +82,7 @@ export function PurchaseCard({ listing }: PurchaseCardProps) {
   })
 
   const priceAicc = Number(listing.priceAicc)
+  const priceUsd = priceAicc * 2.756 // Example conversion rate
   const decimals = aiccDecimals ?? 18
   const balance = aiccBalance ? Number(formatUnits(aiccBalance, decimals)) : 0
   const hasEnoughBalance = balance >= priceAicc
@@ -208,7 +209,7 @@ export function PurchaseCard({ listing }: PurchaseCardProps) {
         />
       )}
 
-      <div className="bg-card rounded-xl p-4 border border-border space-y-4">
+      <div className="bg-card/40 rounded-xl p-4 border border-border/50 space-y-4">
         <div className="space-y-1">
           <span className="text-[10px] font-bold text-primary uppercase tracking-widest">
             {listing.isPremium ? "Premium Assets" : "Creative Asset"}
@@ -216,7 +217,7 @@ export function PurchaseCard({ listing }: PurchaseCardProps) {
           <h1 className="text-lg font-bold text-foreground leading-tight">{listing.title}</h1>
         </div>
 
-        <div className="flex items-end justify-between py-2 border-y border-border">
+        <div className="flex items-end justify-between py-2 border-y border-border/50">
           <div>
             <p className="text-xs text-muted-foreground font-medium">Current Price</p>
             <div className="flex items-center gap-1.5">

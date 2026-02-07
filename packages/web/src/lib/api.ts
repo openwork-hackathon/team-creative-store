@@ -124,6 +124,21 @@ export function createApiClient(
       }).then((response) => response.json()),
     listProjects: async (): Promise<ProjectsResponse> =>
       request(`${baseUrl}/projects`).then((response) => response.json()),
+    getProjects: async (search?: string, status?: ProjectStatus): Promise<ProjectsResponse> => {
+      const params = new URLSearchParams();
+      if (search) params.set("search", search);
+      if (status) params.set("status", status);
+      const query = params.toString();
+      return request(`${baseUrl}/projects${query ? `?${query}` : ""}`).then((response) => response.json());
+    },
+    deleteProject: async (id: string): Promise<void> =>
+      request(`${baseUrl}/projects/${id}`, {
+        method: "DELETE"
+      }).then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to delete project");
+        }
+      }),
     createBrief: async (projectId: string, input: CreateBriefInput) =>
       request(`${baseUrl}/projects/${projectId}/briefs`, {
         method: "POST",

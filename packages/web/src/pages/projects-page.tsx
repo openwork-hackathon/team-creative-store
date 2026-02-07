@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -14,6 +14,23 @@ import { createApiClient, type PublishProjectInput } from "@/lib/api";
 
 const api = createApiClient();
 
+// Debounce hook
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}
+
 // Helper function to convert frontend category to API category
 function convertCategory(category: string): PublishProjectInput["category"] {
   if (category === "e-commerce") return "e_commerce";
@@ -24,10 +41,17 @@ export function ProjectsPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  // Fetch projects from API
+  // Search state
+  const [searchInput, setSearchInput] = useState("");
+  const debouncedSearch = useDebounce(searchInput, 500);
+
+  // Filter state
+  const [statusFilter, setStatusFilter] = useState<ProjectStatus | undefined>();
+
+  // Fetch projects from API with search and status filters
   const { data, isLoading, error } = useQuery({
-    queryKey: ["projects"],
-    queryFn: () => api.listProjects()
+    queryKey: ["projects", debouncedSearch, statusFilter],
+    queryFn: () => api.getProjects(debouncedSearch || undefined, statusFilter)
   });
 
   // Publish mutation
@@ -48,12 +72,23 @@ export function ProjectsPage() {
     }
   });
 
+  // Delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: (projectId: string) => api.deleteProject(projectId),
+    onSuccess: () => {
+      // Invalidate projects query to refresh the list
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+    }
+  });
+
   const projects = data?.projects ?? [];
 
-  // Filter state
-  const [statusFilter, setStatusFilter] = useState<ProjectStatus | undefined>();
+  // Additional filter state (not yet implemented in backend)
   const [industryFilter, setIndustryFilter] = useState<string | undefined>();
   const [recencyFilter, setRecencyFilter] = useState<string | undefined>();
+
+  // Delete confirmation state
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   // Selection state
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -68,16 +103,11 @@ export function ProjectsPage() {
     return projects.find((p) => p.id === publishingProjectId) ?? null;
   }, [publishingProjectId, projects]);
 
-  // Filter projects
+  // Projects are already filtered by backend via getProjects API
+  // Additional client-side filtering for industry/recency could be added here
   const filteredProjects = useMemo(() => {
-    return projects.filter((project) => {
-      if (statusFilter && project.status !== statusFilter) {
-        return false;
-      }
-      // Industry and recency filters would be applied here with real data
-      return true;
-    });
-  }, [statusFilter, projects]);
+    return projects;
+  }, [projects]);
 
   const handleSelect = (id: string, selected: boolean) => {
     setSelectedIds((prev) => {
@@ -131,8 +161,41 @@ export function ProjectsPage() {
   };
 
   const handleDeleteSelection = () => {
-    console.log("Delete projects:", Array.from(selectedIds));
-    setSelectedIds(new Set());
+    if (selectedIds.size === 0) return;
+
+    // For multiple selections, confirm and delete all
+    if (window.confirm(`Are you sure you want to delete ${selectedIds.size} project(s)? This action cannot be undone.`)) {
+      // Delete all selected projects
+      Promise.all(Array.from(selectedIds).map(id => deleteMutation.mutateAsync(id)))
+        .then(() => {
+          setSelectedIds(new Set());
+        })
+        .catch((error) => {
+          console.error("Failed to delete projects:", error);
+        });
+    }
+  };
+
+  const handleDeleteProject = (id: string) => {
+    setDeleteConfirmId(id);
+  };
+
+  const confirmDelete = () => {
+    if (!deleteConfirmId) return;
+
+    deleteMutation.mutate(deleteConfirmId, {
+      onSuccess: () => {
+        setDeleteConfirmId(null);
+      },
+      onError: (error) => {
+        console.error("Failed to delete project:", error);
+        setDeleteConfirmId(null);
+      }
+    });
+  };
+
+  const cancelDelete = () => {
+    setDeleteConfirmId(null);
   };
 
   // Publish handlers
@@ -183,6 +246,22 @@ export function ProjectsPage() {
         </p>
       </div>
 
+      {/* Search Bar */}
+      <div className="mb-4">
+        <div className="relative">
+          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+            search
+          </span>
+          <input
+            type="text"
+            placeholder="Search projects..."
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            className="w-full rounded-lg border border-border bg-background py-2 pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+          />
+        </div>
+      </div>
+
       {/* Filter Bar */}
       <div className="mb-6">
         <ProjectFilterBar
@@ -230,6 +309,7 @@ export function ProjectsPage() {
           onPreview={handlePreview}
           onMenuClick={handleMenuClick}
           onPublish={handlePublishClick}
+          onDelete={handleDeleteProject}
         />
       )}
 
@@ -244,6 +324,34 @@ export function ProjectsPage() {
         onPublish={handlePublishSubmit}
         onSaveDraft={handleSaveDraft}
       />
+
+      {/* Delete Confirmation Dialog */}
+      {deleteConfirmId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="mx-4 w-full max-w-md rounded-lg bg-card p-6 shadow-lg">
+            <h3 className="mb-4 text-lg font-semibold text-foreground">Delete Project?</h3>
+            <p className="mb-6 text-muted-foreground">
+              Are you sure you want to delete this project? This action cannot be undone.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={cancelDelete}
+                className="rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDelete}
+                className="rounded-lg bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

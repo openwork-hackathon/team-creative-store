@@ -9,6 +9,7 @@ export interface ProjectGridProps {
   onPreview?: (id: string) => void;
   onMenuClick?: (id: string) => void;
   onPublish?: (id: string) => void;
+  onDelete?: (id: string) => void;
   isLoading?: boolean;
 }
 
@@ -20,6 +21,7 @@ export function ProjectGrid({
   onPreview,
   onMenuClick,
   onPublish,
+  onDelete,
   isLoading = false
 }: ProjectGridProps) {
   if (isLoading) {
@@ -65,6 +67,7 @@ export function ProjectGrid({
           onPreview={onPreview}
           onMenuClick={onMenuClick}
           onPublish={onPublish}
+          onDelete={onDelete}
         />
       ))}
     </div>

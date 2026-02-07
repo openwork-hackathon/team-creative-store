@@ -9,6 +9,7 @@ export interface ProjectCardProps {
   onPreview?: (id: string) => void;
   onMenuClick?: (id: string) => void;
   onPublish?: (id: string) => void;
+  onDelete?: (id: string) => void;
 }
 
 export function ProjectCard({
@@ -18,7 +19,8 @@ export function ProjectCard({
   onEdit,
   onPreview,
   onMenuClick,
-  onPublish
+  onPublish,
+  onDelete
 }: ProjectCardProps) {
   const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onSelect?.(project.id, e.target.checked);
@@ -68,6 +70,14 @@ export function ProjectCard({
               title="Preview"
             >
               <span className="material-symbols-outlined text-xl">visibility</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => onDelete?.(project.id)}
+              className="text-muted-foreground transition-colors hover:text-destructive"
+              title="Delete"
+            >
+              <span className="material-symbols-outlined text-xl">delete</span>
             </button>
           </div>
 

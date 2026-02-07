@@ -30,6 +30,7 @@ export function CampaignGenerator({ projectId, api }: CampaignGeneratorProps) {
   const [intent, setIntent] = useState("");
   const [summary, setSummary] = useState(() => getBriefSummary({}));
   const [brandAssets, setBrandAssets] = useState<BrandAsset[]>([]);
+  const [isGeneratingBrief, setIsGeneratingBrief] = useState(false);
   const [creatives, setCreatives] = useState<
     Partial<Record<PlacementSpecKey, { creative?: AiCreativeOutput; loading?: boolean; error?: string }>>
   >({});
@@ -67,16 +68,21 @@ export function CampaignGenerator({ projectId, api }: CampaignGeneratorProps) {
   };
 
   const handleGenerate = async () => {
-    if (!projectId || intent.trim().length === 0) return;
-    const created = await apiClient.createBrief(projectId, {
-      intentText: intent,
-      placements: DEFAULT_PLACEMENTS
-    });
-    const briefId = created?.brief?.id;
-    if (!briefId) return;
-    setBriefId(briefId);
-    const briefResponse = await apiClient.getBrief(briefId);
-    setSummary(getBriefSummary(briefResponse.brief ?? {}));
+    if (!projectId || intent.trim().length === 0 || isGeneratingBrief) return;
+    setIsGeneratingBrief(true);
+    try {
+      const created = await apiClient.createBrief(projectId, {
+        intentText: intent,
+        placements: DEFAULT_PLACEMENTS
+      });
+      const briefId = created?.brief?.id;
+      if (!briefId) return;
+      setBriefId(briefId);
+      const briefResponse = await apiClient.getBrief(briefId);
+      setSummary(getBriefSummary(briefResponse.brief ?? {}));
+    } finally {
+      setIsGeneratingBrief(false);
+    }
   };
 
   const handleGenerateCreative = async (placement: PlacementSpecKey) => {
@@ -128,7 +134,7 @@ export function CampaignGenerator({ projectId, api }: CampaignGeneratorProps) {
           <StepBadge step={1} />
           <h2 className="text-lg font-bold text-foreground">Define Your Intent</h2>
         </div>
-        <IntentInput value={intent} onChange={setIntent} onGenerate={handleGenerate} />
+        <IntentInput value={intent} onChange={setIntent} onGenerate={handleGenerate} isGenerating={isGeneratingBrief} />
       </section>
 
       {/* Step 2: Upload Brand Assets */}

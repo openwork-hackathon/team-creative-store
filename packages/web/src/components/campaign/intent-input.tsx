@@ -4,10 +4,11 @@ type IntentInputProps = {
   value: string;
   onChange: (value: string) => void;
   onGenerate: () => void;
+  isGenerating?: boolean;
   className?: string;
 };
 
-export function IntentInput({ value, onChange, onGenerate, className }: IntentInputProps) {
+export function IntentInput({ value, onChange, onGenerate, isGenerating = false, className }: IntentInputProps) {
   return (
     <div
       className={cn(
@@ -52,10 +53,20 @@ export function IntentInput({ value, onChange, onGenerate, className }: IntentIn
         <button
           type="button"
           onClick={onGenerate}
-          className="flex h-10 items-center justify-center gap-2 rounded-lg bg-primary px-5 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/20 transition-colors hover:bg-primary/90"
+          disabled={isGenerating}
+          className="flex h-10 items-center justify-center gap-2 rounded-lg bg-primary px-5 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/20 transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-70"
         >
-          <span className="material-symbols-outlined text-[18px]">bolt</span>
-          Generate Brief
+          {isGenerating ? (
+            <>
+              <span className="material-symbols-outlined animate-spin text-[18px]">progress_activity</span>
+              Generating...
+            </>
+          ) : (
+            <>
+              <span className="material-symbols-outlined text-[18px]">bolt</span>
+              Generate Brief
+            </>
+          )}
         </button>
       </div>
     </div>

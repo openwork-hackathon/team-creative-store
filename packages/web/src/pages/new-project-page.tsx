@@ -13,9 +13,9 @@ export function NewProjectPage() {
 
   const createMutation = useMutation({
     mutationFn: (name: string) => api.createProject(name),
-    onSuccess: (data) => {
-      // Navigate to creative studio with the new project ID
-      navigate({ to: "/creative-studio", search: { projectId: data.id } });
+    onSuccess: () => {
+      // Navigate to projects list after creation
+      navigate({ to: "/projects" });
     },
     onError: (error) => {
       console.error("Failed to create project:", error);

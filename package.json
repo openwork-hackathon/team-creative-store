@@ -2,17 +2,12 @@
   "name": "team-creative-store",
   "private": true,
   "workspaces": [
-    "packages/*",
-    "frontend"
+    "packages/*"
   ],
   "scripts": {
     "dev:api": "bun run --cwd packages/api dev",
     "dev:worker": "bun run --cwd packages/worker dev",
     "dev:web": "bun run --cwd packages/web dev",
-
-    "dev:frontend": "npm --prefix frontend run dev",
-    "build:frontend": "npm --prefix frontend run build",
-    "install:frontend": "npm --prefix frontend ci",
 
     "build:web": "bun run --cwd packages/web build",
 

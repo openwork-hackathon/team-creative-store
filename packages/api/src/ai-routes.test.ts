@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi, type Mock } from "vitest";
 import { createApp } from "./app";
+import type { S3Storage } from "./storage";
 
 // Mock must be hoisted with factory function
 vi.mock("ai", () => ({
@@ -15,6 +16,14 @@ vi.mock("ai", () => ({
 import { generateObject, generateText } from "ai";
 const mockGenerateObject = generateObject as Mock;
 const mockGenerateText = generateText as Mock;
+
+// Create mock storage
+const createMockStorage = (): S3Storage => ({
+  uploadImage: vi.fn().mockImplementation(async ({ key }) => ({
+    url: `https://test-bucket.s3.us-east-1.amazonaws.com/${key}`,
+    key
+  }))
+});
 
 type Brief = { id: string; intentText: string; briefJson: unknown };
 type Draft = { id: string; briefId: string; draftJson: unknown };
@@ -102,7 +111,8 @@ describe("AI routes", () => {
 
     const app = createApp({
       prisma: createMemoryPrisma(),
-      getSession: async () => ({ user: { id: "user_1" } })
+      getSession: async () => ({ user: { id: "user_1" } }),
+      storage: createMockStorage()
     });
 
     const response = await app.request("/api/ai/brief/parse", {
@@ -135,9 +145,11 @@ describe("AI routes", () => {
     });
 
     const prisma = createMemoryPrisma();
+    const mockStorage = createMockStorage();
     const app = createApp({
       prisma,
-      getSession: async () => ({ user: { id: "user_1" } })
+      getSession: async () => ({ user: { id: "user_1" } }),
+      storage: mockStorage
     });
 
     const response = await app.request("/api/ai/creative/generate", {
@@ -147,10 +159,13 @@ describe("AI routes", () => {
     });
 
     const payload = await response.json();
-    expect(payload.image.imageDataUrl).toBe("data:image/png;base64,aGVsbG8=");
+    // Image URL should be S3 URL with creative-store-images prefix
+    expect(payload.image.imageUrl).toMatch(/^https:\/\/test-bucket\.s3\.us-east-1\.amazonaws\.com\/creative-store-images\/drafts\/brief_1\/\d+\.png$/);
     expect(payload.image.aspectRatio).toBe("1:1");
-    expect(payload.draft.draftJson.imageDataUrl).toBe("data:image/png;base64,aGVsbG8=");
+    expect(payload.draft.draftJson.imageUrl).toMatch(/^https:\/\/test-bucket\.s3\.us-east-1\.amazonaws\.com\/creative-store-images\/drafts\/brief_1\/\d+\.png$/);
     expect(payload.draft.draftJson.aspectRatio).toBe("1:1");
+    // Verify storage was called
+    expect(mockStorage.uploadImage).toHaveBeenCalledTimes(1);
   });
 
   it("generates image with logo overlay when logo asset provided", async () => {
@@ -167,9 +182,11 @@ describe("AI routes", () => {
     });
 
     const prisma = createMemoryPrisma();
+    const mockStorage = createMockStorage();
     const app = createApp({
       prisma,
-      getSession: async () => ({ user: { id: "user_1" } })
+      getSession: async () => ({ user: { id: "user_1" } }),
+      storage: mockStorage
     });
 
     const response = await app.request("/api/ai/creative/generate", {
@@ -195,8 +212,9 @@ describe("AI routes", () => {
     // Should have 2 generateText calls (base + logo overlay)
     expect(mockGenerateText).toHaveBeenCalledTimes(2);
     
-    // Final image should be the logo overlay result
-    expect(payload.image.imageDataUrl).toBe("data:image/png;base64,bG9nb19vdmVybGF5");
+    // Final image should be uploaded to S3 with creative-store-images prefix
+    expect(payload.image.imageUrl).toMatch(/^https:\/\/test-bucket\.s3\.us-east-1\.amazonaws\.com\/creative-store-images\/drafts\/brief_1\/\d+\.png$/);
+    expect(mockStorage.uploadImage).toHaveBeenCalledTimes(1);
   });
 
   it("generates image with product and reference assets", async () => {
@@ -207,9 +225,11 @@ describe("AI routes", () => {
     });
 
     const prisma = createMemoryPrisma();
+    const mockStorage = createMockStorage();
     const app = createApp({
       prisma,
-      getSession: async () => ({ user: { id: "user_1" } })
+      getSession: async () => ({ user: { id: "user_1" } }),
+      storage: mockStorage
     });
 
     const response = await app.request("/api/ai/creative/generate", {
@@ -247,6 +267,9 @@ describe("AI routes", () => {
     
     // Verify aspect ratio is correct for feed_4_5
     expect(payload.image.aspectRatio).toBe("4:5");
+    
+    // Verify S3 upload was called
+    expect(mockStorage.uploadImage).toHaveBeenCalledTimes(1);
   });
 
   it("returns error when AI generation fails", async () => {
@@ -256,7 +279,8 @@ describe("AI routes", () => {
     const prisma = createMemoryPrisma();
     const app = createApp({
       prisma,
-      getSession: async () => ({ user: { id: "user_1" } })
+      getSession: async () => ({ user: { id: "user_1" } }),
+      storage: createMockStorage()
     });
 
     const response = await app.request("/api/ai/creative/generate", {
@@ -278,7 +302,8 @@ describe("AI routes", () => {
 
     const app = createApp({
       prisma: createMemoryPrisma(),
-      getSession: async () => ({ user: { id: "user_1" } })
+      getSession: async () => ({ user: { id: "user_1" } }),
+      storage: createMockStorage()
     });
 
     const response = await app.request("/api/ai/brief/parse", {
@@ -310,7 +335,8 @@ describe("AI routes", () => {
 
     const app = createApp({
       prisma: createMemoryPrisma(),
-      getSession: async () => ({ user: { id: "user_1" } })
+      getSession: async () => ({ user: { id: "user_1" } }),
+      storage: createMockStorage()
     });
 
     const response = await app.request("/api/ai/brief/parse", {
@@ -336,7 +362,8 @@ describe("AI routes", () => {
 
     const app = createApp({
       prisma: createMemoryPrisma(),
-      getSession: async () => ({ user: { id: "user_1" } })
+      getSession: async () => ({ user: { id: "user_1" } }),
+      storage: createMockStorage()
     });
 
     const response = await app.request("/api/ai/brief/parse", {
@@ -375,7 +402,8 @@ describe("AI routes", () => {
 
     const app = createApp({
       prisma: createMemoryPrisma(),
-      getSession: async () => ({ user: { id: "user_1" } })
+      getSession: async () => ({ user: { id: "user_1" } }),
+      storage: createMockStorage()
     });
 
     const response = await app.request("/api/ai/brief/parse", {

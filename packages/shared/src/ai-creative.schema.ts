@@ -8,7 +8,7 @@ export const zBrandAsset = z.object({
 });
 
 export const zGeneratedImage = z.object({
-  imageDataUrl: z.string().min(1),
+  imageUrl: z.string().min(1),
   aspectRatio: z.string().min(1)
 });
 

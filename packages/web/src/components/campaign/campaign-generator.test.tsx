@@ -61,7 +61,7 @@ describe("CampaignGenerator", () => {
       getBrief: vi.fn().mockResolvedValue({
         brief: { id: "b1", intentText: "Launch a sale", briefJson: {} }
       }),
-      generateCreative: vi.fn().mockResolvedValue({ image: { imageDataUrl: "data:image/png;base64,abc", aspectRatio: "1:1" } }),
+      generateCreative: vi.fn().mockResolvedValue({ image: { imageUrl: "https://example.com/image.png", aspectRatio: "1:1" } }),
       parseBriefWithAi: vi.fn()
     };
 

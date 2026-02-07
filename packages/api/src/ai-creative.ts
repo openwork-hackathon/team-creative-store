@@ -169,7 +169,7 @@ async function overlayLogo(input: LogoOverlayInput): Promise<string> {
   ];
 
   const result = await generateText({
-    model: google("gemini-2.0-flash-exp"),
+    model: google("gemini-2.5-flash-image"),
     providerOptions: {
       google: {
         responseModalities: ["TEXT", "IMAGE"]
@@ -298,7 +298,7 @@ export type GenerateCreativeImageInput = {
 };
 
 export type GenerateCreativeImageResult = {
-  imageDataUrl: string;
+  imageDataUrl: string; // Base64 data URL (internal use, will be uploaded to S3)
   aspectRatio: string;
 };
 

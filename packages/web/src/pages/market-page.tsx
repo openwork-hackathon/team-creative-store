@@ -133,7 +133,7 @@ export function MarketPage() {
           </div>
 
           {/* Filter Chips */}
-          <div className="flex items-center gap-3 overflow-x-auto pb-2">
+          <div className="flex flex-wrap items-center gap-3 pb-2">
             <PriceRangeFilter
               priceMin={priceMin}
               priceMax={priceMax}
@@ -161,29 +161,6 @@ export function MarketPage() {
               value={licenseType}
               onChange={setLicenseType}
             />
-
-            {/* Separator and More Filters */}
-            <div className="mx-2 h-6 w-px bg-slate-200 dark:bg-[#2d3a54]" />
-
-            <button
-              type="button"
-              className="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-primary/10 px-4 text-primary transition-colors hover:bg-primary/20"
-            >
-              <span className="material-symbols-outlined text-[18px]">filter_list</span>
-              <p className="text-sm font-semibold">More Filters</p>
-            </button>
-
-            {/* Clear Filters */}
-            {hasActiveFilters && (
-              <button
-                type="button"
-                onClick={handleClearFilters}
-                className="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-lg border border-slate-200 bg-white px-4 text-slate-600 transition-colors hover:bg-slate-50 dark:border-[#2d3a54] dark:bg-[#1b2537] dark:text-slate-300 dark:hover:bg-slate-800"
-              >
-                <span className="material-symbols-outlined text-[18px]">filter_list_off</span>
-                <p className="text-sm font-medium">Clear</p>
-              </button>
-            )}
           </div>
         </div>
 

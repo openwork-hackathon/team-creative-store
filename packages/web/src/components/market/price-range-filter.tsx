@@ -15,6 +15,16 @@ export function PriceRangeFilter({
 }: PriceRangeFilterProps) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  
+  // Local state for input values (only applied on "Apply" click)
+  const [localMin, setLocalMin] = useState(priceMin);
+  const [localMax, setLocalMax] = useState(priceMax);
+
+  // Sync local state when parent values change (e.g., from external clear)
+  useEffect(() => {
+    setLocalMin(priceMin);
+    setLocalMax(priceMax);
+  }, [priceMin, priceMax]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -29,6 +39,19 @@ export function PriceRangeFilter({
   }, []);
 
   const hasValue = priceMin || priceMax;
+
+  const handleApply = () => {
+    onPriceMinChange(localMin);
+    onPriceMaxChange(localMax);
+    setIsOpen(false);
+  };
+
+  const handleClear = () => {
+    setLocalMin("");
+    setLocalMax("");
+    onPriceMinChange("");
+    onPriceMaxChange("");
+  };
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -58,8 +81,8 @@ export function PriceRangeFilter({
               </label>
               <input
                 type="number"
-                value={priceMin}
-                onChange={(e) => onPriceMinChange(e.target.value)}
+                value={localMin}
+                onChange={(e) => setLocalMin(e.target.value)}
                 placeholder="0"
                 className="h-9 w-full rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary dark:border-slate-600 dark:bg-slate-700 dark:text-white"
               />
@@ -70,8 +93,8 @@ export function PriceRangeFilter({
               </label>
               <input
                 type="number"
-                value={priceMax}
-                onChange={(e) => onPriceMaxChange(e.target.value)}
+                value={localMax}
+                onChange={(e) => setLocalMax(e.target.value)}
                 placeholder="No limit"
                 className="h-9 w-full rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary dark:border-slate-600 dark:bg-slate-700 dark:text-white"
               />
@@ -79,17 +102,14 @@ export function PriceRangeFilter({
             <div className="flex gap-2">
               <button
                 type="button"
-                onClick={() => {
-                  onPriceMinChange("");
-                  onPriceMaxChange("");
-                }}
+                onClick={handleClear}
                 className="flex-1 rounded-md border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600"
               >
                 Clear
               </button>
               <button
                 type="button"
-                onClick={() => setIsOpen(false)}
+                onClick={handleApply}
                 className="flex-1 rounded-md bg-primary px-3 py-2 text-xs font-medium text-white transition-colors hover:bg-primary/90"
               >
                 Apply

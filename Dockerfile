@@ -17,6 +17,7 @@ FROM base AS deps
 # Copy package files for all workspaces
 COPY package.json bun.lock ./
 COPY packages/api/package.json ./packages/api/
+COPY packages/contracts/package.json ./packages/contracts/
 COPY packages/db/package.json ./packages/db/
 COPY packages/shared/package.json ./packages/shared/
 COPY packages/web/package.json ./packages/web/

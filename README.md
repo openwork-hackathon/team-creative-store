@@ -35,8 +35,6 @@ Support for 6 fixed placement specifications:
 - **Creator Profiles**: View creator portfolios and ratings
 
 ### 🔗 Blockchain Integration
-- **NFT Proof-of-Authorship**: Lightweight on-chain verification on Base network
-- **Content Hash**: Immutable proof of creative ownership
 - **AICC Token Payments**: Native token for marketplace transactions
   - Contract: [`0x6F947b45C023Ef623b39331D0C4D21FBC51C1d45`](https://basescan.org/token/0x6F947b45C023Ef623b39331D0C4D21FBC51C1d45)
   - Built on $OPENWORK: [`0x299c30DD5974BF4D5bFE42C340CA40462816AB07`](https://basescan.org/token/0x299c30DD5974BF4D5bFE42C340CA40462816AB07)
@@ -53,41 +51,6 @@ Support for 6 fixed placement specifications:
 - **Order Management**: Track purchase history and order status
 - **Transaction History**: View all marketplace transactions
 - **Wallet Integration**: Connect wallet for payments and NFT minting
-
-## Architecture
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                         Frontend (React)                        │
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐           │
-│  │  Studio  │ │  Market  │ │ Projects │ │  Wallet  │           │
-│  └──────────┘ └──────────┘ └──────────┘ └──────────┘           │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                        API Server (Hono)                        │
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐           │
-│  │   Auth   │ │ Projects │ │  Market  │ │  Orders  │           │
-│  └──────────┘ └──────────┘ └──────────┘ └──────────┘           │
-│  ┌──────────┐ ┌──────────┐                                      │
-│  │ AI Brief │ │AI Create │                                      │
-│  └──────────┘ └──────────┘                                      │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-              ┌───────────────┼───────────────┐
-              ▼               ▼               ▼
-┌──────────────────┐ ┌──────────────┐ ┌──────────────┐
-│   PostgreSQL     │ │    Redis     │ │   Worker     │
-│   (Prisma ORM)   │ │  (BullMQ)    │ │  (BullMQ)    │
-└──────────────────┘ └──────────────┘ └──────────────┘
-                                              │
-                              ┌───────────────┼───────────────┐
-                              ▼               ▼               ▼
-                     ┌──────────────┐ ┌──────────────┐ ┌──────────────┐
-                     │Generate Drafts│ │Render Version│ │  Mint NFT   │
-                     └──────────────┘ └──────────────┘ └──────────────┘
-```
 
 ## Tech Stack
 
@@ -112,26 +75,6 @@ packages/
 ├── shared/       # Shared types and schemas
 └── contracts/    # Solidity smart contracts (Foundry)
 ```
-
-## Data Models
-
-### Core Entities
-- **User**: Authentication, wallet address, projects
-- **Project**: Container for briefs and creatives
-- **Brief**: AI-analyzed creative intent
-- **Draft**: Generated creative variations
-- **Creative**: Published creative asset
-- **CreativeVersion**: Versioned component tree
-
-### Marketplace Entities
-- **PublishRecord**: Listed marketplace item
-- **Order**: Purchase transaction
-- **Purchase**: Completed transaction record
-- **NftRecord**: On-chain proof of ownership
-
-### Job System
-- **RenderJob**: Async rendering task
-- **PlacementSpec**: Output dimension specifications
 
 ## Local Development
 

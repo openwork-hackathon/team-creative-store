@@ -1,161 +1,175 @@
 # Creative Store
 
-## Prerequisites
+> AI-Powered Creative Asset Marketplace
 
-- Bun
-- Docker (for Postgres)
+**Demo**: [https://team-creative-store.tonob.net](https://team-creative-store.tonob.net)
 
-## Local setup
+## Overview
 
-1) Start Postgres
+Creative Store is a full-stack platform that combines AI-powered creative generation with a decentralized marketplace for digital assets. Creators can generate, customize, and publish creative assets, while buyers can discover and purchase unique digital content with blockchain-verified ownership.
 
-```bash
-docker compose up -d
+## Features
+
+### 🎨 AI Creative Studio
+- **Intent-to-Creative Pipeline**: Transform natural language descriptions into professional creative assets
+- **Brief Analysis**: AI-powered analysis of creative intent to generate structured briefs
+- **Multi-Draft Generation**: Generate multiple creative variations from a single brief
+- **Template-Based Editor**: Fine-tune AI-generated creatives with an intuitive editor
+
+### 📐 Multi-Size Preview & Auto-Adapt
+Support for 6 fixed placement specifications:
+| Spec | Dimensions | Use Case |
+|------|------------|----------|
+| 1:1 | 1080×1080 | Social media posts |
+| 4:5 | 1080×1350 | Instagram portrait |
+| 9:16 | 1080×1920 | Stories, Reels, TikTok |
+| 16:9 | 1920×1080 | YouTube, presentations |
+| Ultrawide | 2560×720 | Banner ads |
+| TV 4K | 3840×2160 | Digital signage |
+
+### 🛒 Marketplace
+- **Browse & Discover**: Filter by category, asset type, price range
+- **Categories**: Ads, Branding, E-commerce, Gaming
+- **Asset Types**: Ad Kits, Branding, Characters, UI Kits, Backgrounds, Templates, Logos, 3D Scenes
+- **License Options**: Standard, Extended, Exclusive
+- **Creator Profiles**: View creator portfolios and ratings
+
+### 🔗 Blockchain Integration
+- **NFT Proof-of-Authorship**: Lightweight on-chain verification on Base network
+- **Content Hash**: Immutable proof of creative ownership
+- **AICC Token Payments**: Native token for marketplace transactions
+  - Contract: [`0x6F947b45C023Ef623b39331D0C4D21FBC51C1d45`](https://basescan.org/token/0x6F947b45C023Ef623b39331D0C4D21FBC51C1d45)
+  - Built on $OPENWORK: [`0x299c30DD5974BF4D5bFE42C340CA40462816AB07`](https://basescan.org/token/0x299c30DD5974BF4D5bFE42C340CA40462816AB07)
+
+#### 📊 AICC Token Live Data
+| Metric | Link |
+|--------|------|
+| Token Overview | [Basescan Token Page](https://basescan.org/token/0x6F947b45C023Ef623b39331D0C4D21FBC51C1d45) |
+| Holders | [Token Holders](https://basescan.org/token/0x6F947b45C023Ef623b39331D0C4D21FBC51C1d45#balances) |
+| Transfers | [Transfer History](https://basescan.org/token/0x6F947b45C023Ef623b39331D0C4D21FBC51C1d45#transfers) |
+| DexScreener | [AICC/WETH Chart](https://dexscreener.com/base/0x6F947b45C023Ef623b39331D0C4D21FBC51C1d45) |
+
+### 👛 Wallet & Orders
+- **Order Management**: Track purchase history and order status
+- **Transaction History**: View all marketplace transactions
+- **Wallet Integration**: Connect wallet for payments and NFT minting
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                         Frontend (React)                        │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐           │
+│  │  Studio  │ │  Market  │ │ Projects │ │  Wallet  │           │
+│  └──────────┘ └──────────┘ └──────────┘ └──────────┘           │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                        API Server (Hono)                        │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐           │
+│  │   Auth   │ │ Projects │ │  Market  │ │  Orders  │           │
+│  └──────────┘ └──────────┘ └──────────┘ └──────────┘           │
+│  ┌──────────┐ ┌──────────┐                                      │
+│  │ AI Brief │ │AI Create │                                      │
+│  └──────────┘ └──────────┘                                      │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+              ┌───────────────┼───────────────┐
+              ▼               ▼               ▼
+┌──────────────────┐ ┌──────────────┐ ┌──────────────┐
+│   PostgreSQL     │ │    Redis     │ │   Worker     │
+│   (Prisma ORM)   │ │  (BullMQ)    │ │  (BullMQ)    │
+└──────────────────┘ └──────────────┘ └──────────────┘
+                                              │
+                              ┌───────────────┼───────────────┐
+                              ▼               ▼               ▼
+                     ┌──────────────┐ ┌──────────────┐ ┌──────────────┐
+                     │Generate Drafts│ │Render Version│ │  Mint NFT   │
+                     └──────────────┘ └──────────────┘ └──────────────┘
 ```
 
-2) Create env file
+## Tech Stack
 
-```bash
-cp .env.example .env
+| Layer | Technology |
+|-------|------------|
+| Frontend | React, TanStack Router, TailwindCSS, shadcn/ui |
+| Backend | Hono (TypeScript), Better Auth |
+| Database | PostgreSQL, Prisma ORM |
+| Queue | Redis, BullMQ |
+| AI | Google Gemini |
+| Blockchain | Base (ERC-721), Viem |
+| Storage | S3-compatible |
+
+## Project Structure
+
+```
+packages/
+├── web/          # React frontend application
+├── api/          # Hono API server
+├── worker/       # BullMQ background job processor
+├── db/           # Prisma schema and migrations
+├── shared/       # Shared types and schemas
+└── contracts/    # Solidity smart contracts (Foundry)
 ```
 
-Set a strong secret:
+## Data Models
 
-```bash
-BETTER_AUTH_SECRET="$(openssl rand -base64 32)"
-```
+### Core Entities
+- **User**: Authentication, wallet address, projects
+- **Project**: Container for briefs and creatives
+- **Brief**: AI-analyzed creative intent
+- **Draft**: Generated creative variations
+- **Creative**: Published creative asset
+- **CreativeVersion**: Versioned component tree
 
-**Optional: Google SSO**
+### Marketplace Entities
+- **PublishRecord**: Listed marketplace item
+- **Order**: Purchase transaction
+- **Purchase**: Completed transaction record
+- **NftRecord**: On-chain proof of ownership
 
-To enable Google Sign-In, create OAuth 2.0 credentials in the [Google Cloud Console](https://console.cloud.google.com/apis/credentials):
+### Job System
+- **RenderJob**: Async rendering task
+- **PlacementSpec**: Output dimension specifications
 
-1. Create a new OAuth 2.0 Client ID (Web application)
-2. Add authorized redirect URI: `http://localhost:3000/api/auth/callback/google`
-3. Copy Client ID and Client Secret to `.env`:
+## Local Development
 
-```bash
-GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
-GOOGLE_CLIENT_SECRET=your-client-secret
-```
-
-3) Install dependencies
-
-```bash
-bun install
-```
-
-4) Run database migrations
-
-```bash
-bun run prisma:migrate -- --name add_auth_models
-```
-
-## Run API
-
-```bash
-bun run dev:api
-```
-
-API runs on http://localhost:3000
-
-## Run Web
-
-```bash
-bun run dev:web
-```
-
-Web runs on http://localhost:5173
-
-## AI Creative Generator
-
-Set the following env var to enable Gemini-powered parsing/generation:
-
-```bash
-GOOGLE_GENERATIVE_AI_API_KEY="your_key_here"
-```
-
-## Troubleshooting
-
-- If the API complains about `DATABASE_URL`, confirm it is set in `.env`.
-- If Better Auth reports invalid origin, restart the API after updating `trustedOrigins`.
-
-## Docker Production Deployment
+See [deploy.md](./deploy.md) for detailed setup and deployment instructions.
 
 ### Quick Start
 
-1) Copy and configure production environment:
-
 ```bash
-cp .env.prod.example .env.prod
-# Edit .env.prod with your production values
+# Start database
+docker compose up -d
+
+# Install dependencies
+bun install
+
+# Setup environment
+cp .env.example .env
+
+# Run migrations
+bun run prisma:migrate
+
+# Start development servers
+bun run dev:api   # API on http://localhost:3000
+bun run dev:web   # Web on http://localhost:5173
 ```
 
-2) Build and start all services:
+## Environment Variables
 
-```bash
-docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
-```
+| Variable | Description |
+|----------|-------------|
+| `DATABASE_URL` | PostgreSQL connection string |
+| `REDIS_URL` | Redis connection string |
+| `BETTER_AUTH_SECRET` | Auth session secret |
+| `GOOGLE_CLIENT_ID` | Google OAuth client ID |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth secret |
+| `GOOGLE_GENERATIVE_AI_API_KEY` | Gemini API key |
+| `AICC_TOKEN_ADDRESS` | AICC token contract |
+| `OPENWORK_TOKEN_ADDRESS` | OpenWork token contract |
 
-3) Run database migrations:
+## License
 
-```bash
-docker compose -f docker-compose.prod.yml exec api bun run --cwd packages/db prisma migrate deploy
-```
-
-### Services
-
-| Service | Port | Description |
-|---------|------|-------------|
-| web | 80 | Nginx serving React frontend |
-| api | 3000 | Hono API server |
-| worker | - | BullMQ background worker |
-| postgres | 5432 | PostgreSQL database |
-| redis | 6379 | Redis for job queue |
-
-### Build Individual Services
-
-```bash
-# Build only API
-docker build --target api -t creative-store-api .
-
-# Build only Worker
-docker build --target worker -t creative-store-worker .
-
-# Build only Web (Nginx)
-docker build --target web -t creative-store-web .
-```
-
-### Useful Commands
-
-```bash
-# View logs
-docker compose -f docker-compose.prod.yml logs -f
-
-# View specific service logs
-docker compose -f docker-compose.prod.yml logs -f api
-
-# Stop all services
-docker compose -f docker-compose.prod.yml down
-
-# Stop and remove volumes (WARNING: deletes data)
-docker compose -f docker-compose.prod.yml down -v
-
-# Restart a specific service
-docker compose -f docker-compose.prod.yml restart api
-
-# Scale workers
-docker compose -f docker-compose.prod.yml up -d --scale worker=3
-```
-
-### Health Checks
-
-- Web: `http://localhost/health`
-- API: `http://localhost:3000/api/health`
-
-### Production Considerations
-
-1. **SSL/TLS**: Use a reverse proxy (Traefik, Caddy, or cloud load balancer) for HTTPS
-2. **Secrets**: Use Docker secrets or a secrets manager for sensitive values
-3. **Backups**: Set up automated PostgreSQL backups
-4. **Monitoring**: Add Prometheus/Grafana or cloud monitoring
-5. **Logging**: Configure centralized logging (ELK, Loki, etc.)
+MIT

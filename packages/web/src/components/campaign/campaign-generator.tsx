@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   PLACEMENT_SPEC_BY_KEY,
-  type AiCreativeOutput,
+  type GeneratedImage,
   type BrandAsset,
   type PlacementSpecKey
 } from "@creative-store/shared";
@@ -20,18 +20,19 @@ const DEFAULT_PLACEMENTS: PlacementSpecKey[] = [
 ];
 
 type CampaignGeneratorProps = {
+  projectId: string;
   api?: ApiClient;
 };
 
-export function CampaignGenerator({ api }: CampaignGeneratorProps) {
+export function CampaignGenerator({ projectId, api }: CampaignGeneratorProps) {
   const apiClient = useMemo(() => api ?? createApiClient(), [api]);
-  const [projectId, setProjectId] = useState<string | null>(null);
   const [briefId, setBriefId] = useState<string | null>(null);
   const [intent, setIntent] = useState("");
   const [summary, setSummary] = useState(() => getBriefSummary({}));
   const [brandAssets, setBrandAssets] = useState<BrandAsset[]>([]);
+  const [isGeneratingBrief, setIsGeneratingBrief] = useState(false);
   const [creatives, setCreatives] = useState<
-    Partial<Record<PlacementSpecKey, { creative?: AiCreativeOutput; loading?: boolean; error?: string }>>
+    Partial<Record<PlacementSpecKey, { image?: GeneratedImage; loading?: boolean; error?: string }>>
   >({});
 
   const fileToBrandAsset = (file: File, kind: BrandAsset["kind"]) =>
@@ -66,41 +67,22 @@ export function CampaignGenerator({ api }: CampaignGeneratorProps) {
     }
   };
 
-  useEffect(() => {
-    let mounted = true;
-    apiClient
-      .listProjects()
-      .then((response: { projects?: Array<{ id: string }> }) => {
-        if (!mounted) return;
-        if (response.projects && response.projects.length > 0) {
-          setProjectId(response.projects[0].id);
-          return;
-        }
-        return apiClient
-          .createProject("My First Project")
-          .then((created: { project?: { id: string } }) => {
-            if (!mounted) return;
-            setProjectId(created.project?.id ?? null);
-          });
-      })
-      .catch(() => undefined);
-
-    return () => {
-      mounted = false;
-    };
-  }, [apiClient]);
-
   const handleGenerate = async () => {
-    if (!projectId || intent.trim().length === 0) return;
-    const created = await apiClient.createBrief(projectId, {
-      intentText: intent,
-      placements: DEFAULT_PLACEMENTS
-    });
-    const briefId = created?.brief?.id;
-    if (!briefId) return;
-    setBriefId(briefId);
-    const briefResponse = await apiClient.getBrief(briefId);
-    setSummary(getBriefSummary(briefResponse.brief ?? {}));
+    if (!projectId || intent.trim().length === 0 || isGeneratingBrief) return;
+    setIsGeneratingBrief(true);
+    try {
+      const created = await apiClient.createBrief(projectId, {
+        intentText: intent,
+        placements: DEFAULT_PLACEMENTS
+      });
+      const briefId = created?.brief?.id;
+      if (!briefId) return;
+      setBriefId(briefId);
+      const briefResponse = await apiClient.getBrief(briefId);
+      setSummary(getBriefSummary(briefResponse.brief ?? {}));
+    } finally {
+      setIsGeneratingBrief(false);
+    }
   };
 
   const handleGenerateCreative = async (placement: PlacementSpecKey) => {
@@ -115,12 +97,12 @@ export function CampaignGenerator({ api }: CampaignGeneratorProps) {
         placement,
         brandAssets: brandAssets.length > 0 ? brandAssets : undefined
       });
-      if (!response?.creative) {
-        throw new Error("No creative returned");
+      if (!response?.image) {
+        throw new Error("No image returned");
       }
       setCreatives((prev) => ({
         ...prev,
-        [placement]: { creative: response.creative, loading: false }
+        [placement]: { image: response.image, loading: false }
       }));
     } catch (error) {
       setCreatives((prev) => ({
@@ -152,7 +134,7 @@ export function CampaignGenerator({ api }: CampaignGeneratorProps) {
           <StepBadge step={1} />
           <h2 className="text-lg font-bold text-foreground">Define Your Intent</h2>
         </div>
-        <IntentInput value={intent} onChange={setIntent} onGenerate={handleGenerate} />
+        <IntentInput value={intent} onChange={setIntent} onGenerate={handleGenerate} isGenerating={isGeneratingBrief} />
       </section>
 
       {/* Step 2: Upload Brand Assets */}
@@ -227,32 +209,14 @@ export function CampaignGenerator({ api }: CampaignGeneratorProps) {
                   </div>
                 )}
 
-                {state?.creative && (
-                  <div className="mt-4 space-y-4">
+                {state?.image && (
+                  <div className="mt-4">
                     <AiCreativePreview
-                      html={state.creative.html}
+                      imageDataUrl={state.image.imageDataUrl}
+                      aspectRatio={state.image.aspectRatio}
                       title={`${spec.label} preview`}
-                      className="h-72 w-full rounded-lg border border-border bg-white"
+                      className="w-full max-w-md rounded-lg border border-border bg-muted"
                     />
-                    {state.creative.warnings && state.creative.warnings.length > 0 && (
-                      <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-600">
-                        <span className="font-semibold">Warnings:</span> {state.creative.warnings.join(" • ")}
-                      </div>
-                    )}
-                    {state.creative.assets && state.creative.assets.length > 0 && (
-                      <div className="text-sm text-muted-foreground">
-                        <span className="font-semibold text-foreground">Assets:</span>
-                        <ul className="mt-2 list-disc pl-5 space-y-1">
-                          {state.creative.assets.map((asset, index) => (
-                            <li key={`${asset.label ?? "asset"}-${index}`}>
-                              {asset.label ?? "Asset"}
-                              {asset.type ? ` · ${asset.type}` : ""}
-                              {asset.url ? ` · ${asset.url}` : ""}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
                   </div>
                 )}
               </div>

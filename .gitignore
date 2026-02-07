@@ -4,6 +4,7 @@ node_modules/
 !.env.example
 .DS_Store
 /data/
+.opencode/plans
 
 # build outputs
 **/dist/

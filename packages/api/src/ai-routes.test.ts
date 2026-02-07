@@ -1,13 +1,20 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi, type Mock } from "vitest";
 import { createApp } from "./app";
 
-// Import the mocked module to access the mock function
-const mockGenerateObject = vi.fn();
-const mockGenerateText = vi.fn();
+// Mock must be hoisted with factory function
 vi.mock("ai", () => ({
-  generateObject: mockGenerateObject,
-  generateText: mockGenerateText
+  generateObject: vi.fn(),
+  generateText: vi.fn(),
+  Output: {
+    object: vi.fn().mockReturnValue({ type: "object" })
+  },
+  stepCountIs: vi.fn().mockReturnValue(() => false)
 }));
+
+// Import after mocking
+import { generateObject, generateText } from "ai";
+const mockGenerateObject = generateObject as Mock;
+const mockGenerateText = generateText as Mock;
 
 type Brief = { id: string; intentText: string; briefJson: unknown };
 type Draft = { id: string; briefId: string; draftJson: unknown };
@@ -54,10 +61,36 @@ const createMemoryPrisma = () => {
 };
 
 describe("AI routes", () => {
-  it("parses briefs with AI", async () => {
+  it("parses briefs with AI using two-phase research", async () => {
     process.env.GOOGLE_GENERATIVE_AI_API_KEY = "test-key";
-    mockGenerateObject.mockResolvedValueOnce({
-      object: {
+    
+    // Phase 1: Research phase mock (conductResearch uses generateText with tools)
+    mockGenerateText.mockResolvedValueOnce({
+      text: "Brand Overview: EcoStep is a sustainable footwear company...",
+      steps: [
+        {
+          providerMetadata: {
+            google: {
+              groundingMetadata: {
+                groundingChunks: [
+                  {
+                    web: {
+                      uri: "https://example.com/ecostep",
+                      title: "EcoStep Brand"
+                    },
+                    retrievedContext: { text: "EcoStep makes eco-friendly sneakers..." }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    });
+
+    // Phase 2: Extraction phase mock (extractBrief uses generateText with Output.object)
+    mockGenerateText.mockResolvedValueOnce({
+      output: {
         industry: "Retail",
         placements: ["square_1_1"],
         audience: { interests: ["Gen Z"] },
@@ -84,9 +117,13 @@ describe("AI routes", () => {
     const payload = await response.json();
     expect(payload.briefJson.industry).toBe("Retail");
     expect(payload.briefJson.audience.interests).toContain("Gen Z");
+    expect(payload.sources).toHaveLength(1);
+    expect(payload.sources[0].url).toBe("https://example.com/ecostep");
+    expect(payload.researchSummary).toContain("EcoStep");
+    expect(payload.stepCount).toBe(1);
   });
 
-  it("generates creatives and stores a sanitized draft", async () => {
+  it("generates image and stores draft", async () => {
     process.env.GOOGLE_GENERATIVE_AI_API_KEY = "test-key";
     mockGenerateText.mockResolvedValueOnce({
       files: [
@@ -95,14 +132,6 @@ describe("AI routes", () => {
           base64: "aGVsbG8="
         }
       ]
-    });
-
-    mockGenerateObject.mockResolvedValueOnce({
-      object: {
-        html: '<div><script>alert("x")</script><p>Hi</p></div>',
-        assets: [{ label: "Logo" }],
-        warnings: []
-      }
     });
 
     const prisma = createMemoryPrisma();
@@ -118,16 +147,106 @@ describe("AI routes", () => {
     });
 
     const payload = await response.json();
-    expect(payload.creative.html).toContain("<p>Hi</p>");
-    expect(payload.creative.html).not.toContain("<script");
-    expect(payload.creative.assets).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          dataUrl: "data:image/png;base64,aGVsbG8="
-        })
-      ])
-    );
-    expect(payload.draft.draftJson.creative.html).not.toContain("<script");
+    expect(payload.image.imageDataUrl).toBe("data:image/png;base64,aGVsbG8=");
+    expect(payload.image.aspectRatio).toBe("1:1");
+    expect(payload.draft.draftJson.imageDataUrl).toBe("data:image/png;base64,aGVsbG8=");
+    expect(payload.draft.draftJson.aspectRatio).toBe("1:1");
+  });
+
+  it("generates image with logo overlay when logo asset provided", async () => {
+    process.env.GOOGLE_GENERATIVE_AI_API_KEY = "test-key";
+    
+    // Phase 1: Base image generation
+    mockGenerateText.mockResolvedValueOnce({
+      files: [{ mediaType: "image/png", base64: "YmFzZV9pbWFnZQ==" }]
+    });
+    
+    // Phase 2: Logo overlay
+    mockGenerateText.mockResolvedValueOnce({
+      files: [{ mediaType: "image/png", base64: "bG9nb19vdmVybGF5" }]
+    });
+
+    const prisma = createMemoryPrisma();
+    const app = createApp({
+      prisma,
+      getSession: async () => ({ user: { id: "user_1" } })
+    });
+
+    const response = await app.request("/api/ai/creative/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        briefId: "brief_1",
+        placement: "square_1_1",
+        brandAssets: [
+          {
+            kind: "logo",
+            mimeType: "image/png",
+            dataBase64: "bG9nbw==",
+            name: "Brand Logo"
+          }
+        ]
+      })
+    });
+
+    expect(response.status).toBe(200);
+    const payload = await response.json();
+    
+    // Should have 2 generateText calls (base + logo overlay)
+    expect(mockGenerateText).toHaveBeenCalledTimes(2);
+    
+    // Final image should be the logo overlay result
+    expect(payload.image.imageDataUrl).toBe("data:image/png;base64,bG9nb19vdmVybGF5");
+  });
+
+  it("generates image with product and reference assets", async () => {
+    process.env.GOOGLE_GENERATIVE_AI_API_KEY = "test-key";
+    
+    mockGenerateText.mockResolvedValueOnce({
+      files: [{ mediaType: "image/png", base64: "cHJvZHVjdF9pbWFnZQ==" }]
+    });
+
+    const prisma = createMemoryPrisma();
+    const app = createApp({
+      prisma,
+      getSession: async () => ({ user: { id: "user_1" } })
+    });
+
+    const response = await app.request("/api/ai/creative/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        briefId: "brief_1",
+        placement: "feed_4_5",
+        brandAssets: [
+          {
+            kind: "product",
+            mimeType: "image/jpeg",
+            dataBase64: "cHJvZHVjdA==",
+            name: "Product Shot"
+          },
+          {
+            kind: "reference",
+            mimeType: "image/png",
+            dataBase64: "cmVmZXJlbmNl",
+            name: "Mood Board"
+          }
+        ]
+      })
+    });
+
+    expect(response.status).toBe(200);
+    const payload = await response.json();
+    
+    // Should only have 1 generateText call (no logo overlay needed)
+    expect(mockGenerateText).toHaveBeenCalledTimes(1);
+    
+    // Verify the call included product and reference assets
+    const callArgs = mockGenerateText.mock.calls[0][0];
+    expect(callArgs.messages[0].content).toHaveLength(3); // prompt + product + reference
+    
+    // Verify aspect ratio is correct for feed_4_5
+    expect(payload.image.aspectRatio).toBe("4:5");
   });
 
   it("returns error when AI generation fails", async () => {
@@ -152,9 +271,10 @@ describe("AI routes", () => {
     expect(payload.code).toBe("AI_ERROR");
   });
 
-  it("returns error when AI brief parsing fails", async () => {
+  it("returns error when AI brief parsing fails in research phase", async () => {
     process.env.GOOGLE_GENERATIVE_AI_API_KEY = "test-key";
-    mockGenerateObject.mockRejectedValueOnce(new Error("Rate limit exceeded"));
+    // Research phase fails
+    mockGenerateText.mockRejectedValueOnce(new Error("Rate limit exceeded"));
 
     const app = createApp({
       prisma: createMemoryPrisma(),
@@ -176,8 +296,17 @@ describe("AI routes", () => {
     expect(payload.code).toBe("AI_ERROR");
   });
 
-  it("returns error when GOOGLE_GENERATIVE_AI_API_KEY is not set", async () => {
-    delete process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+  it("returns error when AI brief extraction fails", async () => {
+    process.env.GOOGLE_GENERATIVE_AI_API_KEY = "test-key";
+    
+    // Research phase succeeds
+    mockGenerateText.mockResolvedValueOnce({
+      text: "Research summary...",
+      steps: []
+    });
+    
+    // Extraction phase fails
+    mockGenerateText.mockRejectedValueOnce(new Error("Extraction failed"));
 
     const app = createApp({
       prisma: createMemoryPrisma(),
@@ -195,7 +324,71 @@ describe("AI routes", () => {
 
     expect(response.status).toBe(500);
     const payload = await response.json();
-    expect(payload.error).toBe("GOOGLE_GENERATIVE_AI_API_KEY environment variable is not set");
-    expect(payload.code).toBe("MISSING_API_KEY");
+    expect(payload.error).toBe("Extraction failed");
+    expect(payload.code).toBe("AI_ERROR");
+  });
+
+  it("returns error when GOOGLE_GENERATIVE_AI_API_KEY is not set", async () => {
+    delete process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+    
+    // Mock generateText to throw API key error like the SDK would
+    mockGenerateText.mockRejectedValueOnce(new Error("Google Generative AI API key is missing"));
+
+    const app = createApp({
+      prisma: createMemoryPrisma(),
+      getSession: async () => ({ user: { id: "user_1" } })
+    });
+
+    const response = await app.request("/api/ai/brief/parse", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        intentText: "Launch a sale for eco-friendly sneakers",
+        placements: ["square_1_1"]
+      })
+    });
+
+    expect(response.status).toBe(500);
+    const payload = await response.json();
+    expect(payload.error).toContain("API key");
+    expect(payload.code).toBe("AI_ERROR");
+  });
+
+  it("adds warning when no sources found during research", async () => {
+    process.env.GOOGLE_GENERATIVE_AI_API_KEY = "test-key";
+    
+    // Research phase with no grounding sources
+    mockGenerateText.mockResolvedValueOnce({
+      text: "Could not find specific information about this brand...",
+      steps: [{ providerMetadata: {} }]
+    });
+
+    // Extraction phase
+    mockGenerateText.mockResolvedValueOnce({
+      output: {
+        industry: "Retail",
+        audience: { interests: [] },
+        keyBenefits: [],
+        compliance: { sensitiveWords: [] }
+      }
+    });
+
+    const app = createApp({
+      prisma: createMemoryPrisma(),
+      getSession: async () => ({ user: { id: "user_1" } })
+    });
+
+    const response = await app.request("/api/ai/brief/parse", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        intentText: "Launch a sale for eco-friendly sneakers",
+        placements: ["square_1_1"]
+      })
+    });
+
+    const payload = await response.json();
+    expect(payload.warnings).toContain("No Google Search sources found during research phase.");
+    expect(payload.sources).toHaveLength(0);
   });
 });

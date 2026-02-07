@@ -12,6 +12,7 @@ import { parseBriefWithAi, AiBriefError } from "./ai-brief";
 import { createProjectRoutes, AppEnv, SessionUser } from "./project";
 import { createMarketRoutes } from "./market";
 import { createOrderRoutes } from "./order";
+import { createTokenDataRoutes } from "./token-data";
 import { dataUrlToBuffer, mimeTypeToExtension, StorageError, type S3Storage } from "./storage";
 
 type Session = { user: SessionUser } | null;
@@ -321,6 +322,10 @@ export function createApp({ prisma, getSession, storage }: AppDeps) {
   // --- Marketplace API ---
   const marketRoutes = createMarketRoutes({ prisma });
   app.route("/api/marketplace", marketRoutes);
+
+  // --- Token Data API (public, no auth required) ---
+  const tokenDataRoutes = createTokenDataRoutes();
+  app.route("/api/token", tokenDataRoutes);
 
   return app;
 }

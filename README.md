@@ -34,7 +34,7 @@ Preview creatives across 20+ standard ad placements organized by device:
 
 ### 🔗 Blockchain Integration
 - **AICC Token Payments**: Native token for marketplace transactions
-  - Contract: [`0x6F947b45C023Ef623b39331D0C4D21FBC51C1d45`](https://basescan.org/token/0x6F947b45C023Ef623b39331D0C4D21FBC51C1d45)
+  - $AICC Token: [`0x6F947b45C023Ef623b39331D0C4D21FBC51C1d45`](https://basescan.org/token/0x6F947b45C023Ef623b39331D0C4D21FBC51C1d45)
   - Built on $OPENWORK: [`0x299c30DD5974BF4D5bFE42C340CA40462816AB07`](https://basescan.org/token/0x299c30DD5974BF4D5bFE42C340CA40462816AB07)
 
 #### 📊 AICC Token Live Data

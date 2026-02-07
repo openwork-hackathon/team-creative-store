@@ -51,13 +51,14 @@ export function DashboardPage({
   onProjectAction
 }: DashboardPageProps) {
   return (
-    <div className="space-y-8">
-      {/* Header */}
+    <div className="mx-auto w-full max-w-[1280px] px-4 py-8 lg:px-10">
+      <div className="flex flex-col w-full space-y-8">
+        {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="flex flex-col gap-2">
           <h1 className="text-4xl font-black tracking-tight">Welcome back, {userName}</h1>
           <p className="text-muted-foreground">
-            Manage your creative designs, ad campaigns, and NFT generations from one place.
+            Create and sell your ad creatives with AI — all in one place.
           </p>
         </div>
         <div className="flex gap-3">
@@ -250,6 +251,7 @@ export function DashboardPage({
             </table>
           </div>
         )}
+      </div>
       </div>
     </div>
   );

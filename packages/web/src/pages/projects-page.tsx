@@ -217,7 +217,17 @@ export function ProjectsPage() {
   }, [publishingProjectId]);
 
   return (
-    <div className="mx-auto w-full max-w-[1440px] px-6 py-6">
+    <div className="mx-auto w-full max-w-[1280px] px-4 py-8 lg:px-10">
+      {/* Page Header */}
+      <div className="mb-6">
+        <h1 className="mb-2 text-3xl font-black leading-tight tracking-[-0.033em] text-foreground md:text-4xl">
+          Projects
+        </h1>
+        <p className="text-base text-muted-foreground">
+          Manage your AI creative projects, campaigns, and assets
+        </p>
+      </div>
+
       {/* Filter Bar */}
       <div className="mb-6">
         <ProjectFilterBar

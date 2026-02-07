@@ -7,7 +7,8 @@ import {
   zBrandAsset,
   zPlacementSpecKey
 } from "@creative-store/shared";
-import { generateCreativeWithAi, parseBriefWithAi, AiCreativeError } from "./ai-creative";
+import { generateCreativeWithAi, AiCreativeError } from "./ai-creative";
+import { parseBriefWithAi, AiBriefError } from "./ai-brief";
 import { createProjectRoutes, AppEnv, SessionUser } from "./project";
 import { createMarketRoutes } from "./market";
 
@@ -196,7 +197,7 @@ export function createApp({ prisma, getSession }: AppDeps) {
         const parsed = await parseBriefWithAi(input);
         return c.json(parsed);
       } catch (error) {
-        if (error instanceof AiCreativeError) {
+        if (error instanceof AiBriefError) {
           return c.json({ error: error.message, code: error.code }, 500);
         }
         const message = error instanceof Error ? error.message : "AI brief parsing failed";

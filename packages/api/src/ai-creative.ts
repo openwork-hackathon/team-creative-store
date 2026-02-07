@@ -3,7 +3,6 @@ import { google } from "@ai-sdk/google";
 import {
   PLACEMENT_SPEC_BY_KEY,
   zAiCreativeOutput,
-  zBrief,
   type BrandAsset,
   type PlacementSpecKey
 } from "@creative-store/shared";
@@ -15,15 +14,6 @@ export class AiCreativeError extends Error {
     this.name = "AiCreativeError";
   }
 }
-
-type BriefParseInput = {
-  intentText: string;
-  industry?: string;
-  placements: PlacementSpecKey[];
-  sensitiveWords?: string[];
-};
-
-const model = () => google("gemini-3-flash-preview");
 
 type GeminiImageInput = {
   prompt: string;
@@ -91,34 +81,6 @@ export async function generateImageWithGeminiFlash(input: GeminiImageInput): Pro
   );
 }
 
-export async function parseBriefWithAi(input: BriefParseInput) {
-  console.log("[AI] parseBriefWithAi called with:", input);
-  const result = await generateObject({
-    model: google("gemini-3-flash-preview"),
-    schema: zBrief,
-    prompt: [
-      "Extract a structured advertising brief from the input text.",
-      "Return JSON that matches the schema (industry, audience, keyBenefits, cta, style, channels, placements, compliance, proposedHook).",
-      "Keep it concise and marketing-focused."
-    ].join(" "),
-    input: JSON.stringify(input)
-  });
-  console.log("[AI] parseBriefWithAi result:", result.object);
-
-  const briefJson = {
-    ...result.object,
-    industry: input.industry ?? result.object.industry,
-    placements: input.placements,
-    compliance: {
-      sensitiveWords: input.sensitiveWords ?? result.object.compliance?.sensitiveWords ?? [],
-      notes: result.object.compliance?.notes
-    },
-    proposedHook: result.object.proposedHook ?? input.intentText
-  };
-
-  return { briefJson, warnings: [] as string[], source: "ai" as const };
-}
-
 type CreativeGenerateInput = {
   placement: PlacementSpecKey;
   brief: unknown;
@@ -169,9 +131,9 @@ export async function generateCreativeWithAi(input: CreativeGenerateInput) {
   console.log("[AI] Generated image received");
 
   const result = await generateObject({
-    model: model(),
+    model: google("gemini-3-flash-preview"),
     schema: zAiCreativeOutput,
-    prompt: [
+    system: [
       "You are generating HTML for an ad creative.",
       "Return JSON with keys: html, assets, warnings.",
       "HTML must be self-contained, no external scripts or stylesheets, and no external asset URLs.",
@@ -179,7 +141,7 @@ export async function generateCreativeWithAi(input: CreativeGenerateInput) {
       `Canvas size: ${spec.width}x${spec.height}.`,
       "Keep the layout within safe margins and ensure text legibility."
     ].join(" "),
-    input: JSON.stringify({
+    prompt: JSON.stringify({
       placement: input.placement,
       brief: input.brief,
       intentText: input.intentText

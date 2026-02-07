@@ -3,7 +3,7 @@ import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
 import { zCreateBriefInput } from "@creative-store/shared";
 import { buildBriefJsonFromInput } from "./brief-analysis";
-import { parseBriefWithAi } from "./ai-creative";
+import { parseBriefWithAi } from "./ai-brief";
 import { nanoid } from "nanoid";
 
 // Helper function to format relative time

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   PLACEMENT_SPEC_BY_KEY,
   type GeneratedImage,
@@ -10,7 +10,7 @@ import { IntentInput } from "@/components/campaign/intent-input";
 import { StepBadge } from "@/components/campaign/step-badge";
 import { UploadZone } from "@/components/campaign/upload-zone";
 import { AiCreativePreview } from "@/components/creative/ai-creative-preview";
-import { createApiClient, type ApiClient } from "@/lib/api";
+import { createApiClient, type ApiClient, type Draft } from "@/lib/api";
 import { getBriefSummary } from "@/lib/brief-summary";
 
 const DEFAULT_PLACEMENTS: PlacementSpecKey[] = [
@@ -26,6 +26,7 @@ type CampaignGeneratorProps = {
 
 export function CampaignGenerator({ projectId, api }: CampaignGeneratorProps) {
   const apiClient = useMemo(() => api ?? createApiClient(), [api]);
+  const [isLoadingExisting, setIsLoadingExisting] = useState(true);
   const [briefId, setBriefId] = useState<string | null>(null);
   const [intent, setIntent] = useState("");
   const [summary, setSummary] = useState(() => getBriefSummary({}));
@@ -34,6 +35,49 @@ export function CampaignGenerator({ projectId, api }: CampaignGeneratorProps) {
   const [creatives, setCreatives] = useState<
     Partial<Record<PlacementSpecKey, { image?: GeneratedImage; loading?: boolean; error?: string }>>
   >({});
+
+  // Load existing briefs and drafts on mount
+  useEffect(() => {
+    async function loadExistingData() {
+      try {
+        const { briefs } = await apiClient.getBriefsByProjectId(projectId);
+
+        if (briefs && briefs.length > 0) {
+          // Find the first brief that has drafts, otherwise use the latest
+          const briefWithDrafts = briefs.find(b => b.drafts && b.drafts.length > 0);
+          const latestBrief = briefWithDrafts ?? briefs[0];
+
+          // Set brief data
+          setBriefId(latestBrief.id);
+          setIntent(latestBrief.intentText);
+          setSummary(getBriefSummary(latestBrief));
+
+          // Load drafts and convert to creatives state
+          if (latestBrief.drafts && latestBrief.drafts.length > 0) {
+            const loadedCreatives: Partial<Record<PlacementSpecKey, { image?: GeneratedImage; loading?: boolean; error?: string }>> = {};
+            for (const draft of latestBrief.drafts) {
+              const draftData = draft.draftJson as Draft["draftJson"];
+              if (draftData.placement && draftData.imageUrl && draftData.aspectRatio) {
+                loadedCreatives[draftData.placement] = {
+                  image: {
+                    imageUrl: draftData.imageUrl,
+                    aspectRatio: draftData.aspectRatio
+                  }
+                };
+              }
+            }
+            setCreatives(loadedCreatives);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to load existing data:", error);
+      } finally {
+        setIsLoadingExisting(false);
+      }
+    }
+
+    loadExistingData();
+  }, [projectId, apiClient]);
 
   const fileToBrandAsset = (file: File, kind: BrandAsset["kind"]) =>
     new Promise<BrandAsset>((resolve, reject) => {
@@ -115,6 +159,27 @@ export function CampaignGenerator({ projectId, api }: CampaignGeneratorProps) {
       }));
     }
   };
+
+  // Show loading skeleton while fetching existing data
+  if (isLoadingExisting) {
+    return (
+      <div className="mx-auto w-full max-w-[1280px] px-4 py-8 lg:px-10">
+        <div className="animate-pulse space-y-8">
+          <div className="space-y-2">
+            <div className="h-10 w-64 rounded bg-muted" />
+            <div className="h-5 w-96 rounded bg-muted" />
+          </div>
+          <div className="h-32 rounded-xl bg-muted" />
+          <div className="grid gap-6 md:grid-cols-3">
+            <div className="h-32 rounded-xl bg-muted" />
+            <div className="h-32 rounded-xl bg-muted" />
+            <div className="h-32 rounded-xl bg-muted" />
+          </div>
+          <div className="h-48 rounded-xl bg-muted" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto w-full max-w-[1280px] px-4 py-8 lg:px-10">

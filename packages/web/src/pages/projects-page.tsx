@@ -127,6 +127,10 @@ export function ProjectsPage() {
     navigate({ to: "/projects/new" });
   };
 
+  const handleCardClick = (id: string) => {
+    navigate({ to: "/creative-studio", search: { projectId: id } });
+  };
+
   const handleEditSelection = () => {
     if (selectedIds.size === 1) {
       const [id] = selectedIds;
@@ -255,6 +259,7 @@ export function ProjectsPage() {
         <ProjectGrid
           projects={projects}
           selectedIds={selectedIds}
+          onClick={handleCardClick}
           onSelect={handleSelect}
           onEdit={handleEdit}
           onPreview={handlePreview}

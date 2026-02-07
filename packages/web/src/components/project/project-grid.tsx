@@ -4,6 +4,7 @@ import { ProjectCard } from "./project-card";
 export interface ProjectGridProps {
   projects: Project[];
   selectedIds: Set<string>;
+  onClick?: (id: string) => void;
   onSelect: (id: string, selected: boolean) => void;
   onEdit?: (id: string) => void;
   onPreview?: (id: string) => void;
@@ -52,6 +53,7 @@ function EmptyState() {
 export function ProjectGrid({
   projects,
   selectedIds,
+  onClick,
   onSelect,
   onEdit,
   onPreview,
@@ -75,6 +77,7 @@ export function ProjectGrid({
           key={project.id}
           project={project}
           isSelected={selectedIds.has(project.id)}
+          onClick={onClick}
           onSelect={onSelect}
           onEdit={onEdit}
           onPreview={onPreview}

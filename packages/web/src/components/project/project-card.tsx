@@ -4,6 +4,7 @@ import { ProjectStatusBadge } from "./status-badge";
 export interface ProjectCardProps {
   project: Project;
   isSelected?: boolean;
+  onClick?: (id: string) => void;
   onSelect?: (id: string, selected: boolean) => void;
   onEdit?: (id: string) => void;
   onPreview?: (id: string) => void;
@@ -15,6 +16,7 @@ export interface ProjectCardProps {
 export function ProjectCard({
   project,
   isSelected = false,
+  onClick,
   onSelect,
   onEdit,
   onPreview,
@@ -29,9 +31,10 @@ export function ProjectCard({
 
   return (
     <div
-      className={`group relative flex flex-col overflow-hidden rounded-xl border bg-white shadow-sm transition-all hover:border-primary hover:shadow-xl dark:bg-slate-900 ${
+      className={`group relative flex flex-col overflow-hidden rounded-xl border bg-white shadow-sm transition-all hover:border-primary hover:shadow-xl dark:bg-slate-900 cursor-pointer ${
         isSelected ? "ring-2 ring-primary border-primary" : "border-slate-200 dark:border-slate-800"
       }`}
+      onClick={() => onClick?.(project.id)}
     >
       {/* Checkbox */}
       <div className="absolute left-3 top-3 z-10">
@@ -60,7 +63,10 @@ export function ProjectCard({
           <h3 className="truncate font-bold text-slate-900 dark:text-white">{project.title}</h3>
           <button
             type="button"
-            onClick={() => onMenuClick?.(project.id)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onMenuClick?.(project.id);
+            }}
             className="text-slate-400 hover:text-primary"
           >
             <span className="material-symbols-outlined text-lg">more_vert</span>
@@ -74,7 +80,10 @@ export function ProjectCard({
           <div className="flex gap-2">
             <button
               type="button"
-              onClick={() => onEdit?.(project.id)}
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit?.(project.id);
+              }}
               className="text-slate-400 transition-colors hover:text-primary"
               title="Edit"
             >
@@ -82,7 +91,10 @@ export function ProjectCard({
             </button>
             <button
               type="button"
-              onClick={() => onPreview?.(project.id)}
+              onClick={(e) => {
+                e.stopPropagation();
+                onPreview?.(project.id);
+              }}
               className="text-slate-400 transition-colors hover:text-primary"
               title="Preview"
             >
@@ -90,7 +102,10 @@ export function ProjectCard({
             </button>
             <button
               type="button"
-              onClick={() => onDelete?.(project.id)}
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete?.(project.id);
+              }}
               className="text-slate-400 transition-colors hover:text-red-500"
               title="Delete"
             >
@@ -102,7 +117,10 @@ export function ProjectCard({
           {project.status === "ready" && (
             <button
               type="button"
-              onClick={() => onPublish?.(project.id)}
+              onClick={(e) => {
+                e.stopPropagation();
+                onPublish?.(project.id);
+              }}
               className="flex items-center gap-1 rounded-lg bg-primary px-3 py-1.5 text-sm font-bold text-white shadow-lg shadow-primary/20 transition-colors hover:bg-primary/90"
               title="Publish"
             >

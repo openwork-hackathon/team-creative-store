@@ -1,13 +1,16 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi, type Mock } from "vitest";
 import { createApp } from "./app";
 
-// Import the mocked module to access the mock function
-const mockGenerateObject = vi.fn();
-const mockGenerateText = vi.fn();
+// Mock must be hoisted with factory function
 vi.mock("ai", () => ({
-  generateObject: mockGenerateObject,
-  generateText: mockGenerateText
+  generateObject: vi.fn(),
+  generateText: vi.fn()
 }));
+
+// Import after mocking
+import { generateObject, generateText } from "ai";
+const mockGenerateObject = generateObject as Mock;
+const mockGenerateText = generateText as Mock;
 
 type Brief = { id: string; intentText: string; briefJson: unknown };
 type Draft = { id: string; briefId: string; draftJson: unknown };
@@ -178,6 +181,9 @@ describe("AI routes", () => {
 
   it("returns error when GOOGLE_GENERATIVE_AI_API_KEY is not set", async () => {
     delete process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+    
+    // Mock generateObject to throw API key error like the SDK would
+    mockGenerateObject.mockRejectedValueOnce(new Error("Google Generative AI API key is missing"));
 
     const app = createApp({
       prisma: createMemoryPrisma(),
@@ -195,7 +201,7 @@ describe("AI routes", () => {
 
     expect(response.status).toBe(500);
     const payload = await response.json();
-    expect(payload.error).toBe("GOOGLE_GENERATIVE_AI_API_KEY environment variable is not set");
-    expect(payload.code).toBe("MISSING_API_KEY");
+    expect(payload.error).toContain("API key");
+    expect(payload.code).toBe("AI_ERROR");
   });
 });

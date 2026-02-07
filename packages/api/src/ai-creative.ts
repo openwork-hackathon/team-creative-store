@@ -94,7 +94,7 @@ export async function generateImageWithGeminiFlash(input: GeminiImageInput): Pro
 export async function parseBriefWithAi(input: BriefParseInput) {
   console.log("[AI] parseBriefWithAi called with:", input);
   const result = await generateObject({
-    model: model(),
+    model: google("gemini-3-flash-preview"),
     schema: zBrief,
     prompt: [
       "Extract a structured advertising brief from the input text.",

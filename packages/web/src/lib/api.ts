@@ -1,4 +1,4 @@
-import type { PlacementSpecKey, AiCreativeOutput, BrandAsset } from "@creative-store/shared";
+import type { PlacementSpecKey, GeneratedImage, BrandAsset } from "@creative-store/shared";
 
 export type ProjectStatus = "draft" | "generating" | "ready" | "published";
 
@@ -161,7 +161,7 @@ export function createApiClient(
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(input)
-      }).then((response) => response.json() as Promise<{ draft?: unknown; creative?: AiCreativeOutput }>),
+      }).then((response) => response.json() as Promise<{ draft?: unknown; image?: GeneratedImage }>),
     uploadLogo: async (formData: FormData) =>
       request(`${baseUrl}/uploads/logo`, {
         method: "POST",

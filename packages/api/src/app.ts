@@ -7,7 +7,7 @@ import {
   zBrandAsset,
   zPlacementSpecKey
 } from "@creative-store/shared";
-import { generateCreativeWithAi, AiCreativeError } from "./ai-creative";
+import { generateCreativeImage, AiCreativeError } from "./ai-creative";
 import { parseBriefWithAi, AiBriefError } from "./ai-brief";
 import { createProjectRoutes, AppEnv, SessionUser } from "./project";
 import { createMarketRoutes } from "./market";
@@ -224,7 +224,7 @@ export function createApp({ prisma, getSession }: AppDeps) {
       if (!brief) return c.json({ error: "not_found" }, 404);
 
       try {
-        const creative = await generateCreativeWithAi({
+        const result = await generateCreativeImage({
           placement: input.placement,
           brief: (brief as { briefJson?: unknown }).briefJson ?? {},
           intentText: (brief as { intentText?: string }).intentText,
@@ -236,12 +236,13 @@ export function createApp({ prisma, getSession }: AppDeps) {
             briefId: input.briefId,
             draftJson: {
               placement: input.placement,
-              creative
+              imageDataUrl: result.imageDataUrl,
+              aspectRatio: result.aspectRatio
             }
           }
         });
 
-        return c.json({ draft, creative });
+        return c.json({ draft, image: result });
       } catch (error) {
         if (error instanceof AiCreativeError) {
           return c.json({ error: error.message, code: error.code }, 500);

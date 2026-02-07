@@ -1,12 +1,11 @@
-import { generateObject, generateText } from "ai";
+import { generateText } from "ai";
 import { google } from "@ai-sdk/google";
 import {
   PLACEMENT_SPEC_BY_KEY,
-  zAiCreativeOutput,
   type BrandAsset,
+  type Brief,
   type PlacementSpecKey
 } from "@creative-store/shared";
-import { sanitizeCreativeHtml } from "./creative-sanitizer";
 
 export class AiCreativeError extends Error {
   constructor(message: string, public readonly code: string) {
@@ -15,20 +14,90 @@ export class AiCreativeError extends Error {
   }
 }
 
-type GeminiImageInput = {
-  prompt: string;
-  brandAssets?: BrandAsset[];
+// ============================================================================
+// Aspect Ratio Mapping
+// ============================================================================
+
+const ASPECT_RATIO_MAP: Record<PlacementSpecKey, string> = {
+  square_1_1: "1:1",
+  feed_4_5: "4:5",
+  story_9_16: "9:16",
+  landscape_16_9: "16:9",
+  banner_ultrawide: "21:9",
+  tv_4k: "16:9"
 };
 
-export async function generateImageWithGeminiFlash(input: GeminiImageInput): Promise<string> {
-  // Build message content with text prompt and brand assets as file parts
-  const contentParts: Array<
-    | { type: "text"; text: string }
-    | { type: "file"; data: string; mediaType: string }
-  > = [{ type: "text", text: input.prompt }];
+function placementToAspectRatio(placement: PlacementSpecKey): string {
+  return ASPECT_RATIO_MAP[placement] ?? "1:1";
+}
 
-  // Add brand assets as file parts (base64 data)
-  for (const asset of input.brandAssets ?? []) {
+// ============================================================================
+// Asset Grouping
+// ============================================================================
+
+type GroupedAssets = {
+  logos: BrandAsset[];
+  products: BrandAsset[];
+  references: BrandAsset[];
+};
+
+function groupAssetsByKind(assets: BrandAsset[]): GroupedAssets {
+  const grouped: GroupedAssets = {
+    logos: [],
+    products: [],
+    references: []
+  };
+
+  for (const asset of assets) {
+    switch (asset.kind) {
+      case "logo":
+        grouped.logos.push(asset);
+        break;
+      case "product":
+        grouped.products.push(asset);
+        break;
+      case "reference":
+        grouped.references.push(asset);
+        break;
+    }
+  }
+
+  return grouped;
+}
+
+// ============================================================================
+// Image Generation Types
+// ============================================================================
+
+type ContentPart =
+  | { type: "text"; text: string }
+  | { type: "file"; data: string; mediaType: string };
+
+// ============================================================================
+// Base Image Generation (Flash model)
+// ============================================================================
+
+type GenerateImageInput = {
+  prompt: string;
+  aspectRatio?: string;
+  productAssets?: BrandAsset[];
+  referenceAssets?: BrandAsset[];
+};
+
+async function generateBaseImage(input: GenerateImageInput): Promise<string> {
+  const contentParts: ContentPart[] = [{ type: "text", text: input.prompt }];
+
+  // Add product assets as file parts for context
+  for (const asset of input.productAssets ?? []) {
+    contentParts.push({
+      type: "file",
+      data: `data:${asset.mimeType};base64,${asset.dataBase64}`,
+      mediaType: asset.mimeType
+    });
+  }
+
+  // Add reference assets for style/mood guidance
+  for (const asset of input.referenceAssets ?? []) {
     contentParts.push({
       type: "file",
       data: `data:${asset.mimeType};base64,${asset.dataBase64}`,
@@ -38,6 +107,16 @@ export async function generateImageWithGeminiFlash(input: GeminiImageInput): Pro
 
   const result = await generateText({
     model: google("gemini-2.5-flash-image"),
+    providerOptions: {
+      google: {
+        responseModalities: ["TEXT", "IMAGE"],
+        ...(input.aspectRatio && {
+          imageConfig: {
+            aspectRatio: input.aspectRatio
+          }
+        })
+      }
+    },
     messages: [
       {
         role: "user",
@@ -46,28 +125,94 @@ export async function generateImageWithGeminiFlash(input: GeminiImageInput): Pro
     ]
   });
 
-  console.log("[AI] generateText result.text:", result.text?.substring(0, 100));
-  console.log("[AI] generateText result.files:", result.files);
+  console.log("[AI] generateBaseImage result.text:", result.text?.substring(0, 100));
+  console.log("[AI] generateBaseImage result.files:", result.files);
 
-  // Extract generated image from result.files
-  if (!result.files || result.files.length === 0) {
+  return extractImageFromResult(result.files, result.text);
+}
+
+// ============================================================================
+// Logo Overlay (Flash exp model for compositing)
+// ============================================================================
+
+type LogoOverlayInput = {
+  baseImageDataUrl: string;
+  logoAsset: BrandAsset;
+};
+
+async function overlayLogo(input: LogoOverlayInput): Promise<string> {
+  const prompt = [
+    "Add the logo from the second image onto a natural, appropriate surface in the first image",
+    "(such as a corner badge, sign, device, or packaging).",
+    "Preserve all original details including any text in the image.",
+    "Match lighting, perspective, and texture so the logo appears naturally integrated.",
+    "Position the logo in a prominent but non-intrusive location.",
+    "Do not alter faces, key features, or existing text."
+  ].join(" ");
+
+  // Extract base64 from data URL
+  const baseImageBase64 = input.baseImageDataUrl.replace(/^data:[^;]+;base64,/, "");
+  const baseImageMimeType = input.baseImageDataUrl.match(/^data:([^;]+);/)?.[1] ?? "image/png";
+
+  const contentParts: ContentPart[] = [
+    { type: "text", text: prompt },
+    {
+      type: "file",
+      data: `data:${baseImageMimeType};base64,${baseImageBase64}`,
+      mediaType: baseImageMimeType
+    },
+    {
+      type: "file",
+      data: `data:${input.logoAsset.mimeType};base64,${input.logoAsset.dataBase64}`,
+      mediaType: input.logoAsset.mimeType
+    }
+  ];
+
+  const result = await generateText({
+    model: google("gemini-2.0-flash-exp"),
+    providerOptions: {
+      google: {
+        responseModalities: ["TEXT", "IMAGE"]
+      }
+    },
+    messages: [
+      {
+        role: "user",
+        content: contentParts
+      }
+    ]
+  });
+
+  console.log("[AI] overlayLogo result.text:", result.text?.substring(0, 100));
+  console.log("[AI] overlayLogo result.files:", result.files);
+
+  return extractImageFromResult(result.files, result.text);
+}
+
+// ============================================================================
+// Shared Image Extraction
+// ============================================================================
+
+function extractImageFromResult(
+  files: Array<{ mediaType: string; base64: string }> | undefined,
+  text: string | undefined
+): string {
+  if (!files || files.length === 0) {
     throw new AiCreativeError(
-      "Image generation response did not contain any files. Text: " + result.text?.substring(0, 200),
+      "Image generation response did not contain any files. Text: " + text?.substring(0, 200),
       "NO_FILES_IN_RESPONSE"
     );
   }
 
-  // Look for image in files
-  for (const file of result.files) {
+  for (const file of files) {
     console.log("[AI] File:", file);
-    
+
     // Check both base64 and base64Data properties
     const base64 = (file as any).base64 || (file as any).base64Data;
     const mediaType = (file as any).mediaType || (file as any).mimeType || "image/png";
-    
+
     if (base64) {
       console.log("[AI] Found image with mediaType:", mediaType);
-      // Return as data URL (base64Data is already a full data URL from Gemini)
       if (base64.startsWith("data:")) {
         return base64;
       }
@@ -81,85 +226,115 @@ export async function generateImageWithGeminiFlash(input: GeminiImageInput): Pro
   );
 }
 
-type CreativeGenerateInput = {
+// ============================================================================
+// Prompt Building
+// ============================================================================
+
+type ImageGenerateInput = {
   placement: PlacementSpecKey;
   brief: unknown;
   intentText?: string;
   brandAssets?: BrandAsset[];
 };
 
-const buildImagePrompt = (input: CreativeGenerateInput) => {
+function buildImagePrompt(input: ImageGenerateInput, aspectRatio: string): string {
   const spec = PLACEMENT_SPEC_BY_KEY[input.placement];
+  const brief = input.brief as Brief | undefined;
   const intentText = input.intentText?.trim();
-  return [
-    "Create a high-quality, brand-safe background image for an advertisement.",
-    `Placement size: ${spec.width}x${spec.height}.`,
-    intentText ? `Campaign intent: ${intentText}.` : "Use a versatile, modern marketing aesthetic.",
-    "Avoid adding text or logos unless provided via brand assets.",
-    `Brief: ${JSON.stringify(input.brief)}`
-  ].join(" ");
-};
+  const hook = brief?.proposedHook?.trim();
 
-const ensureBackgroundImage = (
-  html: string,
-  src: string,
-  assetId: string
-) => {
-  if (new RegExp(`data-asset-id=[\"']${assetId}[\"']`).test(html)) {
-    return html;
+  const promptParts: string[] = [
+    "Create a high-quality advertisement image."
+  ];
+
+  // Aspect ratio instruction
+  promptParts.push(`Generate the image at ${aspectRatio} aspect ratio (${spec.width}x${spec.height} pixels).`);
+
+  // Hook text - render the proposed hook in the image
+  if (hook) {
+    promptParts.push(
+      `IMPORTANT: Include this advertising text prominently and legibly in the image: "${hook}".`,
+      "The text should be styled to match the overall design aesthetic,",
+      "placed in a visually balanced position, and ensure high contrast for readability."
+    );
   }
 
-  const background = `
-    <div style="position:relative;width:100%;height:100%;">
-      <img data-asset-id="${assetId}" src="${src}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;" />
-      <div style="position:relative;z-index:1;width:100%;height:100%;">${html}</div>
-    </div>
-  `;
+  // Campaign intent
+  if (intentText) {
+    promptParts.push(`Campaign intent: ${intentText}.`);
+  } else {
+    promptParts.push("Use a versatile, modern marketing aesthetic.");
+  }
 
-  return background;
+  // Style guidance from brief
+  if (brief?.style?.tone) {
+    promptParts.push(`Tone: ${brief.style.tone}.`);
+  }
+  if (brief?.style?.keywords && brief.style.keywords.length > 0) {
+    promptParts.push(`Style keywords: ${brief.style.keywords.join(", ")}.`);
+  }
+
+  // Product/reference image instructions
+  promptParts.push(
+    "If product images are provided, incorporate them naturally into the composition.",
+    "If reference images are provided, use them as style and mood inspiration."
+  );
+
+  // Brief context
+  promptParts.push(`Brief context: ${JSON.stringify(input.brief)}`);
+
+  return promptParts.join(" ");
+}
+
+// ============================================================================
+// Main Image Generation
+// ============================================================================
+
+export type GenerateCreativeImageInput = {
+  placement: PlacementSpecKey;
+  brief: unknown;
+  intentText?: string;
+  brandAssets?: BrandAsset[];
 };
 
-export async function generateCreativeWithAi(input: CreativeGenerateInput) {
-  console.log("[AI] generateCreativeWithAi called with:", input);
-  const spec = PLACEMENT_SPEC_BY_KEY[input.placement];
-  const imagePrompt = buildImagePrompt(input);
+export type GenerateCreativeImageResult = {
+  imageDataUrl: string;
+  aspectRatio: string;
+};
+
+export async function generateCreativeImage(input: GenerateCreativeImageInput): Promise<GenerateCreativeImageResult> {
+  console.log("[AI] generateCreativeImage called with:", input);
+
+  const aspectRatio = placementToAspectRatio(input.placement);
+
+  // Group brand assets by kind
+  const { logos, products, references } = groupAssetsByKind(input.brandAssets ?? []);
+  console.log("[AI] Grouped assets - logos:", logos.length, "products:", products.length, "references:", references.length);
+
+  // Phase 1: Generate base image with products, references, and hook text
+  const imagePrompt = buildImagePrompt(input, aspectRatio);
   console.log("[AI] Image prompt:", imagePrompt);
-  const generatedImage = await generateImageWithGeminiFlash({
+
+  let imageDataUrl = await generateBaseImage({
     prompt: imagePrompt,
-    brandAssets: input.brandAssets
+    aspectRatio,
+    productAssets: products,
+    referenceAssets: references
   });
-  console.log("[AI] Generated image received");
+  console.log("[AI] Base image generated");
 
-  const result = await generateObject({
-    model: google("gemini-3-flash-preview"),
-    schema: zAiCreativeOutput,
-    system: [
-      "You are generating HTML for an ad creative.",
-      "Return JSON with keys: html, assets, warnings.",
-      "HTML must be self-contained, no external scripts or stylesheets, and no external asset URLs.",
-      "Prefer inline styles or utility classes. Avoid <script> and <link> tags.",
-      `Canvas size: ${spec.width}x${spec.height}.`,
-      "Keep the layout within safe margins and ensure text legibility."
-    ].join(" "),
-    prompt: JSON.stringify({
-      placement: input.placement,
-      brief: input.brief,
-      intentText: input.intentText
-    })
-  });
+  // Phase 2: Overlay logo if provided
+  if (logos.length > 0) {
+    console.log("[AI] Overlaying logo onto base image");
+    imageDataUrl = await overlayLogo({
+      baseImageDataUrl: imageDataUrl,
+      logoAsset: logos[0] // Use first logo
+    });
+    console.log("[AI] Logo overlay complete");
+  }
 
-  const assets = [...(result.object.assets ?? [])];
-  assets.push({ type: "image", label: "generated", dataUrl: generatedImage });
-
-  const htmlWithBackground = ensureBackgroundImage(
-    result.object.html,
-    generatedImage,
-    "background"
-  );
-  const sanitizedHtml = sanitizeCreativeHtml(htmlWithBackground);
   return {
-    ...result.object,
-    html: sanitizedHtml,
-    assets
+    imageDataUrl,
+    aspectRatio
   };
 }

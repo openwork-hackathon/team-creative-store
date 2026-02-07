@@ -1,17 +1,19 @@
 type AiCreativePreviewProps = {
-  html: string;
+  imageDataUrl: string;
+  aspectRatio: string;
   title?: string;
   className?: string;
 };
 
-export function AiCreativePreview({ html, title, className }: AiCreativePreviewProps) {
+export function AiCreativePreview({ imageDataUrl, aspectRatio, title, className }: AiCreativePreviewProps) {
   return (
-    <iframe
-      title={title ?? "AI creative preview"}
-      className={className ?? "h-64 w-full rounded-lg border border-border bg-white"}
-      sandbox="allow-forms allow-pointer-lock allow-popups allow-popups-to-escape-sandbox"
-      referrerPolicy="no-referrer"
-      srcDoc={html}
-    />
+    <div className={className ?? "relative w-full overflow-hidden rounded-lg border border-border bg-muted"}>
+      <img
+        src={imageDataUrl}
+        alt={title ?? "AI generated creative"}
+        className="h-auto w-full object-contain"
+        style={{ aspectRatio: aspectRatio.replace(":", "/") }}
+      />
+    </div>
   );
 }

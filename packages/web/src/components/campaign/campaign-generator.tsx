@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import {
   PLACEMENT_SPEC_BY_KEY,
-  type AiCreativeOutput,
+  type GeneratedImage,
   type BrandAsset,
   type PlacementSpecKey
 } from "@creative-store/shared";
@@ -32,7 +32,7 @@ export function CampaignGenerator({ projectId, api }: CampaignGeneratorProps) {
   const [brandAssets, setBrandAssets] = useState<BrandAsset[]>([]);
   const [isGeneratingBrief, setIsGeneratingBrief] = useState(false);
   const [creatives, setCreatives] = useState<
-    Partial<Record<PlacementSpecKey, { creative?: AiCreativeOutput; loading?: boolean; error?: string }>>
+    Partial<Record<PlacementSpecKey, { image?: GeneratedImage; loading?: boolean; error?: string }>>
   >({});
 
   const fileToBrandAsset = (file: File, kind: BrandAsset["kind"]) =>
@@ -97,12 +97,12 @@ export function CampaignGenerator({ projectId, api }: CampaignGeneratorProps) {
         placement,
         brandAssets: brandAssets.length > 0 ? brandAssets : undefined
       });
-      if (!response?.creative) {
-        throw new Error("No creative returned");
+      if (!response?.image) {
+        throw new Error("No image returned");
       }
       setCreatives((prev) => ({
         ...prev,
-        [placement]: { creative: response.creative, loading: false }
+        [placement]: { image: response.image, loading: false }
       }));
     } catch (error) {
       setCreatives((prev) => ({
@@ -209,32 +209,14 @@ export function CampaignGenerator({ projectId, api }: CampaignGeneratorProps) {
                   </div>
                 )}
 
-                {state?.creative && (
-                  <div className="mt-4 space-y-4">
+                {state?.image && (
+                  <div className="mt-4">
                     <AiCreativePreview
-                      html={state.creative.html}
+                      imageDataUrl={state.image.imageDataUrl}
+                      aspectRatio={state.image.aspectRatio}
                       title={`${spec.label} preview`}
-                      className="h-72 w-full rounded-lg border border-border bg-white"
+                      className="w-full max-w-md rounded-lg border border-border bg-muted"
                     />
-                    {state.creative.warnings && state.creative.warnings.length > 0 && (
-                      <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-600">
-                        <span className="font-semibold">Warnings:</span> {state.creative.warnings.join(" • ")}
-                      </div>
-                    )}
-                    {state.creative.assets && state.creative.assets.length > 0 && (
-                      <div className="text-sm text-muted-foreground">
-                        <span className="font-semibold text-foreground">Assets:</span>
-                        <ul className="mt-2 list-disc pl-5 space-y-1">
-                          {state.creative.assets.map((asset, index) => (
-                            <li key={`${asset.label ?? "asset"}-${index}`}>
-                              {asset.label ?? "Asset"}
-                              {asset.type ? ` · ${asset.type}` : ""}
-                              {asset.url ? ` · ${asset.url}` : ""}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
                   </div>
                 )}
               </div>

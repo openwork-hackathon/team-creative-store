@@ -123,7 +123,7 @@ describe("AI routes", () => {
     expect(payload.stepCount).toBe(1);
   });
 
-  it("generates creatives and stores a sanitized draft", async () => {
+  it("generates image and stores draft", async () => {
     process.env.GOOGLE_GENERATIVE_AI_API_KEY = "test-key";
     mockGenerateText.mockResolvedValueOnce({
       files: [
@@ -132,14 +132,6 @@ describe("AI routes", () => {
           base64: "aGVsbG8="
         }
       ]
-    });
-
-    mockGenerateObject.mockResolvedValueOnce({
-      object: {
-        html: '<div><script>alert("x")</script><p>Hi</p></div>',
-        assets: [{ label: "Logo" }],
-        warnings: []
-      }
     });
 
     const prisma = createMemoryPrisma();
@@ -155,16 +147,106 @@ describe("AI routes", () => {
     });
 
     const payload = await response.json();
-    expect(payload.creative.html).toContain("<p>Hi</p>");
-    expect(payload.creative.html).not.toContain("<script");
-    expect(payload.creative.assets).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          dataUrl: "data:image/png;base64,aGVsbG8="
-        })
-      ])
-    );
-    expect(payload.draft.draftJson.creative.html).not.toContain("<script");
+    expect(payload.image.imageDataUrl).toBe("data:image/png;base64,aGVsbG8=");
+    expect(payload.image.aspectRatio).toBe("1:1");
+    expect(payload.draft.draftJson.imageDataUrl).toBe("data:image/png;base64,aGVsbG8=");
+    expect(payload.draft.draftJson.aspectRatio).toBe("1:1");
+  });
+
+  it("generates image with logo overlay when logo asset provided", async () => {
+    process.env.GOOGLE_GENERATIVE_AI_API_KEY = "test-key";
+    
+    // Phase 1: Base image generation
+    mockGenerateText.mockResolvedValueOnce({
+      files: [{ mediaType: "image/png", base64: "YmFzZV9pbWFnZQ==" }]
+    });
+    
+    // Phase 2: Logo overlay
+    mockGenerateText.mockResolvedValueOnce({
+      files: [{ mediaType: "image/png", base64: "bG9nb19vdmVybGF5" }]
+    });
+
+    const prisma = createMemoryPrisma();
+    const app = createApp({
+      prisma,
+      getSession: async () => ({ user: { id: "user_1" } })
+    });
+
+    const response = await app.request("/api/ai/creative/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        briefId: "brief_1",
+        placement: "square_1_1",
+        brandAssets: [
+          {
+            kind: "logo",
+            mimeType: "image/png",
+            dataBase64: "bG9nbw==",
+            name: "Brand Logo"
+          }
+        ]
+      })
+    });
+
+    expect(response.status).toBe(200);
+    const payload = await response.json();
+    
+    // Should have 2 generateText calls (base + logo overlay)
+    expect(mockGenerateText).toHaveBeenCalledTimes(2);
+    
+    // Final image should be the logo overlay result
+    expect(payload.image.imageDataUrl).toBe("data:image/png;base64,bG9nb19vdmVybGF5");
+  });
+
+  it("generates image with product and reference assets", async () => {
+    process.env.GOOGLE_GENERATIVE_AI_API_KEY = "test-key";
+    
+    mockGenerateText.mockResolvedValueOnce({
+      files: [{ mediaType: "image/png", base64: "cHJvZHVjdF9pbWFnZQ==" }]
+    });
+
+    const prisma = createMemoryPrisma();
+    const app = createApp({
+      prisma,
+      getSession: async () => ({ user: { id: "user_1" } })
+    });
+
+    const response = await app.request("/api/ai/creative/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        briefId: "brief_1",
+        placement: "feed_4_5",
+        brandAssets: [
+          {
+            kind: "product",
+            mimeType: "image/jpeg",
+            dataBase64: "cHJvZHVjdA==",
+            name: "Product Shot"
+          },
+          {
+            kind: "reference",
+            mimeType: "image/png",
+            dataBase64: "cmVmZXJlbmNl",
+            name: "Mood Board"
+          }
+        ]
+      })
+    });
+
+    expect(response.status).toBe(200);
+    const payload = await response.json();
+    
+    // Should only have 1 generateText call (no logo overlay needed)
+    expect(mockGenerateText).toHaveBeenCalledTimes(1);
+    
+    // Verify the call included product and reference assets
+    const callArgs = mockGenerateText.mock.calls[0][0];
+    expect(callArgs.messages[0].content).toHaveLength(3); // prompt + product + reference
+    
+    // Verify aspect ratio is correct for feed_4_5
+    expect(payload.image.aspectRatio).toBe("4:5");
   });
 
   it("returns error when AI generation fails", async () => {

@@ -23,7 +23,8 @@
     "react-dom": "^18.3.1",
     "tailwind-merge": "^2.5.2",
     "viem": "^2.45.1",
-    "wagmi": "^3.4.2"
+    "wagmi": "^3.4.2",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@tanstack/router-devtools": "^1.100.0",

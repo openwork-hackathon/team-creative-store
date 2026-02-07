@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   PLACEMENT_SPEC_BY_KEY,
   type AiCreativeOutput,
@@ -20,12 +20,12 @@ const DEFAULT_PLACEMENTS: PlacementSpecKey[] = [
 ];
 
 type CampaignGeneratorProps = {
+  projectId: string;
   api?: ApiClient;
 };
 
-export function CampaignGenerator({ api }: CampaignGeneratorProps) {
+export function CampaignGenerator({ projectId, api }: CampaignGeneratorProps) {
   const apiClient = useMemo(() => api ?? createApiClient(), [api]);
-  const [projectId, setProjectId] = useState<string | null>(null);
   const [briefId, setBriefId] = useState<string | null>(null);
   const [intent, setIntent] = useState("");
   const [summary, setSummary] = useState(() => getBriefSummary({}));
@@ -65,30 +65,6 @@ export function CampaignGenerator({ api }: CampaignGeneratorProps) {
       return;
     }
   };
-
-  useEffect(() => {
-    let mounted = true;
-    apiClient
-      .listProjects()
-      .then((response: { projects?: Array<{ id: string }> }) => {
-        if (!mounted) return;
-        if (response.projects && response.projects.length > 0) {
-          setProjectId(response.projects[0].id);
-          return;
-        }
-        return apiClient
-          .createProject("My First Project")
-          .then((created: { project?: { id: string } }) => {
-            if (!mounted) return;
-            setProjectId(created.project?.id ?? null);
-          });
-      })
-      .catch(() => undefined);
-
-    return () => {
-      mounted = false;
-    };
-  }, [apiClient]);
 
   const handleGenerate = async () => {
     if (!projectId || intent.trim().length === 0) return;

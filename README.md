@@ -17,15 +17,13 @@ Creative Store is a full-stack platform that combines AI-powered creative genera
 - **Template-Based Editor**: Fine-tune AI-generated creatives with an intuitive editor
 
 ### 📐 Multi-Size Preview & Auto-Adapt
-Support for 6 fixed placement specifications:
-| Spec | Dimensions | Use Case |
-|------|------------|----------|
-| 1:1 | 1080×1080 | Social media posts |
-| 4:5 | 1080×1350 | Instagram portrait |
-| 9:16 | 1080×1920 | Stories, Reels, TikTok |
-| 16:9 | 1920×1080 | YouTube, presentations |
-| Ultrawide | 2560×720 | Banner ads |
-| TV 4K | 3840×2160 | Digital signage |
+Preview creatives across 20+ standard ad placements organized by device:
+
+| Device | Ad Types |
+|--------|----------|
+| Mobile | Banner, Medium Rectangle, Interstitial |
+| Tablet | Leaderboard, Rectangle, Interstitial |
+| Desktop | Leaderboard, Rectangle, Sidebar, Banner |
 
 ### 🛒 Marketplace
 - **Browse & Discover**: Filter by category, asset type, price range

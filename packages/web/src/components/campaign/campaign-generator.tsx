@@ -212,7 +212,7 @@ export function CampaignGenerator({ projectId, api }: CampaignGeneratorProps) {
                 {state?.image && (
                   <div className="mt-4">
                     <AiCreativePreview
-                      imageDataUrl={state.image.imageDataUrl}
+                      imageUrl={state.image.imageUrl}
                       aspectRatio={state.image.aspectRatio}
                       title={`${spec.label} preview`}
                       className="w-full max-w-md rounded-lg border border-border bg-muted"

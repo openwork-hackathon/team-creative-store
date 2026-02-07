@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@ai-sdk/google": "^3.0.22",
+    "@aws-sdk/client-s3": "^3.985.0",
     "@creative-store/db": "file:../db",
     "@creative-store/shared": "file:../shared",
     "@hono/node-server": "^1.13.7",

@@ -11,6 +11,7 @@ import { generateCreativeImage, AiCreativeError } from "./ai-creative";
 import { parseBriefWithAi, AiBriefError } from "./ai-brief";
 import { createProjectRoutes, AppEnv, SessionUser } from "./project";
 import { createMarketRoutes } from "./market";
+import { dataUrlToBuffer, mimeTypeToExtension, StorageError, type S3Storage } from "./storage";
 
 type Session = { user: SessionUser } | null;
 
@@ -83,6 +84,7 @@ type PrismaLike = {
 type AppDeps = {
   prisma: PrismaLike;
   getSession: (headers: Headers) => Promise<Session>;
+  storage: S3Storage;
 };
 
 type UploadedFileInfo = {
@@ -100,7 +102,7 @@ const collectFiles = (value: unknown): File[] => {
 const mapFiles = (files: File[]): UploadedFileInfo[] =>
   files.map((file) => ({ name: file.name, size: file.size, type: file.type }));
 
-export function createApp({ prisma, getSession }: AppDeps) {
+export function createApp({ prisma, getSession, storage }: AppDeps) {
   const app = new Hono<AppEnv>();
 
   app.use("*", async (c, next) => {
@@ -231,20 +233,38 @@ export function createApp({ prisma, getSession }: AppDeps) {
           brandAssets: input.brandAssets
         });
 
+        // Convert base64 data URL to buffer and upload to S3
+        const { buffer, mimeType } = dataUrlToBuffer(result.imageDataUrl);
+        const extension = mimeTypeToExtension(mimeType);
+        const timestamp = Date.now();
+        const s3Key = `creative-store-images/drafts/${input.briefId}/${timestamp}.${extension}`;
+
+        const uploadResult = await storage.uploadImage({
+          key: s3Key,
+          data: buffer,
+          contentType: mimeType
+        });
+
         const draft = await prisma.draft.create({
           data: {
             briefId: input.briefId,
             draftJson: {
               placement: input.placement,
-              imageDataUrl: result.imageDataUrl,
+              imageUrl: uploadResult.url,
               aspectRatio: result.aspectRatio
             }
           }
         });
 
-        return c.json({ draft, image: result });
+        return c.json({
+          draft,
+          image: { imageUrl: uploadResult.url, aspectRatio: result.aspectRatio }
+        });
       } catch (error) {
         if (error instanceof AiCreativeError) {
+          return c.json({ error: error.message, code: error.code }, 500);
+        }
+        if (error instanceof StorageError) {
           return c.json({ error: error.message, code: error.code }, 500);
         }
         const message = error instanceof Error ? error.message : "AI creative generation failed";

@@ -1,5 +1,14 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { createApp } from "./app";
+import type { S3Storage } from "./storage";
+
+// Create mock storage
+const createMockStorage = (): S3Storage => ({
+  uploadImage: vi.fn().mockImplementation(async ({ key }) => ({
+    url: `https://test-bucket.s3.us-east-1.amazonaws.com/${key}`,
+    key
+  }))
+});
 
 type Project = { id: string; name: string; userId: string; status: string; imageUrl: string | null; createdAt: Date; updatedAt: Date };
 type Brief = { id: string; projectId: string; intentText: string; briefJson: unknown; constraints: unknown };
@@ -56,7 +65,8 @@ describe("createApp", () => {
     const prisma = createMemoryPrisma();
     const app = createApp({
       prisma,
-      getSession: async () => ({ user: { id: "user_1" } })
+      getSession: async () => ({ user: { id: "user_1" } }),
+      storage: createMockStorage()
     });
 
     const createResponse = await app.request("/api/projects", {
@@ -77,7 +87,8 @@ describe("createApp", () => {
     const prisma = createMemoryPrisma();
     const app = createApp({
       prisma,
-      getSession: async () => ({ user: { id: "user_1", email: "test@example.com" } })
+      getSession: async () => ({ user: { id: "user_1", email: "test@example.com" } }),
+      storage: createMockStorage()
     });
 
     const response = await app.request("/api/user/@me");
@@ -90,7 +101,8 @@ describe("createApp", () => {
     const prisma = createMemoryPrisma();
     const app = createApp({
       prisma,
-      getSession: async () => ({ user: { id: "user_1" } })
+      getSession: async () => ({ user: { id: "user_1" } }),
+      storage: createMockStorage()
     });
 
     const formData = new FormData();
@@ -113,7 +125,8 @@ describe("createApp", () => {
     const prisma = createMemoryPrisma();
     const app = createApp({
       prisma,
-      getSession: async () => ({ user: { id: "user_1" } })
+      getSession: async () => ({ user: { id: "user_1" } }),
+      storage: createMockStorage()
     });
 
     const projectResponse = await app.request("/api/projects", {

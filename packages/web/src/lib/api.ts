@@ -124,10 +124,11 @@ export function createApiClient(
       }).then((response) => response.json()),
     listProjects: async (): Promise<ProjectsResponse> =>
       request(`${baseUrl}/projects`).then((response) => response.json()),
-    getProjects: async (search?: string, status?: ProjectStatus): Promise<ProjectsResponse> => {
+    getProjects: async (search?: string, status?: ProjectStatus, recency?: string): Promise<ProjectsResponse> => {
       const params = new URLSearchParams();
       if (search) params.set("search", search);
       if (status) params.set("status", status);
+      if (recency) params.set("recency", recency);
       const query = params.toString();
       return request(`${baseUrl}/projects${query ? `?${query}` : ""}`).then((response) => response.json());
     },

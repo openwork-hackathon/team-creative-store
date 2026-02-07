@@ -1,17 +1,21 @@
 export type ProjectStatus = "draft" | "generating" | "ready" | "published";
 
+export type RecencyFilter = "today" | "week" | "month" | "all";
+
 export interface Project {
   id: string;
   title: string;
   status: ProjectStatus;
   imageUrl: string;
   updatedAt: string;
+  createdAt?: string;
 }
 
-export interface ProjectFilter {
+export interface ProjectFilters {
+  search?: string;
   status?: ProjectStatus;
   industry?: string;
-  recency?: string;
+  recency?: RecencyFilter;
 }
 
 export type LicenseType = "standard" | "extended" | "exclusive";

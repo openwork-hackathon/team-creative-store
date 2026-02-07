@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { createApiClient, type MarketplaceQuery } from "@/lib/api";
 import {
   FilterDropdown,
@@ -10,24 +10,45 @@ import {
 
 const api = createApiClient();
 
+// Debounce hook
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}
+
+// Device options (for filtering by target device)
+const deviceOptions = [
+  { value: "mobile", label: "Mobile" },
+  { value: "desktop", label: "Desktop" },
+  { value: "tablet", label: "Tablet" },
+  { value: "tv", label: "TV" }
+];
+
 export function MarketPage() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const debouncedSearch = useDebounce(searchQuery, 300);
   const [assetType, setAssetType] = useState("");
   const [licenseType, setLicenseType] = useState("");
+  const [device, setDevice] = useState("");
   const [priceMin, setPriceMin] = useState("");
   const [priceMax, setPriceMax] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Debounce search input
-  const handleSearchChange = (value: string) => {
-    setSearchQuery(value);
-    // Simple debounce
-    setTimeout(() => {
-      setDebouncedSearch(value);
-      setCurrentPage(1);
-    }, 300);
-  };
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearch, assetType, licenseType, device, priceMin, priceMax]);
 
   // Build query params
   const queryParams: MarketplaceQuery = useMemo(() => {
@@ -68,167 +89,150 @@ export function MarketPage() {
 
   const handleClearFilters = () => {
     setSearchQuery("");
-    setDebouncedSearch("");
     setAssetType("");
     setLicenseType("");
+    setDevice("");
     setPriceMin("");
     setPriceMax("");
     setCurrentPage(1);
   };
 
-  const hasActiveFilters = debouncedSearch || assetType || licenseType || priceMin || priceMax;
+  const hasActiveFilters = debouncedSearch || assetType || licenseType || device || priceMin || priceMax;
 
   return (
-    <div className="mx-auto w-full max-w-[1280px] px-4 py-8 lg:px-10">
-      {/* Page Header */}
-      <div className="mb-8">
-        <h1 className="mb-2 text-3xl font-black leading-tight tracking-[-0.033em] text-foreground md:text-4xl">
-          AI Creative Marketplace
-        </h1>
-        <p className="text-base text-muted-foreground">
-          Discover and purchase AI-generated creative assets, templates, and ad kits
-        </p>
-      </div>
-
-      {/* Search and Filters Section */}
-      <div className="mb-8 space-y-4">
-        {/* Search Input */}
-        <div className="flex flex-col gap-4 md:flex-row">
-          <div className="flex-1">
-            <label className="flex w-full flex-col">
-              <div className="flex h-12 w-full items-stretch rounded-xl border border-border bg-card transition-all focus-within:ring-2 focus-within:ring-primary/50">
-                <div className="flex items-center justify-center pl-4 pr-2 text-muted-foreground">
+    <div className="min-h-screen bg-background-light dark:bg-background-dark">
+      {/* Main Content */}
+      <main className="mx-auto max-w-[1280px] w-full px-4 py-8 lg:px-10">
+        {/* Search and Filters Section */}
+        <div className="mb-8 space-y-4">
+          {/* Search Input */}
+          <div className="flex flex-col gap-4 md:flex-row">
+            <div className="flex-1">
+              <div className="flex h-12 w-full items-stretch rounded-xl border border-slate-200 bg-white transition-all focus-within:ring-2 focus-within:ring-primary/50 dark:border-[#2d3a54] dark:bg-[#1b2537]">
+                <div className="flex items-center justify-center pl-4 pr-2 text-slate-400">
                   <span className="material-symbols-outlined">search</span>
                 </div>
                 <input
                   type="text"
-                  className="flex w-full border-none bg-transparent px-2 text-base font-normal text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-0"
+                  className="flex w-full border-none bg-transparent px-2 text-base font-normal text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-0 dark:text-white"
                   placeholder="Search AI creatives, ads, and templates..."
                   value={searchQuery}
-                  onChange={(e) => handleSearchChange(e.target.value)}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                 />
                 {searchQuery && (
                   <button
                     type="button"
-                    onClick={() => handleSearchChange("")}
-                    className="flex items-center justify-center px-3 text-muted-foreground transition-colors hover:text-foreground"
+                    onClick={() => setSearchQuery("")}
+                    className="flex items-center justify-center px-3 text-slate-400 transition-colors hover:text-slate-600"
                   >
                     <span className="material-symbols-outlined text-lg">close</span>
                   </button>
                 )}
               </div>
-            </label>
+            </div>
           </div>
-        </div>
 
-        {/* Filter Chips */}
-        <div className="flex items-center gap-3 overflow-x-auto pb-2">
-          <PriceRangeFilter
-            priceMin={priceMin}
-            priceMax={priceMax}
-            onPriceMinChange={(v) => {
-              setPriceMin(v);
-              setCurrentPage(1);
-            }}
-            onPriceMaxChange={(v) => {
-              setPriceMax(v);
-              setCurrentPage(1);
-            }}
-          />
+          {/* Filter Chips */}
+          <div className="flex items-center gap-3 overflow-x-auto pb-2">
+            <PriceRangeFilter
+              priceMin={priceMin}
+              priceMax={priceMax}
+              onPriceMinChange={setPriceMin}
+              onPriceMaxChange={setPriceMax}
+            />
 
-          <FilterDropdown
-            label="Asset Type"
-            options={assetTypes}
-            value={assetType}
-            onChange={(v) => {
-              setAssetType(v);
-              setCurrentPage(1);
-            }}
-          />
+            <FilterDropdown
+              label="Asset Type"
+              options={assetTypes}
+              value={assetType}
+              onChange={setAssetType}
+            />
 
-          <FilterDropdown
-            label="License"
-            options={licenseTypes}
-            value={licenseType}
-            onChange={(v) => {
-              setLicenseType(v);
-              setCurrentPage(1);
-            }}
-          />
+            <FilterDropdown
+              label="Device"
+              options={deviceOptions}
+              value={device}
+              onChange={setDevice}
+            />
 
-          {hasActiveFilters && (
-            <>
-              <div className="mx-2 h-6 w-px bg-border" />
+            <FilterDropdown
+              label="License"
+              options={licenseTypes}
+              value={licenseType}
+              onChange={setLicenseType}
+            />
+
+            {/* Separator and More Filters */}
+            <div className="mx-2 h-6 w-px bg-slate-200 dark:bg-[#2d3a54]" />
+
+            <button
+              type="button"
+              className="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-primary/10 px-4 text-primary transition-colors hover:bg-primary/20"
+            >
+              <span className="material-symbols-outlined text-[18px]">filter_list</span>
+              <p className="text-sm font-semibold">More Filters</p>
+            </button>
+
+            {/* Clear Filters */}
+            {hasActiveFilters && (
               <button
                 type="button"
                 onClick={handleClearFilters}
-                className="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-primary/10 px-4 text-primary transition-colors hover:bg-primary/20"
+                className="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-lg border border-slate-200 bg-white px-4 text-slate-600 transition-colors hover:bg-slate-50 dark:border-[#2d3a54] dark:bg-[#1b2537] dark:text-slate-300 dark:hover:bg-slate-800"
               >
                 <span className="material-symbols-outlined text-[18px]">filter_list_off</span>
-                <p className="text-sm font-semibold">Clear Filters</p>
+                <p className="text-sm font-medium">Clear</p>
               </button>
-            </>
-          )}
-        </div>
-      </div>
-
-      {/* Results Info */}
-      <div className="mb-6 flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
-          {listingsQuery.isLoading ? (
-            "Loading..."
-          ) : (
-            <>
-              Showing <span className="font-semibold text-foreground">{listings.length}</span> of{" "}
-              <span className="font-semibold text-foreground">{pagination.total}</span> results
-            </>
-          )}
-        </p>
-      </div>
-
-      {/* Marketplace Grid */}
-      {listingsQuery.isLoading ? (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="animate-pulse rounded-xl border border-border bg-card">
-              <div className="aspect-[4/3] bg-muted" />
-              <div className="p-4 space-y-3">
-                <div className="h-5 w-3/4 rounded bg-muted" />
-                <div className="h-4 w-1/2 rounded bg-muted" />
-                <div className="h-6 w-1/3 rounded bg-muted" />
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : listings.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border bg-card/50 px-6 py-20 text-center">
-          <div className="mb-6 flex size-20 items-center justify-center rounded-full bg-muted">
-            <span className="material-symbols-outlined text-4xl text-muted-foreground">search_off</span>
+            )}
           </div>
-          <h3 className="mb-2 text-xl font-bold text-foreground">No Results Found</h3>
-          <p className="mb-6 max-w-md text-muted-foreground">
-            We couldn't find any creatives matching your search criteria. Try adjusting your filters or search terms.
-          </p>
         </div>
-      ) : (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {listings.map((listing) => (
-            <MarketplaceCard
-              key={listing.id}
-              listing={listing}
-            />
-          ))}
-        </div>
-      )}
 
-      {/* Pagination Section */}
-      <div className="mb-8 mt-12 flex items-center justify-center">
-        <Pagination
-          currentPage={pagination.page}
-          totalPages={pagination.totalPages}
-          onPageChange={setCurrentPage}
-        />
-      </div>
+        {/* Marketplace Grid */}
+        {listingsQuery.isLoading ? (
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div
+                key={i}
+                className="animate-pulse overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-[#2d3a54] dark:bg-[#1b2537]"
+              >
+                <div className="aspect-[4/3] bg-slate-100 dark:bg-slate-800" />
+                <div className="space-y-3 p-4">
+                  <div className="h-5 w-3/4 rounded bg-slate-100 dark:bg-slate-800" />
+                  <div className="h-4 w-1/2 rounded bg-slate-100 dark:bg-slate-800" />
+                  <div className="h-6 w-1/3 rounded bg-slate-100 dark:bg-slate-800" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : listings.length === 0 ? (
+          <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-200 bg-white/50 px-6 py-20 text-center dark:border-slate-700 dark:bg-slate-900/50">
+            <div className="mb-6 flex size-20 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
+              <span className="material-symbols-outlined text-4xl text-slate-400">search_off</span>
+            </div>
+            <h3 className="mb-2 text-xl font-bold text-slate-900 dark:text-white">No Results Found</h3>
+            <p className="mb-6 max-w-md text-slate-500 dark:text-slate-400">
+              We couldn't find any creatives matching your search criteria. Try adjusting your filters or search terms.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {listings.map((listing) => (
+              <MarketplaceCard key={listing.id} listing={listing} />
+            ))}
+          </div>
+        )}
+
+        {/* Pagination Section */}
+        {!listingsQuery.isLoading && listings.length > 0 && (
+          <div className="mb-8 mt-12 flex items-center justify-center">
+            <Pagination
+              currentPage={pagination.page}
+              totalPages={pagination.totalPages}
+              onPageChange={setCurrentPage}
+            />
+          </div>
+        )}
+      </main>
     </div>
   );
 }

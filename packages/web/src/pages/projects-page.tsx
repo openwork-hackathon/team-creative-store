@@ -6,8 +6,8 @@ import {
   ProjectGrid,
   ProjectFab,
   PublishModal,
-  type Project,
   type ProjectStatus,
+  type RecencyFilter,
   type PublishFormData
 } from "@/components/project";
 import { createApiClient, type PublishProjectInput } from "@/lib/api";
@@ -47,11 +47,13 @@ export function ProjectsPage() {
 
   // Filter state
   const [statusFilter, setStatusFilter] = useState<ProjectStatus | undefined>();
+  const [industryFilter, setIndustryFilter] = useState<string | undefined>();
+  const [recencyFilter, setRecencyFilter] = useState<RecencyFilter | undefined>();
 
-  // Fetch projects from API with search and status filters
+  // Fetch projects from API with search, status, and recency filters
   const { data, isLoading, error } = useQuery({
-    queryKey: ["projects", debouncedSearch, statusFilter],
-    queryFn: () => api.getProjects(debouncedSearch || undefined, statusFilter)
+    queryKey: ["projects", debouncedSearch, statusFilter, recencyFilter],
+    queryFn: () => api.getProjects(debouncedSearch || undefined, statusFilter, recencyFilter)
   });
 
   // Publish mutation
@@ -67,7 +69,6 @@ export function ProjectsPage() {
         includeSourceFiles: data.includeSourceFiles
       }),
     onSuccess: () => {
-      // Invalidate projects query to refresh the list
       queryClient.invalidateQueries({ queryKey: ["projects"] });
     }
   });
@@ -76,16 +77,11 @@ export function ProjectsPage() {
   const deleteMutation = useMutation({
     mutationFn: (projectId: string) => api.deleteProject(projectId),
     onSuccess: () => {
-      // Invalidate projects query to refresh the list
       queryClient.invalidateQueries({ queryKey: ["projects"] });
     }
   });
 
   const projects = data?.projects ?? [];
-
-  // Additional filter state (not yet implemented in backend)
-  const [industryFilter, setIndustryFilter] = useState<string | undefined>();
-  const [recencyFilter, setRecencyFilter] = useState<string | undefined>();
 
   // Delete confirmation state
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
@@ -103,12 +99,6 @@ export function ProjectsPage() {
     return projects.find((p) => p.id === publishingProjectId) ?? null;
   }, [publishingProjectId, projects]);
 
-  // Projects are already filtered by backend via getProjects API
-  // Additional client-side filtering for industry/recency could be added here
-  const filteredProjects = useMemo(() => {
-    return projects;
-  }, [projects]);
-
   const handleSelect = (id: string, selected: boolean) => {
     setSelectedIds((prev) => {
       const next = new Set(prev);
@@ -122,23 +112,19 @@ export function ProjectsPage() {
   };
 
   const handleEdit = (id: string) => {
-    // Navigate to project editor
     navigate({ to: "/creative-studio", search: { projectId: id } });
   };
 
   const handlePreview = (id: string) => {
-    // Open preview modal or navigate to preview page
     console.log("Preview project:", id);
   };
 
   const handleMenuClick = (id: string) => {
-    // Open context menu
     console.log("Menu clicked for project:", id);
   };
 
   const handleNewProject = () => {
-    // Navigate to create new project
-    navigate({ to: "/creative-studio" });
+    navigate({ to: "/projects/new" });
   };
 
   const handleEditSelection = () => {
@@ -163,9 +149,7 @@ export function ProjectsPage() {
   const handleDeleteSelection = () => {
     if (selectedIds.size === 0) return;
 
-    // For multiple selections, confirm and delete all
     if (window.confirm(`Are you sure you want to delete ${selectedIds.size} project(s)? This action cannot be undone.`)) {
-      // Delete all selected projects
       Promise.all(Array.from(selectedIds).map(id => deleteMutation.mutateAsync(id)))
         .then(() => {
           setSelectedIds(new Set());
@@ -221,7 +205,6 @@ export function ProjectsPage() {
         },
         onError: (error) => {
           console.error("Failed to publish project:", error);
-          // TODO: Show error toast to user
         }
       }
     );
@@ -229,39 +212,12 @@ export function ProjectsPage() {
 
   const handleSaveDraft = useCallback((data: PublishFormData) => {
     console.log("Saving draft:", publishingProjectId, data);
-    // TODO: Call API to save draft
     setPublishModalOpen(false);
     setPublishingProjectId(null);
   }, [publishingProjectId]);
 
   return (
     <div className="mx-auto w-full max-w-[1440px] px-6 py-6">
-      {/* Page Header */}
-      <div className="mb-6">
-        <h1 className="mb-2 text-3xl font-black leading-tight tracking-[-0.033em] text-foreground md:text-4xl">
-          Projects
-        </h1>
-        <p className="text-base text-muted-foreground">
-          Manage your AI creative projects, campaigns, and assets
-        </p>
-      </div>
-
-      {/* Search Bar */}
-      <div className="mb-4">
-        <div className="relative">
-          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-            search
-          </span>
-          <input
-            type="text"
-            placeholder="Search projects..."
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            className="w-full rounded-lg border border-border bg-background py-2 pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-          />
-        </div>
-      </div>
-
       {/* Filter Bar */}
       <div className="mb-6">
         <ProjectFilterBar
@@ -272,6 +228,7 @@ export function ProjectsPage() {
           onIndustryChange={setIndustryFilter}
           onRecencyChange={setRecencyFilter}
           hasSelection={selectedIds.size > 0}
+          selectionCount={selectedIds.size}
           onEditSelection={handleEditSelection}
           onPreviewSelection={handlePreviewSelection}
           onArchiveSelection={handleArchiveSelection}
@@ -280,29 +237,13 @@ export function ProjectsPage() {
       </div>
 
       {/* Project Grid */}
-      {isLoading ? (
+      {error ? (
         <div className="flex items-center justify-center py-12">
-          <div className="text-muted-foreground">Loading projects...</div>
-        </div>
-      ) : error ? (
-        <div className="flex items-center justify-center py-12">
-          <div className="text-destructive">Failed to load projects. Please try again.</div>
-        </div>
-      ) : filteredProjects.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-12">
-          <div className="text-muted-foreground mb-4">No projects yet</div>
-          <button
-            type="button"
-            onClick={handleNewProject}
-            className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-          >
-            <span className="material-symbols-outlined text-base">add</span>
-            Create your first project
-          </button>
+          <div className="text-red-500">Failed to load projects. Please try again.</div>
         </div>
       ) : (
         <ProjectGrid
-          projects={filteredProjects}
+          projects={projects}
           selectedIds={selectedIds}
           onSelect={handleSelect}
           onEdit={handleEdit}
@@ -310,6 +251,7 @@ export function ProjectsPage() {
           onMenuClick={handleMenuClick}
           onPublish={handlePublishClick}
           onDelete={handleDeleteProject}
+          isLoading={isLoading}
         />
       )}
 
@@ -328,23 +270,23 @@ export function ProjectsPage() {
       {/* Delete Confirmation Dialog */}
       {deleteConfirmId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="mx-4 w-full max-w-md rounded-lg bg-card p-6 shadow-lg">
-            <h3 className="mb-4 text-lg font-semibold text-foreground">Delete Project?</h3>
-            <p className="mb-6 text-muted-foreground">
+          <div className="mx-4 w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-slate-700 dark:bg-slate-900">
+            <h3 className="mb-4 text-lg font-bold text-slate-900 dark:text-white">Delete Project?</h3>
+            <p className="mb-6 text-slate-500 dark:text-slate-400">
               Are you sure you want to delete this project? This action cannot be undone.
             </p>
             <div className="flex justify-end gap-3">
               <button
                 type="button"
                 onClick={cancelDelete}
-                className="rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+                className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={confirmDelete}
-                className="rounded-lg bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90"
+                className="rounded-lg bg-red-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-600"
               >
                 Delete
               </button>

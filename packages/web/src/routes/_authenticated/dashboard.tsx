@@ -33,16 +33,16 @@ function DashboardRoute() {
     })) || [];
 
   const handleNewProject = () => {
-    navigate({ to: "/generator" });
+    navigate({ to: "/projects/new" });
   };
 
   const handleEnterGenerator = () => {
-    navigate({ to: "/generator" });
+    navigate({ to: "/creative-studio" });
   };
 
   const handleProjectAction = (projectId: string, action: string) => {
     if (action === "continue") {
-      navigate({ to: "/generator" });
+      navigate({ to: "/creative-studio", search: { projectId } });
     }
   };
 

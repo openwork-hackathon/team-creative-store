@@ -17,6 +17,7 @@ import { Route as AuthenticatedProjectsRouteImport } from "./routes/_authenticat
 import { Route as AuthenticatedMarketRouteImport } from "./routes/_authenticated/market"
 import { Route as AuthenticatedDashboardRouteImport } from "./routes/_authenticated/dashboard"
 import { Route as AuthenticatedCreativeStudioRouteImport } from "./routes/_authenticated/creative-studio"
+import { Route as AuthenticatedProjectsNewRouteImport } from "./routes/_authenticated/projects_.new"
 import { Route as AuthenticatedMarketIdRouteImport } from "./routes/_authenticated/market_.$id"
 
 const LoginRoute = LoginRouteImport.update({
@@ -59,6 +60,12 @@ const AuthenticatedCreativeStudioRoute =
     path: "/creative-studio",
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedProjectsNewRoute =
+  AuthenticatedProjectsNewRouteImport.update({
+    id: "/projects_/new",
+    path: "/projects/new",
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedMarketIdRoute = AuthenticatedMarketIdRouteImport.update({
   id: "/market_/$id",
   path: "/market/$id",
@@ -74,6 +81,7 @@ export interface FileRoutesByFullPath {
   "/projects": typeof AuthenticatedProjectsRoute
   "/wallet": typeof AuthenticatedWalletRoute
   "/market/$id": typeof AuthenticatedMarketIdRoute
+  "/projects/new": typeof AuthenticatedProjectsNewRoute
 }
 export interface FileRoutesByTo {
   "/": typeof IndexRoute
@@ -84,6 +92,7 @@ export interface FileRoutesByTo {
   "/projects": typeof AuthenticatedProjectsRoute
   "/wallet": typeof AuthenticatedWalletRoute
   "/market/$id": typeof AuthenticatedMarketIdRoute
+  "/projects/new": typeof AuthenticatedProjectsNewRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -96,6 +105,7 @@ export interface FileRoutesById {
   "/_authenticated/projects": typeof AuthenticatedProjectsRoute
   "/_authenticated/wallet": typeof AuthenticatedWalletRoute
   "/_authenticated/market_/$id": typeof AuthenticatedMarketIdRoute
+  "/_authenticated/projects_/new": typeof AuthenticatedProjectsNewRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -108,6 +118,7 @@ export interface FileRouteTypes {
     | "/projects"
     | "/wallet"
     | "/market/$id"
+    | "/projects/new"
   fileRoutesByTo: FileRoutesByTo
   to:
     | "/"
@@ -118,6 +129,7 @@ export interface FileRouteTypes {
     | "/projects"
     | "/wallet"
     | "/market/$id"
+    | "/projects/new"
   id:
     | "__root__"
     | "/"
@@ -129,6 +141,7 @@ export interface FileRouteTypes {
     | "/_authenticated/projects"
     | "/_authenticated/wallet"
     | "/_authenticated/market_/$id"
+    | "/_authenticated/projects_/new"
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -195,6 +208,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof AuthenticatedCreativeStudioRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    "/_authenticated/projects_/new": {
+      id: "/_authenticated/projects_/new"
+      path: "/projects/new"
+      fullPath: "/projects/new"
+      preLoaderRoute: typeof AuthenticatedProjectsNewRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     "/_authenticated/market_/$id": {
       id: "/_authenticated/market_/$id"
       path: "/market/$id"
@@ -212,6 +232,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedProjectsRoute: typeof AuthenticatedProjectsRoute
   AuthenticatedWalletRoute: typeof AuthenticatedWalletRoute
   AuthenticatedMarketIdRoute: typeof AuthenticatedMarketIdRoute
+  AuthenticatedProjectsNewRoute: typeof AuthenticatedProjectsNewRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
@@ -221,6 +242,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedProjectsRoute: AuthenticatedProjectsRoute,
   AuthenticatedWalletRoute: AuthenticatedWalletRoute,
   AuthenticatedMarketIdRoute: AuthenticatedMarketIdRoute,
+  AuthenticatedProjectsNewRoute: AuthenticatedProjectsNewRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(

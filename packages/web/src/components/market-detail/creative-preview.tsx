@@ -28,17 +28,21 @@ function SinglePreview({ listing, dimension }: SinglePreviewProps) {
   // Calculate aspect ratio for CSS
   const aspectRatio = dimension.width / dimension.height
 
-  // Determine max width based on aspect ratio and ad type
-  let maxWidth = "100%"
+  // Determine max width based on actual pixel width to maintain visual consistency
+  // Use the actual ad width as the max width to preserve intended proportions
+  let maxWidth: string
   if (aspectRatio < 0.7) {
-    // Tall formats like 9:16, sidebars
-    maxWidth = "280px"
+    // Tall formats like 9:16, sidebars - cap at reasonable width
+    maxWidth = `${Math.min(dimension.width, 280)}px`
   } else if (aspectRatio > 4) {
-    // Very wide banners (320x50, 728x90, etc.)
-    maxWidth = "100%"
+    // Very wide banners (320x50, 728x90, etc.) - use actual width
+    maxWidth = `${dimension.width}px`
   } else if (aspectRatio > 2) {
-    // Wide banners
-    maxWidth = "600px"
+    // Wide banners - use actual width capped at 600px
+    maxWidth = `${Math.min(dimension.width, 600)}px`
+  } else {
+    // Standard formats - use actual width capped at 400px
+    maxWidth = `${Math.min(dimension.width, 400)}px`
   }
 
   // Determine padding based on ad size

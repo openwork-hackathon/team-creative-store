@@ -170,7 +170,7 @@ export function PublishModal({
                 <Input
                   value={formData.title}
                   onChange={(e) => handleInputChange("title", e.target.value)}
-                  placeholder="e.g., Summer NFT Drop 2024"
+                  placeholder="e.g., Summer NFT Drop"
                   required
                   className="rounded-xl px-4 py-3 h-auto"
                 />

@@ -16,7 +16,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         {/* Footer */}
         <footer className="border-t border-slate-200 px-10 py-8 dark:border-[#232f48]">
           <div className="mx-auto flex max-w-[1024px] flex-col items-center justify-between gap-6 text-xs text-[#92a4c9] md:flex-row">
-            <p>© 2025 CreativeAI Platform.</p>
+            <p>© 2026 CreativeAI Platform.</p>
             <div className="flex gap-6">
               <a className="hover:text-white" href="#">
                 Terms of Service

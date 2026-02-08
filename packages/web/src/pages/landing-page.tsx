@@ -158,20 +158,27 @@ export function LandingPage() {
       {/* Navigation */}
       <nav className="fixed top-0 w-full z-50 bg-[#0f172a]/40 backdrop-blur-xl border-b border-white/10">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="h-9 w-9 bg-primary rounded flex items-center justify-center shadow-lg shadow-primary/20">
-              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+
+          <div className="flex items-center gap-3 text-primary">
+            <div className="size-6">
+              <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                <path
+                  d="M24 45.8096C19.6865 45.8096 15.4698 44.5305 11.8832 42.134C8.29667 39.7376 5.50128 36.3314 3.85056 32.3462C2.19985 28.361 1.76794 23.9758 2.60947 19.7452C3.451 15.5145 5.52816 11.6284 8.57829 8.5783C11.6284 5.52817 15.5145 3.45101 19.7452 2.60948C23.9758 1.76795 28.361 2.19986 32.3462 3.85057C36.3314 5.50129 39.7376 8.29668 42.134 11.8833C44.5305 15.4698 45.8096 19.6865 45.8096 24L24 24L24 45.8096Z"
+                  fill="currentColor"
+                />
               </svg>
             </div>
-            <span className="text-xl font-black tracking-tighter uppercase text-white">Creative Store</span>
+            <h2 className="text-lg font-bold leading-tight tracking-[-0.015em] text-slate-900 dark:text-white">
+              CreativeAI
+            </h2>
+
           </div>
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-400">
             <a className="hover:text-primary transition-colors" href="#studio">Studio</a>
             <a className="hover:text-primary transition-colors" href="#marketplace">Marketplace</a>
             <a className="hover:text-accent transition-colors" href="#token">AICC Token</a>
           </div>
-          <Link to="/login" className="bg-primary hover:bg-blue-600 text-white px-6 py-2.5 rounded font-bold text-sm transition-all shadow-lg shadow-primary/20">
+          <Link to="/dashboard" className="bg-primary hover:bg-blue-600 text-white px-6 py-2.5 rounded font-bold text-sm transition-all shadow-lg shadow-primary/20">
             Launch App
           </Link>
         </div>
@@ -360,7 +367,7 @@ export function LandingPage() {
               <div className="lg:col-span-2">
                 <h2 className="text-4xl font-black text-white mb-6 tracking-tight">AICC Token Ecosystem</h2>
                 <p className="text-slate-400 mb-10 leading-relaxed">
-                  AICC powers the Creative Store marketplace. Use it to license assets, pay for generation compute, and participate in governance.
+                  AICC powers the CreativeAI marketplace. Use it to license assets, pay for generation compute, and participate in governance.
                 </p>
                 <div className="bg-[#0f172a] p-6 rounded-xl border border-white/10 mb-8 group hover:border-accent/50 transition-all">
                   <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">AICC Token Contract</label>
@@ -417,7 +424,7 @@ export function LandingPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
             </div>
-            <span className="text-sm font-black tracking-tighter uppercase text-white">Creative Store</span>
+            <span className="text-sm font-black tracking-tighter uppercase text-white">CreativeAI</span>
           </div>
           <div className="flex gap-8 text-xs font-bold text-slate-500 uppercase tracking-widest">
             <a className="hover:text-white transition-colors" href="#">Privacy</a>
@@ -425,7 +432,7 @@ export function LandingPage() {
             <a className="hover:text-white transition-colors" href="#">Support</a>
             <a className="hover:text-white transition-colors" href="#">Documentation</a>
           </div>
-          <p className="text-xs text-slate-600">© 2024 Creative Store. All Rights Reserved.</p>
+          <p className="text-xs text-slate-600">© 2026 CreativeAI. All Rights Reserved.</p>
         </div>
       </footer>
     </div>

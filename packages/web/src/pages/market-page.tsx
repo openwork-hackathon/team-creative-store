@@ -97,14 +97,12 @@ export function MarketPage() {
     setCurrentPage(1);
   };
 
-  const hasActiveFilters = debouncedSearch || assetType || licenseType || device || priceMin || priceMax;
-
   return (
     <div className="min-h-screen bg-background-light dark:bg-background-dark">
       {/* Main Content */}
       <main className="mx-auto max-w-[1280px] w-full px-4 py-8 lg:px-10">
         {/* Search and Filters Section */}
-        <div className="mb-8 space-y-4">
+        <div className="mb-6 space-y-4">
           {/* Search Input */}
           <div className="flex flex-col gap-4 md:flex-row">
             <div className="flex-1">

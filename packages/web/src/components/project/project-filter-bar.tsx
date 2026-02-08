@@ -1,4 +1,4 @@
-import { FilterChip } from "./filter-chip";
+import { FilterDropdown } from "@/components/market/filter-dropdown";
 import type { ProjectStatus, RecencyFilter } from "./types";
 
 export interface ProjectFilterBarProps {
@@ -44,68 +44,35 @@ export function ProjectFilterBar({
   recencyFilter,
   onStatusChange,
   onIndustryChange,
-  onRecencyChange,
-  hasSelection = false,
-  selectionCount = 0,
-  onEditSelection,
-  onPreviewSelection,
-  onArchiveSelection,
-  onDeleteSelection
+  onRecencyChange
 }: ProjectFilterBarProps) {
   return (
     <div className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900 md:flex-row md:items-center md:justify-between">
       {/* Filters */}
       <div className="flex flex-wrap gap-2">
-        <FilterChip
+        <FilterDropdown
           label="Status"
           options={statusOptions}
-          value={statusFilter}
-          onChange={(v) => onStatusChange?.(v as ProjectStatus)}
+          value={statusFilter ?? ""}
+          onChange={(v) => onStatusChange?.(v ? (v as ProjectStatus) : undefined)}
+          placeholder="All"
         />
 
-        {statusFilter && (
-          <FilterChip
-            label={statusOptions.find((o) => o.value === statusFilter)?.label || statusFilter}
-            value={statusFilter}
-            options={statusOptions}
-            isActive
-            onClear={() => onStatusChange?.(undefined)}
-          />
-        )}
-
-        <FilterChip
+        <FilterDropdown
           label="Industry"
           options={industryOptions}
-          value={industryFilter}
-          onChange={onIndustryChange}
+          value={industryFilter ?? ""}
+          onChange={(v) => onIndustryChange?.(v || undefined)}
+          placeholder="All"
         />
 
-        {industryFilter && (
-          <FilterChip
-            label={industryOptions.find((o) => o.value === industryFilter)?.label || industryFilter}
-            value={industryFilter}
-            options={industryOptions}
-            isActive
-            onClear={() => onIndustryChange?.(undefined)}
-          />
-        )}
-
-        <FilterChip
+        <FilterDropdown
           label="Recency"
           options={recencyOptions}
-          value={recencyFilter}
-          onChange={(v) => onRecencyChange?.(v as RecencyFilter)}
+          value={recencyFilter ?? ""}
+          onChange={(v) => onRecencyChange?.(v ? (v as RecencyFilter) : undefined)}
+          placeholder="All"
         />
-
-        {recencyFilter && (
-          <FilterChip
-            label={recencyOptions.find((o) => o.value === recencyFilter)?.label || recencyFilter}
-            value={recencyFilter}
-            options={recencyOptions}
-            isActive
-            onClear={() => onRecencyChange?.(undefined)}
-          />
-        )}
       </div>
     </div>
   );

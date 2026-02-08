@@ -41,10 +41,6 @@ export function ProjectsPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  // Search state
-  const [searchInput, setSearchInput] = useState("");
-  const debouncedSearch = useDebounce(searchInput, 500);
-
   // Filter state
   const [statusFilter, setStatusFilter] = useState<ProjectStatus | undefined>();
   const [industryFilter, setIndustryFilter] = useState<string | undefined>();
@@ -52,8 +48,8 @@ export function ProjectsPage() {
 
   // Fetch projects from API with search, status, and recency filters
   const { data, isLoading, error } = useQuery({
-    queryKey: ["projects", debouncedSearch, statusFilter, recencyFilter],
-    queryFn: () => api.getProjects(debouncedSearch || undefined, statusFilter, recencyFilter)
+    queryKey: ["projects", statusFilter, recencyFilter],
+    queryFn: () => api.getProjects(statusFilter, recencyFilter)
   });
 
   // Publish mutation

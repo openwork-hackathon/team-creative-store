@@ -56,16 +56,6 @@ export function MarketplaceCard({ listing }: MarketplaceCardProps) {
             <span className="material-symbols-outlined !text-[18px] text-primary">monetization_on</span>
             <span className="font-bold text-slate-900 dark:text-white">{listing.priceAicc} AICC</span>
           </div>
-          <button
-            type="button"
-            onClick={(e) => {
-              e.preventDefault();
-              // TODO: Add to cart functionality
-            }}
-            className="rounded-full p-2 text-primary transition-colors hover:bg-primary/10"
-          >
-            <span className="material-symbols-outlined">shopping_cart</span>
-          </button>
         </div>
       </div>
     </Link>

@@ -3,9 +3,10 @@ import type { MarketplaceListing } from "@/lib/api";
 
 export interface MarketplaceCardProps {
   listing: MarketplaceListing;
+  purchased?: boolean;
 }
 
-export function MarketplaceCard({ listing }: MarketplaceCardProps) {
+export function MarketplaceCard({ listing, purchased = false }: MarketplaceCardProps) {
   return (
     <Link
       to="/market/$id"
@@ -24,6 +25,13 @@ export function MarketplaceCard({ listing }: MarketplaceCardProps) {
             <span className="material-symbols-outlined">visibility</span> Quick Preview
           </span>
         </div>
+        {/* Purchased Badge */}
+        {purchased && (
+          <div className="absolute left-3 top-3 flex items-center gap-1 rounded bg-green-500/90 px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-white backdrop-blur-md">
+            <span className="material-symbols-outlined !text-[12px]">check_circle</span>
+            Purchased
+          </div>
+        )}
         {/* Premium Badge */}
         {listing.isPremium && (
           <div className="absolute right-3 top-3 rounded bg-black/60 px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-white backdrop-blur-md">

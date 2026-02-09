@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react"
 import { useAccount, useConnect, useWriteContract, useWaitForTransactionReceipt, useReadContract } from "wagmi"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { parseUnits, formatUnits } from "viem"
 import { base } from "wagmi/chains"
 import type { MarketListing } from "./types"
@@ -45,8 +46,20 @@ export function PurchaseCard({ listing }: PurchaseCardProps) {
   const [showConnectModal, setShowConnectModal] = useState(false)
   const [purchaseStep, setPurchaseStep] = useState<PurchaseStep>("idle")
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  const [setOrderId] = useState<string | null>(null)
+  const [orderId, setOrderId] = useState<string | null>(null)
   const orderCreatedRef = useRef(false)
+
+  // Query client for cache invalidation
+  const queryClient = useQueryClient()
+
+  // Check if user has already purchased this listing
+  const { data: purchaseStatus, refetch: refetchPurchaseStatus } = useQuery({
+    queryKey: ["purchase-status", listing.id],
+    queryFn: () => api.checkPurchase(listing.id),
+    staleTime: 30000, // Cache for 30 seconds
+  })
+
+  const hasPurchased = purchaseStatus?.purchased ?? false
 
   // Wagmi hooks
   const { address, isConnected, isConnecting } = useAccount()
@@ -155,7 +168,7 @@ export function PurchaseCard({ listing }: PurchaseCardProps) {
     }
   }
 
-  // Create order after transaction is confirmed
+  // Create order after transaction is confirmed and refresh page
   useEffect(() => {
     const createOrder = async () => {
       if (isConfirmed && txHash && !orderCreatedRef.current) {
@@ -172,6 +185,9 @@ export function PurchaseCard({ listing }: PurchaseCardProps) {
             status: "confirmed",
             txHash: txHash
           })
+          // Invalidate queries and refetch purchase status to show Download button
+          await queryClient.invalidateQueries({ queryKey: ["purchase-status", listing.id] })
+          await refetchPurchaseStatus()
         } catch (err) {
           console.error("Failed to create order:", err)
           // Don't show error to user since payment was successful
@@ -179,7 +195,7 @@ export function PurchaseCard({ listing }: PurchaseCardProps) {
       }
     }
     createOrder()
-  }, [isConfirmed, txHash, listing.id, listing.licenseType])
+  }, [isConfirmed, txHash, listing.id, listing.licenseType, queryClient, refetchPurchaseStatus])
 
   // Update step based on transaction state
   if (isWritePending && purchaseStep === "confirming") {
@@ -193,7 +209,26 @@ export function PurchaseCard({ listing }: PurchaseCardProps) {
     setPurchaseStep("error")
   }
 
+  // Handle download action
+  const handleDownload = () => {
+    // For now, open the image URL in a new tab
+    // In a real implementation, this would download the full asset package
+    if (listing.imageUrl) {
+      window.open(listing.imageUrl, "_blank")
+    }
+  }
+
   const getButtonContent = () => {
+    // If already purchased, show Download button
+    if (hasPurchased) {
+      return (
+        <>
+          <span className="material-symbols-outlined text-lg">download</span>
+          <span>Download</span>
+        </>
+      )
+    }
+
     switch (purchaseStep) {
       case "confirming":
         return (
@@ -223,7 +258,7 @@ export function PurchaseCard({ listing }: PurchaseCardProps) {
     }
   }
 
-  const isButtonDisabled = purchaseStep === "confirming" || purchaseStep === "pending" || purchaseStep === "success"
+  const isButtonDisabled = !hasPurchased && (purchaseStep === "confirming" || purchaseStep === "pending" || purchaseStep === "success")
 
   return (
     <div className="p-4 border-b border-border bg-muted/30">
@@ -286,14 +321,16 @@ export function PurchaseCard({ listing }: PurchaseCardProps) {
 
           <button
             type="button"
-            onClick={handleBuyNow}
+            onClick={hasPurchased ? handleDownload : handleBuyNow}
             disabled={isButtonDisabled}
             className={`w-full font-bold py-3 rounded-lg shadow-lg transition-all active:scale-[0.98] flex items-center justify-center gap-2 ${
-              purchaseStep === "success"
-                ? "bg-green-500 text-white shadow-green-500/20"
-                : purchaseStep === "error"
-                  ? "bg-red-500 hover:bg-red-600 text-white shadow-red-500/20"
-                  : "bg-primary hover:bg-primary/90 text-primary-foreground shadow-primary/20"
+              hasPurchased
+                ? "bg-green-500 hover:bg-green-600 text-white shadow-green-500/20"
+                : purchaseStep === "success"
+                  ? "bg-green-500 text-white shadow-green-500/20"
+                  : purchaseStep === "error"
+                    ? "bg-red-500 hover:bg-red-600 text-white shadow-red-500/20"
+                    : "bg-primary hover:bg-primary/90 text-primary-foreground shadow-primary/20"
             } disabled:opacity-50 disabled:cursor-not-allowed`}
           >
             {getButtonContent()}

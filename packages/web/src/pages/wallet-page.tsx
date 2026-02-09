@@ -67,16 +67,6 @@ export function WalletPage() {
     ? `${parseFloat(formatUnits(aiccBalance, aiccDecimals)).toFixed(2)} AICC`
     : "0.00 AICC";
 
-  const txQuery = useQuery({
-    queryKey: ["wallet", "transactions", address],
-    queryFn: async () => {
-      const res = await fetch("/api/wallet/transactions", { credentials: "include" });
-      if (!res.ok) throw new Error("Failed to load transactions");
-      return (await res.json()) as { transactions: WalletTx[] };
-    },
-    enabled: isConnected
-  });
-
   const ordersQuery = useQuery({
     queryKey: ["orders", address],
     queryFn: async () => {
@@ -87,8 +77,19 @@ export function WalletPage() {
     enabled: isConnected
   });
 
-  const transactions = txQuery.data?.transactions ?? [];
   const orders = ordersQuery.data?.orders ?? [];
+
+  // Derive transactions from orders - each order represents a purchase transaction
+  const transactions: WalletTx[] = orders.map((order) => ({
+    id: order.id,
+    type: "purchase" as const,
+    label: `Purchase: ${order.creativeTitle}`,
+    hash: order.txHash ? `${order.txHash.slice(0, 6)}...${order.txHash.slice(-4)}` : "Pending",
+    amount: `${order.priceAicc} AICC`,
+    direction: "out" as const,
+    status: order.status === "confirmed" ? "confirmed" as const : order.status === "failed" ? "reverted" as const : "pending" as const,
+    createdAt: order.createdAt
+  }));
 
   // Sync wallet address to backend when connected
   useEffect(() => {

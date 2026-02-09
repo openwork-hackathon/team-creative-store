@@ -10,6 +10,7 @@ import {
 
 const api = createApiClient();
 
+
 // Device options (for filtering by target device)
 const deviceOptions = [
   { value: "mobile", label: "Mobile" },
@@ -63,6 +64,17 @@ export function MarketPage() {
   });
 
   const listings = listingsQuery.data?.listings ?? [];
+
+  // Fetch purchase status for all displayed listings
+  const listingIds = useMemo(() => listings.map(l => l.id), [listings]);
+  const purchaseStatusQuery = useQuery({
+    queryKey: ["marketplace", "purchase-status", listingIds],
+    queryFn: () => api.batchCheckPurchase({ publishRecordIds: listingIds }),
+    enabled: listingIds.length > 0,
+    staleTime: 30000 // Cache for 30 seconds
+  });
+
+  const purchasedMap = purchaseStatusQuery.data?.purchasedMap ?? {};
   const pagination = listingsQuery.data?.pagination ?? { page: 1, limit: 12, total: 0, totalPages: 1 };
   const assetTypes = assetTypesQuery.data?.assetTypes ?? [];
   const licenseTypes = licenseTypesQuery.data?.licenseTypes ?? [];
@@ -144,7 +156,11 @@ export function MarketPage() {
       ) : (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {listings.map((listing) => (
-            <MarketplaceCard key={listing.id} listing={listing} />
+            <MarketplaceCard
+              key={listing.id}
+              listing={listing}
+              purchased={purchasedMap[listing.id] ?? false}
+            />
           ))}
         </div>
       )}

@@ -136,6 +136,24 @@ export type UpdateOrderResponse = {
   };
 };
 
+export type CheckPurchaseResponse = {
+  purchased: boolean;
+  order?: {
+    id: string;
+    orderNumber: string;
+    licenseType: string;
+    createdAt: string;
+  };
+};
+
+export type BatchCheckPurchaseInput = {
+  publishRecordIds: string[];
+};
+
+export type BatchCheckPurchaseResponse = {
+  purchasedMap: Record<string, boolean>;
+};
+
 // MarketplaceListing type based on PublishRecord
 export type MarketplaceListing = {
   id: string;
@@ -325,6 +343,14 @@ export function createApiClient(
     deleteOrder: async (id: string): Promise<{ ok: boolean }> =>
       request(`${baseUrl}/orders/${id}`, {
         method: "DELETE"
+      }).then((response) => response.json()),
+    checkPurchase: async (publishRecordId: string): Promise<CheckPurchaseResponse> =>
+      request(`${baseUrl}/orders/check-purchase?publishRecordId=${encodeURIComponent(publishRecordId)}`).then((response) => response.json()),
+    batchCheckPurchase: async (input: BatchCheckPurchaseInput): Promise<BatchCheckPurchaseResponse> =>
+      request(`${baseUrl}/orders/batch-check-purchase`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(input)
       }).then((response) => response.json()),
 
     // Brief and Draft APIs

@@ -78,6 +78,14 @@ const ordersQuerySchema = z.object({
   limit: z.coerce.number().min(1).max(50).default(20)
 });
 
+const checkPurchaseSchema = z.object({
+  publishRecordId: z.string().min(1)
+});
+
+const batchCheckPurchaseSchema = z.object({
+  publishRecordIds: z.array(z.string().min(1)).min(1).max(100)
+});
+
 // Generate a unique order number
 function generateOrderNumber(): string {
   const timestamp = Date.now().toString(36).toUpperCase();
@@ -143,6 +151,82 @@ export function createOrderRoutes({ prisma }: OrderRoutesDeps) {
         totalPages
       }
     });
+  });
+
+  // Check if user has purchased a specific listing
+  orders.get("/check-purchase", zValidator("query", checkPurchaseSchema), async (c) => {
+    const user = c.get("user");
+    if (!user) return c.json({ error: "unauthorized" }, 401);
+
+    const { publishRecordId } = c.req.valid("query");
+
+    // Find a confirmed order for this user and publish record
+    const existingOrder = await prisma.order.findMany({
+      where: {
+        buyerId: user.id,
+        publishRecordId,
+        status: "confirmed"
+      },
+      include: {
+        publishRecord: {
+          select: {
+            id: true,
+            title: true,
+            imageUrl: true
+          }
+        }
+      },
+      take: 1
+    });
+
+    if (existingOrder.length > 0) {
+      const record = existingOrder[0];
+      return c.json({
+        purchased: true,
+        order: {
+          id: record.id,
+          orderNumber: record.orderNumber,
+          licenseType: record.licenseType,
+          createdAt: record.createdAt.toISOString()
+        }
+      });
+    }
+
+    return c.json({ purchased: false });
+  });
+
+  // Batch check if user has purchased multiple listings
+  orders.post("/batch-check-purchase", zValidator("json", batchCheckPurchaseSchema), async (c) => {
+    const user = c.get("user");
+    if (!user) return c.json({ error: "unauthorized" }, 401);
+
+    const { publishRecordIds } = c.req.valid("json");
+
+    // Find all confirmed orders for this user and the given publish records
+    const existingOrders = await prisma.order.findMany({
+      where: {
+        buyerId: user.id,
+        publishRecordId: { in: publishRecordIds },
+        status: "confirmed"
+      },
+      include: {
+        publishRecord: {
+          select: {
+            id: true,
+            title: true,
+            imageUrl: true
+          }
+        }
+      }
+    });
+
+    // Create a map of publishRecordId -> purchased status
+    const purchasedMap: Record<string, boolean> = {};
+    for (const id of publishRecordIds) {
+      purchasedMap[id] = existingOrders.some(order => order.publishRecordId === id);
+    }
+
+    return c.json({ purchasedMap });
   });
 
   // Get single order by ID

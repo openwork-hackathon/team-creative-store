@@ -222,12 +222,6 @@ export function ConnectedState({
                     >
                       Retry Payment
                     </button>
-                    <button
-                      type="button"
-                      className="text-sm text-slate-500 underline hover:text-white"
-                    >
-                      Contact Support
-                    </button>
                   </>
                 )}
               </div>

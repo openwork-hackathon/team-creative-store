@@ -6,6 +6,7 @@ import type { MarketListing } from "./types"
 import { ConnectWalletModal } from "../wallet/connect-wallet-modal"
 import { erc20Abi } from "../wallet/types"
 import { createApiClient } from "@/lib/api"
+import { aiccTokenAddress } from "@/lib/constants"
 
 const api = createApiClient()
 
@@ -44,15 +45,13 @@ export function PurchaseCard({ listing }: PurchaseCardProps) {
   const [showConnectModal, setShowConnectModal] = useState(false)
   const [purchaseStep, setPurchaseStep] = useState<PurchaseStep>("idle")
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  const [orderId, setOrderId] = useState<string | null>(null)
+  const [setOrderId] = useState<string | null>(null)
   const orderCreatedRef = useRef(false)
 
   // Wagmi hooks
   const { address, isConnected, isConnecting } = useAccount()
   const { connect, connectors, isPending: isConnectPending } = useConnect()
 
-  // AICC Token contract address from environment
-  const aiccTokenAddress = import.meta.env.VITE_AICC_TOKEN_ADDRESS as `0x${string}` | undefined
   // Creator's wallet address for C2C payment (from listing data)
   const creatorWalletAddress = listing.creator?.walletAddress as `0x${string}` | undefined
 

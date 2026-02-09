@@ -62,19 +62,21 @@ export function DashboardPage({
           </p>
         </div>
         <div className="flex gap-3">
-          <button
-            onClick={onNewProject}
-            className="flex items-center justify-center rounded-lg h-12 px-6 bg-primary text-primary-foreground text-base font-bold hover:bg-primary/90 transition-colors"
-          >
-            <span className="mr-2">+</span>
-            <span>New Project</span>
-          </button>
+
           <button
             onClick={onEnterGenerator}
             className="flex items-center justify-center rounded-lg h-12 px-6 bg-secondary text-secondary-foreground text-base font-bold hover:bg-secondary/80 transition-colors"
           >
             <span className="mr-2">✨</span>
             <span>Enter Generator</span>
+          </button>
+
+                    <button
+            onClick={onNewProject}
+            className="flex items-center justify-center rounded-lg h-12 px-6 bg-primary text-primary-foreground text-base font-bold hover:bg-primary/90 transition-colors"
+          >
+            <span className="mr-2">+</span>
+            <span>New Project</span>
           </button>
         </div>
       </div>

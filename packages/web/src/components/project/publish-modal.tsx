@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,6 +13,7 @@ import type {
 export interface PublishModalProps {
   isOpen: boolean;
   projectTitle?: string;
+  projectImageUrl?: string;
   onClose: () => void;
   onPublish: (data: PublishFormData) => void;
   onSaveDraft?: (data: PublishFormData) => void;
@@ -63,6 +64,7 @@ const DEFAULT_DESCRIPTION =
 export function PublishModal({
   isOpen,
   projectTitle = "",
+  projectImageUrl,
   onClose,
   onPublish,
   isPublishing = false,
@@ -71,17 +73,29 @@ export function PublishModal({
   const [formData, setFormData] = useState<PublishFormData>({
     title: projectTitle,
     description: DEFAULT_DESCRIPTION,
+    imageUrl: projectImageUrl,
     category: "ads",
     assetType: "ad_kit",
     licenseType: "standard",
     tags: [],
-    price: 0,
+    price: 1000,
     isPremium: false,
     deliverables: DEFAULT_DELIVERABLES,
     includeSourceFiles: false,
   });
 
   const [tagInput, setTagInput] = useState("");
+
+  // Sync form data when props change (e.g., when modal opens with new project)
+  useEffect(() => {
+    if (isOpen) {
+      setFormData((prev) => ({
+        ...prev,
+        title: projectTitle,
+        imageUrl: projectImageUrl,
+      }));
+    }
+  }, [isOpen, projectTitle, projectImageUrl]);
 
   const handleInputChange = useCallback(
     (field: keyof PublishFormData, value: string | number | boolean) => {

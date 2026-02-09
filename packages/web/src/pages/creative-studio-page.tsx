@@ -67,15 +67,28 @@ export function CreativeStudioPage({ api }: CreativeStudioPageProps) {
   const [selectedStyle, setSelectedStyle] = useState("minimal_tech");
   const [selectedColor, setSelectedColor] = useState("primary");
   const [selectedPlatform, setSelectedPlatform] = useState("mobile");
-  const [density, setDensity] = useState(75);
-  const [strictGrid, setStrictGrid] = useState(true);
-  const [aiOptimization, setAiOptimization] = useState(false);
 
   // Generation state
   const [isGeneratingBrief, setIsGeneratingBrief] = useState(false);
   const [creatives, setCreatives] = useState<
     Partial<Record<PlacementSpecKey, { image?: GeneratedImage; loading?: boolean; error?: string }>>
   >({});
+  
+  // Track which placement to generate next
+  const [nextPlacementIndex, setNextPlacementIndex] = useState(0);
+
+  // Selected candidate state
+  const [selectedCandidate, setSelectedCandidate] = useState<PlacementSpecKey | null>(null);
+  const [isSavingProject, setIsSavingProject] = useState(false);
+
+  // Preview modal state
+  const [previewImage, setPreviewImage] = useState<{ imageUrl: string; aspectRatio: string; label: string } | null>(null);
+
+  // Flash notification state
+  const [flashMessage, setFlashMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  // Ref to prevent duplicate save calls
+  const isSavingRef = useRef(false);
 
   // Sync URL changes to local state
   useEffect(() => {
@@ -118,12 +131,15 @@ export function CreativeStudioPage({ api }: CreativeStudioPageProps) {
         return;
       }
       try {
-        // Load project details including name
+        // Load project details including name and current creative
         const { project } = await apiClient.getProject(selectedProjectId);
+        let currentCreativeUrl: string | undefined;
         if (project) {
           const name = project.title || "Untitled Project";
           setProjectName(name);
           setOriginalProjectName(name);
+          // Get the current creative URL from the project's creatives
+          currentCreativeUrl = project.creatives?.[0]?.url;
         }
 
         // Load briefs
@@ -138,6 +154,9 @@ export function CreativeStudioPage({ api }: CreativeStudioPageProps) {
 
           if (latestBrief.drafts && latestBrief.drafts.length > 0) {
             const loadedCreatives: Partial<Record<PlacementSpecKey, { image?: GeneratedImage; loading?: boolean; error?: string }>> = {};
+            let matchedPlacement: PlacementSpecKey | null = null;
+            let firstPlacement: PlacementSpecKey | null = null;
+            
             for (const draft of latestBrief.drafts) {
               const draftData = draft.draftJson as Draft["draftJson"];
               if (draftData.placement && draftData.imageUrl && draftData.aspectRatio) {
@@ -147,9 +166,39 @@ export function CreativeStudioPage({ api }: CreativeStudioPageProps) {
                     aspectRatio: draftData.aspectRatio
                   }
                 };
+                
+                // Track the first placement for fallback selection
+                if (!firstPlacement) {
+                  firstPlacement = draftData.placement;
+                }
+                
+                // Check if this draft matches the current creative URL
+                if (currentCreativeUrl && draftData.imageUrl === currentCreativeUrl) {
+                  matchedPlacement = draftData.placement;
+                }
               }
             }
             setCreatives(loadedCreatives);
+            
+            // Auto-select the creative that matches the project's current creative URL
+            // If no match found, select the first available creative
+            if (matchedPlacement) {
+              setSelectedCandidate(matchedPlacement);
+            } else if (firstPlacement) {
+              setSelectedCandidate(firstPlacement);
+            }
+            
+            // Update nextPlacementIndex to skip already generated placements
+            // Find the highest index of already generated placements + 1
+            const generatedPlacements = Object.keys(loadedCreatives) as PlacementSpecKey[];
+            let maxIndex = -1;
+            for (const placement of generatedPlacements) {
+              const index = DEFAULT_PLACEMENTS.indexOf(placement);
+              if (index > maxIndex) {
+                maxIndex = index;
+              }
+            }
+            setNextPlacementIndex(maxIndex + 1);
           }
         }
       } catch (error) {
@@ -223,104 +272,163 @@ export function CreativeStudioPage({ api }: CreativeStudioPageProps) {
     setBrandAssets((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleGenerateCandidates = async () => {
+  // Generate one candidate at a time (click once, generate one)
+  const handleGenerateCandidate = async () => {
     if (!selectedProjectId || intent.trim().length === 0 || isGeneratingBrief) return;
+    
+    // Check if all candidates have been generated
+    if (nextPlacementIndex >= DEFAULT_PLACEMENTS.length) {
+      setFlashMessage({ type: "error", text: "All candidates have been generated" });
+      return;
+    }
+    
+    const placement = DEFAULT_PLACEMENTS[nextPlacementIndex];
     setIsGeneratingBrief(true);
 
-    // Set all placements to loading
-    const loadingState: Partial<Record<PlacementSpecKey, { loading: boolean }>> = {};
-    DEFAULT_PLACEMENTS.forEach(p => {
-      loadingState[p] = { loading: true };
-    });
-    setCreatives(loadingState);
+    // Set only the current placement to loading
+    setCreatives((prev) => ({
+      ...prev,
+      [placement]: { loading: true }
+    }));
 
     try {
-      const created = await apiClient.createBrief(selectedProjectId, {
-        intentText: intent,
-        placements: DEFAULT_PLACEMENTS
-      });
-      const newBriefId = created?.brief?.id;
-      if (!newBriefId) {
-        throw new Error("Failed to create brief");
-      }
-      setBriefId(newBriefId);
-
-      // Generate creatives for each placement
-      for (const placement of DEFAULT_PLACEMENTS) {
-        try {
-          const response = await apiClient.generateCreative({
-            briefId: newBriefId,
-            placement,
-            brandAssets: brandAssets.length > 0 ? brandAssets : undefined
-          });
-          if (response?.image) {
-            setCreatives((prev) => ({
-              ...prev,
-              [placement]: { image: response.image, loading: false }
-            }));
-          } else {
-            setCreatives((prev) => ({
-              ...prev,
-              [placement]: { loading: false, error: "No image returned" }
-            }));
-          }
-        } catch (error) {
-          setCreatives((prev) => ({
-            ...prev,
-            [placement]: {
-              loading: false,
-              error: error instanceof Error ? error.message : "Failed to generate"
-            }
-          }));
+      // Create brief if not exists
+      let currentBriefId = briefId;
+      if (!currentBriefId) {
+        const created = await apiClient.createBrief(selectedProjectId, {
+          intentText: intent,
+          placements: DEFAULT_PLACEMENTS
+        });
+        currentBriefId = created?.brief?.id;
+        if (!currentBriefId) {
+          throw new Error("Failed to create brief");
         }
+        setBriefId(currentBriefId);
       }
-    } catch (error) {
-      console.error("Failed to generate candidates:", error);
-      // Reset loading state on error
-      DEFAULT_PLACEMENTS.forEach(p => {
+
+      // Generate creative for the current placement
+      const response = await apiClient.generateCreative({
+        briefId: currentBriefId,
+        placement,
+        brandAssets: brandAssets.length > 0 ? brandAssets : undefined
+      });
+      
+      if (response?.image) {
         setCreatives((prev) => ({
           ...prev,
-          [p]: { loading: false, error: "Failed to generate" }
+          [placement]: { image: response.image, loading: false }
         }));
-      });
+        // Move to next placement
+        setNextPlacementIndex((prev) => prev + 1);
+      } else {
+        setCreatives((prev) => ({
+          ...prev,
+          [placement]: { loading: false, error: "No image returned" }
+        }));
+      }
+    } catch (error) {
+      console.error("Failed to generate candidate:", error);
+      setCreatives((prev) => ({
+        ...prev,
+        [placement]: {
+          loading: false,
+          error: error instanceof Error ? error.message : "Failed to generate"
+        }
+      }));
     } finally {
       setIsGeneratingBrief(false);
     }
   };
 
-  const handleRegenerateAll = async () => {
-    if (!briefId) return;
+  // Regenerate only the selected candidate
+  const handleRegenerateSelected = async () => {
+    if (!briefId || !selectedCandidate) return;
     
-    const loadingState: Partial<Record<PlacementSpecKey, { loading: boolean }>> = {};
-    DEFAULT_PLACEMENTS.forEach(p => {
-      loadingState[p] = { loading: true };
-    });
-    setCreatives(loadingState);
+    // Set only the selected placement to loading
+    setCreatives((prev) => ({
+      ...prev,
+      [selectedCandidate]: { loading: true }
+    }));
 
-    for (const placement of DEFAULT_PLACEMENTS) {
-      try {
-        const response = await apiClient.generateCreative({
-          briefId,
-          placement,
-          brandAssets: brandAssets.length > 0 ? brandAssets : undefined
-        });
-        if (response?.image) {
-          setCreatives((prev) => ({
-            ...prev,
-            [placement]: { image: response.image, loading: false }
-          }));
-        }
-      } catch (error) {
+    try {
+      const response = await apiClient.generateCreative({
+        briefId,
+        placement: selectedCandidate,
+        brandAssets: brandAssets.length > 0 ? brandAssets : undefined
+      });
+      if (response?.image) {
         setCreatives((prev) => ({
           ...prev,
-          [placement]: {
-            loading: false,
-            error: error instanceof Error ? error.message : "Failed to generate"
-          }
+          [selectedCandidate]: { image: response.image, loading: false }
+        }));
+      } else {
+        setCreatives((prev) => ({
+          ...prev,
+          [selectedCandidate]: { loading: false, error: "No image returned" }
         }));
       }
+    } catch (error) {
+      setCreatives((prev) => ({
+        ...prev,
+        [selectedCandidate]: {
+          loading: false,
+          error: error instanceof Error ? error.message : "Failed to generate"
+        }
+      }));
     }
   };
+
+  // Auto-dismiss flash message after 3 seconds
+  useEffect(() => {
+    if (flashMessage) {
+      const timer = setTimeout(() => {
+        setFlashMessage(null);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [flashMessage]);
+
+  // Save project with selected candidate's URL
+  const handleSaveProject = useCallback(async () => {
+    // Use ref-based guard to prevent duplicate calls (more reliable than state)
+    if (!selectedProjectId || isSavingRef.current) return;
+    
+    // Get the selected candidate's URL, or the first available one
+    let creativeUrl: string | undefined;
+    
+    if (selectedCandidate && creatives[selectedCandidate]?.image?.imageUrl) {
+      creativeUrl = creatives[selectedCandidate].image?.imageUrl;
+    } else {
+      // Find the first candidate with an image
+      for (const placement of DEFAULT_PLACEMENTS) {
+        if (creatives[placement]?.image?.imageUrl) {
+          creativeUrl = creatives[placement].image?.imageUrl;
+          break;
+        }
+      }
+    }
+    
+    if (!creativeUrl) {
+      setFlashMessage({ type: "error", text: "No creative to save" });
+      return;
+    }
+    
+    // Set ref guard immediately (synchronous)
+    isSavingRef.current = true;
+    setIsSavingProject(true);
+    
+    try {
+      // Update both creativeUrl (for Creative record) and imageUrl (for project preview in list)
+      await apiClient.updateProject(selectedProjectId, { creativeUrl, imageUrl: creativeUrl });
+      setFlashMessage({ type: "success", text: "Project saved successfully!" });
+    } catch (error) {
+      console.error("Failed to save project:", error);
+      setFlashMessage({ type: "error", text: "Failed to save project" });
+    } finally {
+      isSavingRef.current = false;
+      setIsSavingProject(false);
+    }
+  }, [selectedProjectId, selectedCandidate, creatives, apiClient]);
 
   // Show loading skeleton while fetching existing data or if no project selected
   if (isLoadingExisting) {
@@ -339,6 +447,29 @@ export function CreativeStudioPage({ api }: CreativeStudioPageProps) {
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
+      {/* Flash Notification */}
+      {flashMessage && (
+        <div
+          className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 animate-in fade-in slide-in-from-top-2 duration-300 ${
+            flashMessage.type === "success"
+              ? "bg-green-500 text-white"
+              : "bg-destructive text-destructive-foreground"
+          }`}
+        >
+          <span className="material-symbols-outlined text-sm">
+            {flashMessage.type === "success" ? "check_circle" : "error"}
+          </span>
+          <span className="text-sm font-medium">{flashMessage.text}</span>
+          <button
+            type="button"
+            onClick={() => setFlashMessage(null)}
+            className="ml-2 hover:opacity-70 transition-opacity"
+          >
+            <span className="material-symbols-outlined text-sm">close</span>
+          </button>
+        </div>
+      )}
+
       {/* Page Header */}
       <div className="flex flex-wrap justify-between items-center gap-3 px-10 py-6 border-b border-border bg-background">
         <div className="flex flex-col gap-1">
@@ -353,9 +484,14 @@ export function CreativeStudioPage({ api }: CreativeStudioPageProps) {
             </div>
             <p className="text-muted-foreground text-[10px]">750/1000</p>
           </div>
-          <button className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-bold hover:bg-primary/90 transition-colors">
-            <span className="material-symbols-outlined text-sm">publish</span>
-            <span>Save</span>
+          <button
+            type="button"
+            onClick={handleSaveProject}
+            disabled={isSavingProject || !hasCreatives}
+            className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-bold hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <span className="material-symbols-outlined text-sm">{isSavingProject ? "sync" : "save"}</span>
+            <span>{isSavingProject ? "Saving..." : "Save"}</span>
           </button>
         </div>
       </div>
@@ -504,13 +640,26 @@ export function CreativeStudioPage({ api }: CreativeStudioPageProps) {
                 const state = creatives[placement];
                 const spec = PLACEMENT_SPEC_BY_KEY[placement];
                 
+                const isSelected = selectedCandidate === placement;
+                
                 return (
                   <div
                     key={placement}
-                    className={`aspect-square rounded-2xl border bg-card relative overflow-hidden group ${
-                      state?.image ? "border-primary shadow-[0_0_30px_rgba(59,130,246,0.1)]" : "border-border"
+                    onClick={() => state?.image && setSelectedCandidate(placement)}
+                    className={`aspect-square rounded-2xl border bg-card relative overflow-hidden group cursor-pointer transition-all ${
+                      isSelected
+                        ? "border-primary border-2 shadow-[0_0_40px_rgba(59,130,246,0.3)] ring-2 ring-primary/50"
+                        : state?.image
+                          ? "border-primary/50 shadow-[0_0_30px_rgba(59,130,246,0.1)] hover:border-primary"
+                          : "border-border"
                     }`}
                   >
+                    {/* Selection indicator */}
+                    {isSelected && (
+                      <div className="absolute top-4 right-4 z-20 bg-primary text-primary-foreground rounded-full size-6 flex items-center justify-center">
+                        <span className="material-symbols-outlined text-sm">check</span>
+                      </div>
+                    )}
                     {state?.loading ? (
                       <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-background/40 backdrop-blur-sm z-10">
                         <div className="size-14 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
@@ -541,10 +690,22 @@ export function CreativeStudioPage({ api }: CreativeStudioPageProps) {
                         </div>
                         <div className="absolute bottom-4 left-4 right-4 bg-background/80 backdrop-blur-md p-3 rounded-xl border border-white/10">
                           <p className="text-xs font-medium text-foreground">{spec.label}</p>
-                          <p className="text-[10px] text-muted-foreground">{spec.width}×{spec.height}</p>
                         </div>
                         <div className="absolute inset-0 bg-primary/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all cursor-pointer">
-                          <button className="bg-white text-primary font-bold px-8 py-3 rounded-lg flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (state?.image) {
+                                setPreviewImage({
+                                  imageUrl: state.image.imageUrl,
+                                  aspectRatio: state.image.aspectRatio,
+                                  label: spec.label
+                                });
+                              }
+                            }}
+                            className="bg-white text-primary font-bold px-8 py-3 rounded-lg flex items-center gap-2"
+                          >
                             <span className="material-symbols-outlined">zoom_in</span> View Details
                           </button>
                         </div>
@@ -621,25 +782,66 @@ export function CreativeStudioPage({ api }: CreativeStudioPageProps) {
           <div className="mt-auto pt-8 border-t border-border space-y-4">
             <button
               type="button"
-              onClick={handleGenerateCandidates}
-              disabled={!intent.trim() || isGeneratingBrief}
+              onClick={handleGenerateCandidate}
+              disabled={!intent.trim() || isGeneratingBrief || nextPlacementIndex >= DEFAULT_PLACEMENTS.length}
               className="w-full bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed text-primary-foreground font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-primary/20"
             >
               <span className="material-symbols-outlined">auto_fix_high</span>
-              {isGeneratingBrief ? "Generating..." : "Generate Candidates"}
+              {isGeneratingBrief
+                ? "Generating..."
+                : nextPlacementIndex >= DEFAULT_PLACEMENTS.length
+                  ? "All Generated"
+                  : `Generate Candidate`}
             </button>
             <button
               type="button"
-              onClick={handleRegenerateAll}
-              disabled={!briefId || isGenerating}
+              onClick={handleRegenerateSelected}
+              disabled={!briefId || !selectedCandidate || isGenerating}
               className="w-full bg-card hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed text-muted-foreground font-bold py-4 rounded-xl flex items-center justify-center gap-2 border border-border transition-all"
             >
               <span className="material-symbols-outlined text-lg">refresh</span>
-              Re-generate All
+              {selectedCandidate ? `Regenerate Selected` : "Select a Candidate"}
             </button>
           </div>
         </section>
       </div>
+
+      {/* Preview Modal */}
+      {previewImage && (
+        <div
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-8"
+          onClick={() => setPreviewImage(null)}
+        >
+          <div
+            className="relative max-w-[90vw] max-h-[90vh] bg-card rounded-2xl overflow-hidden shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Close button */}
+            <button
+              type="button"
+              onClick={() => setPreviewImage(null)}
+              className="absolute top-4 right-4 z-10 bg-background/80 hover:bg-background text-foreground rounded-full size-10 flex items-center justify-center transition-colors"
+            >
+              <span className="material-symbols-outlined">close</span>
+            </button>
+            
+            {/* Image */}
+            <div className="max-h-[80vh] overflow-auto">
+              <img
+                src={previewImage.imageUrl}
+                alt={previewImage.label}
+                className="w-auto h-auto max-w-full max-h-[80vh] object-contain"
+              />
+            </div>
+            
+            {/* Label */}
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6">
+              <p className="text-white font-bold text-lg">{previewImage.label}</p>
+              <p className="text-white/70 text-sm">Aspect Ratio: {previewImage.aspectRatio}</p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

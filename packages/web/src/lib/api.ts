@@ -245,14 +245,14 @@ export function createApiClient(
       const query = params.toString();
       return request(`${baseUrl}/projects${query ? `?${query}` : ""}`).then((response) => response.json());
     },
-    getProject: async (id: string): Promise<{ project: Project & { creatives?: Array<{ id: string }> } }> =>
+    getProject: async (id: string): Promise<{ project: Project & { creatives?: Array<{ id: string; url: string }> } }> =>
       request(`${baseUrl}/projects/${id}`).then(async (response) => {
         if (!response.ok) {
           throw new Error("Failed to get project");
         }
         return response.json();
       }),
-    updateProject: async (id: string, data: { name?: string; status?: ProjectStatus; imageUrl?: string }): Promise<{ project: Project }> =>
+    updateProject: async (id: string, data: { name?: string; status?: ProjectStatus; imageUrl?: string; creativeUrl?: string }): Promise<{ project: Project; creative?: { id: string; url: string } }> =>
       request(`${baseUrl}/projects/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },

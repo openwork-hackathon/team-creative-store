@@ -64,7 +64,7 @@ type PublishRecordResult = {
 type PrismaLike = {
   project: {
     findMany: (args: { where: { userId: string; name?: { contains: string; mode: "insensitive" }; status?: string; updatedAt?: { gte: Date } }; orderBy?: { updatedAt: "desc" } }) => Promise<ProjectRecord[]>;
-    findUnique: (args: { where: { id: string }; include?: { creatives?: boolean } }) => Promise<(ProjectRecord & { userId: string; creatives?: Array<{ id: string; url: string }> }) | null>;
+    findUnique: (args: { where: { id: string }; include?: { creatives?: boolean | { include?: { publishRecords?: boolean } } } }) => Promise<(ProjectRecord & { userId: string; creatives?: Array<{ id: string; url: string; publishRecords?: Array<{ id: string }> }> }) | null>;
     create: (args: { data: { name: string; userId: string; status?: string; imageUrl?: string } }) => Promise<ProjectRecord>;
     update: (args: { where: { id: string }; data: { name?: string; status?: string; imageUrl?: string } }) => Promise<ProjectRecord>;
     delete: (args: { where: { id: string } }) => Promise<ProjectRecord>;
@@ -79,6 +79,7 @@ type PrismaLike = {
   };
   publishRecord: {
     create: (args: { data: PublishRecordData }) => Promise<PublishRecordResult>;
+    updateMany: (args: { where: { creativeId: { in: string[] } }; data: { imageUrl: string } }) => Promise<{ count: number }>;
   };
 };
 
@@ -246,9 +247,16 @@ export function createProjectRoutes({ prisma }: ProjectRoutesDeps) {
       const { projectId } = c.req.param();
       const input = c.req.valid("json");
       
-      // Check ownership before updating
+      // Check ownership before updating (include creatives with publishRecords for imageUrl sync)
       const project = await prisma.project.findUnique({
-        where: { id: projectId }
+        where: { id: projectId },
+        include: {
+          creatives: {
+            include: {
+              publishRecords: true
+            }
+          }
+        }
       });
       
       if (!project) {
@@ -267,6 +275,15 @@ export function createProjectRoutes({ prisma }: ProjectRoutesDeps) {
           ...(input.imageUrl && { imageUrl: input.imageUrl })
         }
       });
+
+      // If imageUrl is updated, also update associated PublishRecords
+      if (input.imageUrl && project.creatives && project.creatives.length > 0) {
+        const creativeIds = project.creatives.map(c => c.id);
+        await prisma.publishRecord.updateMany({
+          where: { creativeId: { in: creativeIds } },
+          data: { imageUrl: input.imageUrl }
+        });
+      }
 
       // Create or update Creative record if creativeUrl is provided
       let creative = null;

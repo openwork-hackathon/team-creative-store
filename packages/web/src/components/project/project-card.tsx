@@ -69,17 +69,7 @@ export function ProjectCard({
             >
               <span className="material-symbols-outlined text-xl">edit</span>
             </button>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onPreview?.(project.id);
-              }}
-              className="text-slate-400 transition-colors hover:text-primary"
-              title="Preview"
-            >
-              <span className="material-symbols-outlined text-xl">visibility</span>
-            </button>
+
             <button
               type="button"
               onClick={(e) => {

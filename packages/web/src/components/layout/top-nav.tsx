@@ -44,19 +44,6 @@ export function TopNav({ user }: TopNavProps) {
             CreativeAI
           </h2>
         </div>
-
-        {/* Search */}
-        <label className="hidden max-w-64 min-w-40 flex-col md:flex !h-10">
-          <div className="flex h-full w-full flex-1 items-stretch rounded-lg">
-            <div className="flex items-center justify-center rounded-l-lg border-r-0 border-none bg-slate-100 pl-4 text-slate-400 dark:bg-[#232f48] dark:text-[#92a4c9]">
-              <span className="material-symbols-outlined text-xl">search</span>
-            </div>
-            <input
-              className="form-input flex h-full w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg rounded-l-none border-l-0 border-none bg-slate-100 px-4 pl-2 text-base font-normal leading-normal text-slate-900 placeholder:text-slate-400 focus:border-none focus:outline-0 focus:ring-0 dark:bg-[#232f48] dark:text-white dark:placeholder:text-[#92a4c9]"
-              placeholder="Search assets..."
-            />
-          </div>
-        </label>
       </div>
 
       <div className="flex flex-1 items-center justify-end gap-8">

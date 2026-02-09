@@ -21,6 +21,13 @@ type CreateBriefInput = {
   sensitiveWords?: string[];
 };
 
+type UpdateBriefInput = {
+  intentText?: string;
+  placements?: PlacementSpecKey[];
+  industry?: string;
+  sensitiveWords?: string[];
+};
+
 type ParseBriefInput = CreateBriefInput;
 
 type GenerateCreativeInput = {
@@ -279,14 +286,19 @@ export function createApiClient(
       }).then((response) => response.json()),
     getBrief: async (briefId: string) =>
       request(`${baseUrl}/briefs/${briefId}`).then((response) => response.json()),
-    getCurrentUser: async () =>
-      request(`${baseUrl}/user/@me`).then((response) => response.json()),
-    parseBriefWithAi: async (input: ParseBriefInput) =>
-      request(`${baseUrl}/ai/brief/parse`, {
-        method: "POST",
+    updateBrief: async (briefId: string, input: UpdateBriefInput) =>
+      request(`${baseUrl}/briefs/${briefId}`, {
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(input)
-      }).then((response) => response.json()),
+      }).then(async (response) => {
+        if (!response.ok) {
+          throw new Error("Failed to update brief");
+        }
+        return response.json();
+      }),
+    getCurrentUser: async () =>
+      request(`${baseUrl}/user/@me`).then((response) => response.json()),
     generateCreative: async (input: GenerateCreativeInput) =>
       request(`${baseUrl}/ai/creative/generate`, {
         method: "POST",

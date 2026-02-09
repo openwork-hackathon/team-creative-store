@@ -58,6 +58,7 @@ export function CreativeStudioPage({ api }: CreativeStudioPageProps) {
   // Brief state
   const [briefId, setBriefId] = useState<string | null>(null);
   const [intent, setIntent] = useState("");
+  const [originalIntent, setOriginalIntent] = useState("");
   const [isLoadingExisting, setIsLoadingExisting] = useState(true);
 
   // Brand assets
@@ -151,6 +152,7 @@ export function CreativeStudioPage({ api }: CreativeStudioPageProps) {
 
           setBriefId(latestBrief.id);
           setIntent(latestBrief.intentText);
+          setOriginalIntent(latestBrief.intentText);
 
           if (latestBrief.drafts && latestBrief.drafts.length > 0) {
             const loadedCreatives: Partial<Record<PlacementSpecKey, { image?: GeneratedImage; loading?: boolean; error?: string }>> = {};
@@ -292,9 +294,12 @@ export function CreativeStudioPage({ api }: CreativeStudioPageProps) {
     }));
 
     try {
-      // Create brief if not exists
+      // Check if intent was modified and handle brief creation/update
       let currentBriefId = briefId;
+      const intentModified = intent.trim() !== originalIntent.trim();
+      
       if (!currentBriefId) {
+        // No brief exists, create a new one
         const created = await apiClient.createBrief(selectedProjectId, {
           intentText: intent,
           placements: DEFAULT_PLACEMENTS
@@ -304,6 +309,13 @@ export function CreativeStudioPage({ api }: CreativeStudioPageProps) {
           throw new Error("Failed to create brief");
         }
         setBriefId(currentBriefId);
+        setOriginalIntent(intent);
+      } else if (intentModified) {
+        // Brief exists but intent was modified, update the brief
+        await apiClient.updateBrief(currentBriefId, {
+          intentText: intent
+        });
+        setOriginalIntent(intent);
       }
 
       // Generate creative for the current placement

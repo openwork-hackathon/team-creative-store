@@ -76,6 +76,7 @@ type PrismaLike = {
   brief: {
     create: (args: { data: { projectId: string; intentText: string; briefJson: unknown; constraints: unknown } }) => Promise<unknown>;
     findUnique: (args: { where: { id: string } }) => Promise<unknown | null>;
+    update: (args: { where: { id: string }; data: { intentText?: string; briefJson?: unknown; constraints?: unknown } }) => Promise<unknown>;
   };
   draft: {
     create: (args: { data: { briefId: string; draftJson: unknown } }) => Promise<unknown>;
@@ -336,6 +337,63 @@ export function createApp({ prisma, getSession, storage }: AppDeps) {
     if (!brief) return c.json({ error: "not_found" }, 404);
     return c.json({ brief });
   });
+
+  app.patch(
+    "/api/briefs/:id",
+    zValidator(
+      "json",
+      z.object({
+        intentText: z.string().optional(),
+        placements: z.array(zPlacementSpecKey).optional(),
+        industry: z.string().optional(),
+        sensitiveWords: z.array(z.string()).optional()
+      })
+    ),
+    async (c) => {
+      const user = c.get("user");
+      if (!user) return c.json({ error: "unauthorized" }, 401);
+      const { id } = c.req.param();
+      const input = c.req.valid("json");
+
+      const existingBrief = await prisma.brief.findUnique({ where: { id } });
+      if (!existingBrief) return c.json({ error: "not_found" }, 404);
+
+      // If intentText is updated, re-parse the brief with AI
+      let briefJson = (existingBrief as { briefJson?: unknown }).briefJson;
+      let constraints = (existingBrief as { constraints?: unknown }).constraints;
+
+      if (input.intentText) {
+        try {
+          const existingConstraints = constraints as { placements?: string[] } | undefined;
+          const result = await parseBriefWithAi({
+            intentText: input.intentText,
+            industry: input.industry,
+            placements: input.placements ?? existingConstraints?.placements ?? [],
+            sensitiveWords: input.sensitiveWords
+          });
+          briefJson = result.briefJson;
+        } catch (error) {
+          console.error("[Brief] AI parsing failed during update:", error);
+          // Keep existing briefJson if AI parsing fails
+        }
+      }
+
+      if (input.placements) {
+        constraints = { ...(constraints as object), placements: input.placements };
+      }
+
+      const updatedBrief = await prisma.brief.update({
+        where: { id },
+        data: {
+          ...(input.intentText && { intentText: input.intentText }),
+          briefJson,
+          constraints
+        }
+      });
+
+      return c.json({ brief: updatedBrief });
+    }
+  );
 
   app.post("/api/briefs/:id/generate-drafts", async (c) => {
     const { id } = c.req.param();

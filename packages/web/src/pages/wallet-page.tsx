@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAccount, useConnect, useDisconnect, useBalance, useReadContract } from "wagmi";
 import { base } from "wagmi/chains";
 import { formatUnits } from "viem";
@@ -14,10 +14,16 @@ import {
   type Order
 } from "../components/wallet";
 import { aiccTokenAddress } from "@/lib/constants";
+import { createApiClient } from "@/lib/api";
+
+const api = createApiClient();
 
 export function WalletPage() {
   const [tab, setTab] = useState<"wallet" | "orders">("wallet");
   const [showConnectModal, setShowConnectModal] = useState(false);
+  
+  // Track the last synced address to avoid duplicate API calls
+  const lastSyncedAddressRef = useRef<string | null>(null);
 
   // Wagmi hooks for wallet connection
   const { address, isConnected, isConnecting } = useAccount();
@@ -83,6 +89,18 @@ export function WalletPage() {
 
   const transactions = txQuery.data?.transactions ?? [];
   const orders = ordersQuery.data?.orders ?? [];
+
+  // Sync wallet address to backend when connected
+  useEffect(() => {
+    if (isConnected && address && address !== lastSyncedAddressRef.current) {
+      lastSyncedAddressRef.current = address;
+      api.updateUserWallet(address).catch((error) => {
+        console.error("Failed to sync wallet address:", error);
+        // Reset ref so it can retry on next render
+        lastSyncedAddressRef.current = null;
+      });
+    }
+  }, [isConnected, address]);
 
   const copyAddress = async () => {
     if (!address) return;

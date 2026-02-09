@@ -64,6 +64,9 @@ type OrderRecord = {
 };
 
 type PrismaLike = {
+  user: {
+    update: (args: { where: { id: string }; data: { walletAddress?: string | null } }) => Promise<{ id: string; walletAddress: string | null }>;
+  };
   project: {
     findMany: (args: { where: { userId: string }; orderBy?: { updatedAt: "desc" } }) => Promise<ProjectRecord[]>;
     findUnique: (args: { where: { id: string } }) => Promise<ProjectRecord | null>;
@@ -191,6 +194,35 @@ export function createApp({ prisma, getSession, storage }: AppDeps) {
     if (!user) return c.json({ error: "unauthorized" }, 401);
     return c.json({ user });
   });
+
+  // Update user's wallet address after wallet connection
+  app.patch(
+    "/api/user/@me/wallet",
+    zValidator(
+      "json",
+      z.object({
+        walletAddress: z.string().regex(/^0x[a-fA-F0-9]{40}$/, "Invalid wallet address format")
+      })
+    ),
+    async (c) => {
+      const user = c.get("user");
+      if (!user) return c.json({ error: "unauthorized" }, 401);
+      const { walletAddress } = c.req.valid("json");
+      
+      const updatedUser = await prisma.user.update({
+        where: { id: user.id },
+        data: { walletAddress }
+      });
+      
+      return c.json({
+        ok: true,
+        user: {
+          id: updatedUser.id,
+          walletAddress: updatedUser.walletAddress
+        }
+      });
+    }
+  );
 
   app.post("/api/uploads/logo", async (c) => {
     const user = c.get("user");

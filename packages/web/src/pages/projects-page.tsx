@@ -14,23 +14,6 @@ import { createApiClient, type PublishProjectInput } from "@/lib/api";
 
 const api = createApiClient();
 
-// Debounce hook
-function useDebounce<T>(value: T, delay: number): T {
-  const [debouncedValue, setDebouncedValue] = useState<T>(value);
-
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedValue(value);
-    }, delay);
-
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [value, delay]);
-
-  return debouncedValue;
-}
-
 // Helper function to convert frontend category to API category
 function convertCategory(category: string): PublishProjectInput["category"] {
   if (category === "e-commerce") return "e_commerce";

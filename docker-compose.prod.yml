@@ -67,6 +67,8 @@ services:
       BASE_RPC_URL: ${BASE_RPC_URL}
       BASE_PRIVATE_KEY: ${BASE_PRIVATE_KEY}
       DEFAULT_METADATA_URI: ${DEFAULT_METADATA_URI}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      BASESCAN_API_KEY: ${BASESCAN_API_KEY}
     depends_on:
       postgres:
         condition: service_healthy
@@ -98,6 +100,7 @@ services:
       BASE_RPC_URL: ${BASE_RPC_URL}
       BASE_PRIVATE_KEY: ${BASE_PRIVATE_KEY}
       DEFAULT_METADATA_URI: ${DEFAULT_METADATA_URI}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
     depends_on:
       postgres:
         condition: service_healthy

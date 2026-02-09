@@ -2,8 +2,39 @@ import { Hono } from "hono";
 
 // AICC Token contract address on Base
 const AICC_TOKEN_ADDRESS = "0x6F947b45C023Ef623b39331D0C4D21FBC51C1d45";
+
+// Cache configuration - 30 minutes TTL
+const CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutes in milliseconds
+
+// Simple in-memory cache with TTL
+interface CacheEntry<T> {
+  data: T;
+  timestamp: number;
+}
+
+const cache: {
+  tokenData?: CacheEntry<TokenDataResponse>;
+  priceData?: CacheEntry<{
+    priceUsd: number;
+    priceChange24h: number;
+    marketCap: string;
+    liquidity: string;
+    lastUpdated: string;
+  }>;
+  transactions?: CacheEntry<{
+    transactions: TokenDataResponse["recentTransactions"];
+    lastUpdated: string;
+  }>;
+} = {};
+
+function isCacheValid<T>(entry: CacheEntry<T> | undefined): entry is CacheEntry<T> {
+  if (!entry) return false;
+  return Date.now() - entry.timestamp < CACHE_TTL_MS;
+}
 // Defined.fi pool address
 const DEFINED_POOL_ADDRESS = "0xd65c491ef1c406882fbb380532119b6298910bf57b9eaa81d40eb6eeb9df269a";
+// Base chain ID for Etherscan V2 API
+const BASE_CHAIN_ID = 8453;
 
 // Types for API responses
 interface BasescanTokenInfo {
@@ -18,6 +49,28 @@ interface DefinedTokenInfo {
   liquidity: number;
   volume24h: number;
   priceChange24h: number;
+}
+
+interface DexScreenerPair {
+  baseToken: {
+    address: string;
+    name: string;
+    symbol: string;
+  };
+  priceUsd: string;
+  priceChange: {
+    h24: number;
+  };
+  liquidity: {
+    usd: number;
+  };
+  fdv: number;
+  txns: {
+    h24: {
+      buys: number;
+      sells: number;
+    };
+  };
 }
 
 interface TokenDataResponse {
@@ -40,45 +93,56 @@ interface TokenDataResponse {
   lastUpdated: string;
 }
 
-// Fetch token info from Basescan API
-async function fetchBasescanData(): Promise<BasescanTokenInfo> {
+// Fetch token info from Etherscan V2 API (supports Base chain)
+// Note: Free tier has limited support for Base chain
+async function fetchEtherscanV2Data(): Promise<BasescanTokenInfo> {
   try {
-    // Basescan API for token holder count
-    // Note: Basescan uses the same API format as Etherscan
     const apiKey = process.env.BASESCAN_API_KEY || "";
     
-    // Get token holder count via tokenholderlist endpoint
-    const holdersUrl = `https://api.basescan.org/api?module=token&action=tokenholderlist&contractaddress=${AICC_TOKEN_ADDRESS}&page=1&offset=1&apikey=${apiKey}`;
+    // Etherscan V2 API endpoint with chainid parameter
+    const baseUrl = "https://api.etherscan.io/v2/api";
     
-    // Get token transfer events for last 24h
+    // Get current block number (this works on free tier)
     const currentBlock = await getCurrentBlock(apiKey);
     const blocksIn24h = Math.floor((24 * 60 * 60) / 2); // ~2 second block time on Base
     const startBlock = Math.max(0, currentBlock - blocksIn24h);
     
-    const transfersUrl = `https://api.basescan.org/api?module=account&action=tokentx&contractaddress=${AICC_TOKEN_ADDRESS}&startblock=${startBlock}&endblock=${currentBlock}&sort=desc&apikey=${apiKey}`;
+    // Try to get token transfers (may fail on free tier)
+    const transfersUrl = `${baseUrl}?chainid=${BASE_CHAIN_ID}&module=account&action=tokentx&contractaddress=${AICC_TOKEN_ADDRESS}&startblock=${startBlock}&endblock=${currentBlock}&sort=desc&apikey=${apiKey}`;
     
-    // Also get token info
-    const tokenInfoUrl = `https://api.basescan.org/api?module=token&action=tokeninfo&contractaddress=${AICC_TOKEN_ADDRESS}&apikey=${apiKey}`;
+    // Try to get token info
+    const tokenInfoUrl = `${baseUrl}?chainid=${BASE_CHAIN_ID}&module=token&action=tokeninfo&contractaddress=${AICC_TOKEN_ADDRESS}&apikey=${apiKey}`;
     
-    const [holdersRes, transfersRes, tokenInfoRes] = await Promise.all([
-      fetch(holdersUrl).then(r => r.json()).catch(() => ({ result: [] })),
-      fetch(transfersUrl).then(r => r.json()).catch(() => ({ result: [] })),
-      fetch(tokenInfoUrl).then(r => r.json()).catch(() => ({ result: [] }))
+    const [transfersRes, tokenInfoRes] = await Promise.all([
+      fetch(transfersUrl).then(r => r.json()).catch((e) => {
+        console.error("Error fetching transfers:", e);
+        return { status: "0", result: [] };
+      }),
+      fetch(tokenInfoUrl).then(r => r.json()).catch((e) => {
+        console.error("Error fetching token info:", e);
+        return { status: "0", result: [] };
+      })
     ]);
     
-    // Parse holders - Basescan doesn't directly provide holder count
-    // We'll estimate from token info or use a fallback
+    // Check if API returned an error (e.g., free tier limitation)
+    if (transfersRes.status === "0" && transfersRes.message === "NOTOK") {
+      console.warn("Etherscan V2 API limitation:", transfersRes.result);
+    }
+    
+    // Parse holders from token info
     let holders = 0;
-    if (tokenInfoRes.result && Array.isArray(tokenInfoRes.result) && tokenInfoRes.result.length > 0) {
+    if (tokenInfoRes.status === "1" && tokenInfoRes.result && Array.isArray(tokenInfoRes.result) && tokenInfoRes.result.length > 0) {
       holders = parseInt(tokenInfoRes.result[0].holdersCount || "0", 10);
     }
     
     // Count transfers in last 24h
-    const transfers24h = Array.isArray(transfersRes.result) ? transfersRes.result.length : 0;
+    const transfers24h = (transfersRes.status === "1" && Array.isArray(transfersRes.result))
+      ? transfersRes.result.length
+      : 0;
     
     // Get total supply
     let totalSupply = "0";
-    if (tokenInfoRes.result && Array.isArray(tokenInfoRes.result) && tokenInfoRes.result.length > 0) {
+    if (tokenInfoRes.status === "1" && tokenInfoRes.result && Array.isArray(tokenInfoRes.result) && tokenInfoRes.result.length > 0) {
       totalSupply = tokenInfoRes.result[0].totalSupply || "0";
     }
     
@@ -88,7 +152,7 @@ async function fetchBasescanData(): Promise<BasescanTokenInfo> {
       totalSupply
     };
   } catch (error) {
-    console.error("Error fetching Basescan data:", error);
+    console.error("Error fetching Etherscan V2 data:", error);
     return {
       holders: 0,
       transfers24h: 0,
@@ -97,13 +161,58 @@ async function fetchBasescanData(): Promise<BasescanTokenInfo> {
   }
 }
 
+// Fetch data from DexScreener API (free, no API key required)
+async function fetchDexScreenerData(): Promise<DefinedTokenInfo> {
+  try {
+    // DexScreener API - search by token address
+    const url = `https://api.dexscreener.com/latest/dex/tokens/${AICC_TOKEN_ADDRESS}`;
+    const response = await fetch(url);
+    const data = await response.json();
+    
+    if (data.pairs && Array.isArray(data.pairs) && data.pairs.length > 0) {
+      // Find the pair on Base chain or use the first one
+      const pair: DexScreenerPair = data.pairs.find((p: { chainId: string }) => p.chainId === "base") || data.pairs[0];
+      
+      return {
+        priceUsd: parseFloat(pair.priceUsd || "0"),
+        marketCap: pair.fdv || 0,
+        liquidity: pair.liquidity?.usd || 0,
+        volume24h: (pair.txns?.h24?.buys || 0) + (pair.txns?.h24?.sells || 0),
+        priceChange24h: pair.priceChange?.h24 || 0
+      };
+    }
+    
+    return {
+      priceUsd: 0,
+      marketCap: 0,
+      liquidity: 0,
+      volume24h: 0,
+      priceChange24h: 0
+    };
+  } catch (error) {
+    console.error("Error fetching DexScreener data:", error);
+    return {
+      priceUsd: 0,
+      marketCap: 0,
+      liquidity: 0,
+      volume24h: 0,
+      priceChange24h: 0
+    };
+  }
+}
+
 async function getCurrentBlock(apiKey: string): Promise<number> {
   try {
-    const url = `https://api.basescan.org/api?module=proxy&action=eth_blockNumber&apikey=${apiKey}`;
+    // Use Etherscan V2 API for block number
+    const url = `https://api.etherscan.io/v2/api?chainid=${BASE_CHAIN_ID}&module=proxy&action=eth_blockNumber&apikey=${apiKey}`;
     const res = await fetch(url);
     const data = await res.json();
-    return parseInt(data.result, 16);
-  } catch {
+    if (data.result && typeof data.result === "string") {
+      return parseInt(data.result, 16);
+    }
+    return 0;
+  } catch (error) {
+    console.error("Error getting current block:", error);
     return 0;
   }
 }
@@ -248,16 +357,23 @@ async function fetchDefinedTokenData(): Promise<DefinedTokenInfo> {
   }
 }
 
-// Fetch recent transactions from Basescan
+// Fetch recent transactions using Etherscan V2 API
 async function fetchRecentTransactions(): Promise<TokenDataResponse["recentTransactions"]> {
   try {
     const apiKey = process.env.BASESCAN_API_KEY || "";
-    const url = `https://api.basescan.org/api?module=account&action=tokentx&contractaddress=${AICC_TOKEN_ADDRESS}&page=1&offset=10&sort=desc&apikey=${apiKey}`;
+    // Use Etherscan V2 API with chainid parameter
+    const url = `https://api.etherscan.io/v2/api?chainid=${BASE_CHAIN_ID}&module=account&action=tokentx&contractaddress=${AICC_TOKEN_ADDRESS}&page=1&offset=10&sort=desc&apikey=${apiKey}`;
     
     const response = await fetch(url);
     const data = await response.json();
     
-    if (data.result && Array.isArray(data.result)) {
+    // Check for API errors (e.g., free tier limitation)
+    if (data.status === "0" && data.message === "NOTOK") {
+      console.warn("Etherscan V2 API limitation for transactions:", data.result);
+      return [];
+    }
+    
+    if (data.status === "1" && data.result && Array.isArray(data.result)) {
       return data.result.slice(0, 5).map((tx: {
         to: string;
         from: string;
@@ -329,30 +445,51 @@ export function createTokenDataRoutes() {
   // Main endpoint to get all token data
   app.get("/", async (c) => {
     try {
-      // Fetch data from both sources in parallel
-      const [basescanData, definedData, recentTxs] = await Promise.all([
-        fetchBasescanData(),
+      // Check cache first
+      if (isCacheValid(cache.tokenData)) {
+        console.log("Returning cached token data");
+        c.header("Cache-Control", "public, max-age=1800, s-maxage=1800");
+        c.header("X-Cache", "HIT");
+        return c.json(cache.tokenData.data);
+      }
+      
+      console.log("Fetching fresh token data");
+      // Fetch data from multiple sources in parallel
+      // Use Etherscan V2 for on-chain data, DexScreener as primary price source, Defined.fi as fallback
+      const [etherscanData, dexScreenerData, definedData, recentTxs] = await Promise.all([
+        fetchEtherscanV2Data(),
+        fetchDexScreenerData(),
         fetchDefinedData(),
         fetchRecentTransactions()
       ]);
       
+      // Prefer DexScreener data, fallback to Defined.fi
+      const priceData = dexScreenerData.priceUsd > 0 ? dexScreenerData : definedData;
+      
       const response: TokenDataResponse = {
-        holders: basescanData.holders,
-        holdersChange: basescanData.holders > 0 ? "+2.4%" : "N/A", // Would need historical data for real change
-        transfers24h: formatNumber(basescanData.transfers24h),
-        transfersChange: basescanData.transfers24h > 0 ? "+12.1%" : "N/A",
-        marketCap: formatCurrency(definedData.marketCap),
-        marketCapVerified: definedData.marketCap > 0,
-        liquidity: formatCurrency(definedData.liquidity),
+        holders: etherscanData.holders,
+        holdersChange: etherscanData.holders > 0 ? "+2.4%" : "N/A", // Would need historical data for real change
+        transfers24h: formatNumber(etherscanData.transfers24h),
+        transfersChange: etherscanData.transfers24h > 0 ? "+12.1%" : "N/A",
+        marketCap: formatCurrency(priceData.marketCap),
+        marketCapVerified: priceData.marketCap > 0,
+        liquidity: formatCurrency(priceData.liquidity),
         liquidityLocked: true, // Would need to check liquidity lock contract
-        priceUsd: definedData.priceUsd,
-        priceChange24h: definedData.priceChange24h,
+        priceUsd: priceData.priceUsd,
+        priceChange24h: priceData.priceChange24h,
         recentTransactions: recentTxs,
         lastUpdated: new Date().toISOString()
       };
       
-      // Set cache headers - cache for 30 seconds
-      c.header("Cache-Control", "public, max-age=30, s-maxage=30");
+      // Store in cache
+      cache.tokenData = {
+        data: response,
+        timestamp: Date.now()
+      };
+      
+      // Set cache headers - cache for 30 minutes (1800 seconds)
+      c.header("Cache-Control", "public, max-age=1800, s-maxage=1800");
+      c.header("X-Cache", "MISS");
       
       return c.json(response);
     } catch (error) {
@@ -364,17 +501,36 @@ export function createTokenDataRoutes() {
   // Endpoint for just price data (lighter weight)
   app.get("/price", async (c) => {
     try {
+      // Check cache first
+      if (isCacheValid(cache.priceData)) {
+        console.log("Returning cached price data");
+        c.header("Cache-Control", "public, max-age=1800, s-maxage=1800");
+        c.header("X-Cache", "HIT");
+        return c.json(cache.priceData.data);
+      }
+      
+      console.log("Fetching fresh price data");
       const definedData = await fetchDefinedData();
       
-      c.header("Cache-Control", "public, max-age=15, s-maxage=15");
-      
-      return c.json({
+      const response = {
         priceUsd: definedData.priceUsd,
         priceChange24h: definedData.priceChange24h,
         marketCap: formatCurrency(definedData.marketCap),
         liquidity: formatCurrency(definedData.liquidity),
         lastUpdated: new Date().toISOString()
-      });
+      };
+      
+      // Store in cache
+      cache.priceData = {
+        data: response,
+        timestamp: Date.now()
+      };
+      
+      // Set cache headers - cache for 30 minutes (1800 seconds)
+      c.header("Cache-Control", "public, max-age=1800, s-maxage=1800");
+      c.header("X-Cache", "MISS");
+      
+      return c.json(response);
     } catch (error) {
       console.error("Error fetching price data:", error);
       return c.json({ error: "Failed to fetch price data" }, 500);
@@ -384,14 +540,33 @@ export function createTokenDataRoutes() {
   // Endpoint for recent transactions
   app.get("/transactions", async (c) => {
     try {
+      // Check cache first
+      if (isCacheValid(cache.transactions)) {
+        console.log("Returning cached transactions data");
+        c.header("Cache-Control", "public, max-age=1800, s-maxage=1800");
+        c.header("X-Cache", "HIT");
+        return c.json(cache.transactions.data);
+      }
+      
+      console.log("Fetching fresh transactions data");
       const transactions = await fetchRecentTransactions();
       
-      c.header("Cache-Control", "public, max-age=15, s-maxage=15");
-      
-      return c.json({
+      const response = {
         transactions,
         lastUpdated: new Date().toISOString()
-      });
+      };
+      
+      // Store in cache
+      cache.transactions = {
+        data: response,
+        timestamp: Date.now()
+      };
+      
+      // Set cache headers - cache for 30 minutes (1800 seconds)
+      c.header("Cache-Control", "public, max-age=1800, s-maxage=1800");
+      c.header("X-Cache", "MISS");
+      
+      return c.json(response);
     } catch (error) {
       console.error("Error fetching transactions:", error);
       return c.json({ error: "Failed to fetch transactions" }, 500);

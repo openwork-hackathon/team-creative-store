@@ -105,32 +105,3 @@ export function useTokenTransactions() {
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
   });
 }
-
-// Fallback data for when API is unavailable or loading
-export const FALLBACK_TOKEN_DATA: TokenData = {
-  holders: 12482,
-  holdersChange: "+2.4%",
-  transfers24h: "45.2K",
-  transfersChange: "+12.1%",
-  marketCap: "$4.2M",
-  marketCapVerified: true,
-  liquidity: "$890K",
-  liquidityLocked: true,
-  priceUsd: 0.042,
-  priceChange24h: 5.2,
-  recentTransactions: [
-    {
-      address: "0x71c...a290",
-      action: "bought",
-      amount: "1,200",
-      timestamp: Date.now() - 60000,
-    },
-    {
-      address: "0x33b...e112",
-      action: "licensed",
-      amount: "450",
-      timestamp: Date.now() - 120000,
-    },
-  ],
-  lastUpdated: new Date().toISOString(),
-};

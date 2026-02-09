@@ -85,9 +85,6 @@ export function ConnectedState({
           <h2 className="text-[22px] font-bold leading-tight tracking-[-0.015em] text-slate-900 dark:text-white">
             Transaction History
           </h2>
-          <button type="button" className="text-sm font-bold text-primary hover:underline">
-            View All
-          </button>
         </div>
         <div className="overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-[#324467] dark:bg-background-dark/20">
           <table className="w-full border-collapse text-left">

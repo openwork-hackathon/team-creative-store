@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { useTokenData, FALLBACK_TOKEN_DATA, type TokenTransaction } from "../hooks/use-token-data";
+import { useTokenData, type TokenTransaction } from "../hooks/use-token-data";
 import { aiccTokenAddress } from "@/lib/constants";
 
 // Skeleton loader component for stats
@@ -51,9 +51,9 @@ function TransactionItem({ tx }: { tx: TokenTransaction }) {
 // Live Network Data component
 function LiveNetworkData() {
   const { data, isLoading, isError } = useTokenData();
-  
-  // Use fetched data or fallback
-  const tokenData = data || FALLBACK_TOKEN_DATA;
+  const tokenData = data;
+
+  const isOffline = isError || !tokenData;
   
   return (
     <div className="bg-[#0f172a]/40 backdrop-blur-xl border border-accent/20 rounded-2xl p-8 shadow-[0_0_20px_rgba(16,185,129,0.15)]">
@@ -66,7 +66,7 @@ function LiveNetworkData() {
         </div>
         <span className="flex items-center gap-1.5 text-xs text-accent font-bold px-2 py-1 bg-accent/10 rounded-full">
           <span className={`w-1.5 h-1.5 rounded-full bg-accent ${isLoading ? "animate-pulse" : ""}`} />
-          {isLoading ? "UPDATING" : isError ? "OFFLINE" : "LIVE"}
+          {isLoading ? "UPDATING" : isOffline ? "OFFLINE" : "LIVE"}
         </span>
       </div>
       
@@ -76,6 +76,11 @@ function LiveNetworkData() {
           <div className="text-[10px] font-bold text-slate-500 uppercase mb-1">Holders</div>
           {isLoading ? (
             <StatSkeleton />
+          ) : isOffline ? (
+            <>
+              <div className="text-xl font-black text-white">—</div>
+              <div className="text-[10px] text-slate-500">Offline</div>
+            </>
           ) : (
             <>
               <div className="text-xl font-black text-white">
@@ -90,6 +95,11 @@ function LiveNetworkData() {
           <div className="text-[10px] font-bold text-slate-500 uppercase mb-1">Transfers (24h)</div>
           {isLoading ? (
             <StatSkeleton />
+          ) : isOffline ? (
+            <>
+              <div className="text-xl font-black text-white">—</div>
+              <div className="text-[10px] text-slate-500">Offline</div>
+            </>
           ) : (
             <>
               <div className="text-xl font-black text-white">{tokenData.transfers24h}</div>
@@ -102,6 +112,11 @@ function LiveNetworkData() {
           <div className="text-[10px] font-bold text-slate-500 uppercase mb-1">Market Cap</div>
           {isLoading ? (
             <StatSkeleton />
+          ) : isOffline ? (
+            <>
+              <div className="text-xl font-black text-white">—</div>
+              <div className="text-[10px] text-slate-500">Offline</div>
+            </>
           ) : (
             <>
               <div className="text-xl font-black text-white">{tokenData.marketCap}</div>
@@ -116,6 +131,11 @@ function LiveNetworkData() {
           <div className="text-[10px] font-bold text-slate-500 uppercase mb-1">Liquidity</div>
           {isLoading ? (
             <StatSkeleton />
+          ) : isOffline ? (
+            <>
+              <div className="text-xl font-black text-white">—</div>
+              <div className="text-[10px] text-slate-500">Offline</div>
+            </>
           ) : (
             <>
               <div className="text-xl font-black text-white">{tokenData.liquidity}</div>
@@ -134,6 +154,8 @@ function LiveNetworkData() {
             <TransactionSkeleton />
             <TransactionSkeleton />
           </>
+        ) : isOffline ? (
+          <div className="text-center text-slate-500 py-4">Offline</div>
         ) : tokenData.recentTransactions.length > 0 ? (
           tokenData.recentTransactions.slice(0, 3).map((tx, index) => (
             <TransactionItem key={`${tx.address}-${tx.timestamp}-${index}`} tx={tx} />
@@ -144,7 +166,7 @@ function LiveNetworkData() {
       </div>
       
       {/* Last updated timestamp */}
-      {!isLoading && tokenData.lastUpdated && (
+      {!isLoading && !isOffline && tokenData.lastUpdated && (
         <div className="mt-4 text-[10px] text-slate-600 text-right">
           Last updated: {new Date(tokenData.lastUpdated).toLocaleTimeString()}
         </div>

@@ -25,7 +25,7 @@ export function ConnectWalletModal({
             onClick={onClose}
             className="flex size-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-[#324467] dark:hover:text-white"
           >
-            <span className="material-symbols-outlined">close</span>
+            <span className="material-symbols-outlined block leading-none">close</span>
           </button>
         </div>
 

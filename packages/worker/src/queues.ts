@@ -10,6 +10,5 @@ export const redis = new IORedis(redisUrl, { maxRetriesPerRequest: null });
 
 export const queues = {
   generateDrafts: new Queue("generate_drafts", { connection: redis }),
-  renderVersion: new Queue("render_version", { connection: redis }),
-  mintNft: new Queue("mint_nft", { connection: redis })
+  renderCreative: new Queue("render_creative", { connection: redis })
 };

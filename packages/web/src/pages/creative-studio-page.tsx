@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Route } from "@/routes/_authenticated/creative-studio";
 import { createApiClient, type ApiClient, type Draft } from "@/lib/api";
@@ -84,10 +84,16 @@ export function CreativeStudioPage({ api }: CreativeStudioPageProps) {
     }
   }, [urlProjectId]);
 
+  // Ref to prevent duplicate project creation (React 18 Strict Mode calls effects twice)
+  const isCreatingProjectRef = useRef(false);
+
   // Auto-create a new project if no project selected
   useEffect(() => {
     async function createNewProject() {
       if (urlProjectId) return;
+      if (isCreatingProjectRef.current) return;
+      
+      isCreatingProjectRef.current = true;
       
       try {
         const { project } = await apiClient.createProject("Untitled Project");
@@ -96,6 +102,7 @@ export function CreativeStudioPage({ api }: CreativeStudioPageProps) {
         }
       } catch (error) {
         console.error("Failed to create new project:", error);
+        isCreatingProjectRef.current = false;
         navigate({ to: "/projects" });
       }
     }
@@ -531,9 +538,6 @@ export function CreativeStudioPage({ api }: CreativeStudioPageProps) {
                           <span className="bg-primary text-primary-foreground text-[10px] font-bold px-3 py-1.5 rounded uppercase tracking-tighter">
                             Candidate V{index + 1}
                           </span>
-                          <button className="size-10 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center text-white hover:bg-white/20 transition-colors">
-                            <span className="material-symbols-outlined text-lg">star</span>
-                          </button>
                         </div>
                         <div className="absolute bottom-4 left-4 right-4 bg-background/80 backdrop-blur-md p-3 rounded-xl border border-white/10">
                           <p className="text-xs font-medium text-foreground">{spec.label}</p>

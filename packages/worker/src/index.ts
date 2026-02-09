@@ -1,11 +1,9 @@
 import { Worker } from "bullmq";
 import { redis } from "./queues";
 import { handleGenerateDrafts } from "./jobs/generateDrafts";
-import { handleRenderVersion } from "./jobs/renderVersion";
-import { handleMintNft } from "./jobs/mintNft";
+import { handleRenderCreative } from "./jobs/renderVersion";
 
 new Worker("generate_drafts", handleGenerateDrafts, { connection: redis });
-new Worker("render_version", handleRenderVersion, { connection: redis });
-new Worker("mint_nft", handleMintNft, { connection: redis });
+new Worker("render_creative", handleRenderCreative, { connection: redis });
 
 console.log("[worker] started");

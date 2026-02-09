@@ -4,7 +4,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   ProjectFilterBar,
   ProjectGrid,
-  ProjectFab,
   PublishModal,
   type ProjectStatus,
   type RecencyFilter,
@@ -32,7 +31,8 @@ export function ProjectsPage() {
   // Fetch projects from API with search, status, and recency filters
   const { data, isLoading, error } = useQuery({
     queryKey: ["projects", statusFilter, recencyFilter],
-    queryFn: () => api.getProjects(statusFilter, recencyFilter)
+    queryFn: () => api.getProjects(statusFilter, recencyFilter),
+    refetchOnMount: "always"
   });
 
   // Publish mutation
@@ -204,13 +204,25 @@ export function ProjectsPage() {
   return (
     <div className="mx-auto w-full max-w-[1280px] px-4 py-8 lg:px-10">
       {/* Page Header */}
-      <div className="mb-6">
-        <h1 className="mb-2 text-3xl font-black leading-tight tracking-[-0.033em] text-foreground md:text-4xl">
-          Projects
-        </h1>
-        <p className="text-base text-muted-foreground">
-          Manage your AI creative projects, campaigns, and assets
-        </p>
+      <div className="mb-6 flex items-start justify-between">
+        <div>
+          <h1 className="mb-2 text-3xl font-black leading-tight tracking-[-0.033em] text-foreground md:text-4xl">
+            Projects
+          </h1>
+          <p className="text-base text-muted-foreground">
+            Manage your AI creative projects, campaigns, and assets
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={handleNewProject}
+          className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+          New Project
+        </button>
       </div>
 
       {/* Filter Bar */}
@@ -250,9 +262,6 @@ export function ProjectsPage() {
           isLoading={isLoading}
         />
       )}
-
-      {/* Floating Action Button */}
-      <ProjectFab onClick={handleNewProject} />
 
       {/* Publish Modal */}
       <PublishModal

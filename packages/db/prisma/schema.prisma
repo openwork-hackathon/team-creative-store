@@ -20,21 +20,10 @@ enum ProjectStatus {
   published
 }
 
-enum VersionStatus {
-  draft
-  published
-}
-
 enum JobStatus {
   queued
   running
   succeeded
-  failed
-}
-
-enum NftStatus {
-  pending
-  confirmed
   failed
 }
 
@@ -143,29 +132,15 @@ model Draft {
 }
 
 model Creative {
-  id        String         @id @default(uuid())
-  projectId String
-  project   Project        @relation(fields: [projectId], references: [id])
-  title     String
-  status    CreativeStatus @default(draft)
-  createdAt DateTime       @default(now())
-  versions  CreativeVersion[]
+  id            String         @id @default(uuid())
+  projectId     String
+  project       Project        @relation(fields: [projectId], references: [id])
+  url           String
+  status        CreativeStatus @default(draft)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  renderJobs    RenderJob[]
   publishRecords PublishRecord[]
-}
-
-model CreativeVersion {
-  id           String       @id @default(uuid())
-  creativeId   String
-  creative     Creative      @relation(fields: [creativeId], references: [id])
-  versionName  String
-  baseCanvasKey String
-  sourceTree   Json
-  prompts      Json
-  status       VersionStatus @default(draft)
-  createdAt    DateTime      @default(now())
-  renderJobs   RenderJob[]
-  publishRecords PublishRecord[]
-  nft          NftRecord?
 }
 
 model PlacementSpec {
@@ -181,8 +156,8 @@ model PlacementSpec {
 
 model RenderJob {
   id            String   @id @default(uuid())
-  versionId     String
-  version       CreativeVersion @relation(fields: [versionId], references: [id])
+  creativeId    String
+  creative      Creative @relation(fields: [creativeId], references: [id])
   placementSpecId String
   placementSpec PlacementSpec @relation(fields: [placementSpecId], references: [id])
   status        JobStatus @default(queued)
@@ -209,8 +184,6 @@ model PublishRecord {
   id              String          @id @default(uuid())
   creativeId      String
   creative        Creative        @relation(fields: [creativeId], references: [id])
-  versionId       String
-  version         CreativeVersion @relation(fields: [versionId], references: [id])
   creatorId       String
   creator         User            @relation("PublishRecordCreator", fields: [creatorId], references: [id])
   slug            String          @unique
@@ -230,20 +203,6 @@ model PublishRecord {
   publishedAt     DateTime        @default(now())
   purchases       Purchase[]
   orders          Order[]
-}
-
-model NftRecord {
-  id           String   @id @default(uuid())
-  versionId    String   @unique
-  version      CreativeVersion @relation(fields: [versionId], references: [id])
-  chain        String
-  contractAddress String
-  tokenId      String
-  txHash       String
-  metadataUri  String
-  contentHash  String
-  status       NftStatus @default(pending)
-  mintedAt     DateTime?
 }
 
 // Marketplace models

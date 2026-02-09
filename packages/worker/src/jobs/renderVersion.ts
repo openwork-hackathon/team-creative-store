@@ -2,13 +2,13 @@ import type { Job } from "bullmq";
 import { prisma } from "@creative-store/db";
 
 // TODO: layout engine + node-canvas/skia render
-export async function handleRenderVersion(
-  job: Job<{ versionId: string; placementSpecId: string }>
+export async function handleRenderCreative(
+  job: Job<{ creativeId: string; placementSpecId: string }>
 ) {
-  const { versionId, placementSpecId } = job.data;
+  const { creativeId, placementSpecId } = job.data;
 
   const renderJob = await prisma.renderJob.findFirst({
-    where: { versionId, placementSpecId }
+    where: { creativeId, placementSpecId }
   });
   if (!renderJob) {
     // In MVP we expect render_jobs pre-created by API
@@ -21,7 +21,7 @@ export async function handleRenderVersion(
   });
 
   // Placeholder output
-  const url = `s3://TODO/${versionId}/${placementSpecId}.png`;
+  const url = `s3://TODO/${creativeId}/${placementSpecId}.png`;
 
   await prisma.render.create({
     data: {

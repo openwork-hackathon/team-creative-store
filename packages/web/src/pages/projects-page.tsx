@@ -103,7 +103,7 @@ export function ProjectsPage() {
   };
 
   const handleNewProject = () => {
-    navigate({ to: "/projects/new" });
+    navigate({ to: "/creative-studio" });
   };
 
   const handleCardClick = (id: string) => {

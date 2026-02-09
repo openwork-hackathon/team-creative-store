@@ -84,12 +84,24 @@ export function CreativeStudioPage({ api }: CreativeStudioPageProps) {
     }
   }, [urlProjectId]);
 
-  // Redirect to projects page if no project selected
+  // Auto-create a new project if no project selected
   useEffect(() => {
-    if (!urlProjectId) {
-      navigate({ to: "/projects" });
+    async function createNewProject() {
+      if (urlProjectId) return;
+      
+      try {
+        const { project } = await apiClient.createProject("Untitled Project");
+        if (project?.id) {
+          navigate({ to: "/creative-studio", search: { projectId: project.id }, replace: true });
+        }
+      } catch (error) {
+        console.error("Failed to create new project:", error);
+        navigate({ to: "/projects" });
+      }
     }
-  }, [urlProjectId, navigate]);
+    
+    createNewProject();
+  }, [urlProjectId, navigate, apiClient]);
 
   // Load existing project data, briefs and drafts on mount
   useEffect(() => {

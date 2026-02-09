@@ -33,7 +33,7 @@ function DashboardRoute() {
     })) || [];
 
   const handleNewProject = () => {
-    navigate({ to: "/projects/new" });
+    navigate({ to: "/creative-studio" });
   };
 
   const handleEnterGenerator = () => {

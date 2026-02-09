@@ -16,6 +16,8 @@ export interface PublishModalProps {
   onClose: () => void;
   onPublish: (data: PublishFormData) => void;
   onSaveDraft?: (data: PublishFormData) => void;
+  isPublishing?: boolean;
+  error?: string | null;
 }
 
 const DEFAULT_DELIVERABLES: DeliverablePackage[] = [
@@ -63,6 +65,8 @@ export function PublishModal({
   projectTitle = "",
   onClose,
   onPublish,
+  isPublishing = false,
+  error = null,
 }: PublishModalProps) {
   const [formData, setFormData] = useState<PublishFormData>({
     title: projectTitle,
@@ -71,7 +75,7 @@ export function PublishModal({
     assetType: "ad_kit",
     licenseType: "standard",
     tags: [],
-    price: 1250,
+    price: 0,
     isPremium: false,
     deliverables: DEFAULT_DELIVERABLES,
     includeSourceFiles: false,
@@ -416,23 +420,42 @@ export function PublishModal({
         </div>
 
         {/* Footer */}
-        <div className="px-8 py-6 border-t border-border bg-muted/50 flex items-center justify-between">
-          <div className="flex gap-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              className="px-6 py-3 h-auto rounded-xl"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              onClick={handleSubmit}
-              className="px-10 py-3 h-auto rounded-xl shadow-lg shadow-primary/20 hover:brightness-110 active:scale-95 transition-all"
-            >
-              Confirm & Publish
-            </Button>
+        <div className="px-8 py-6 border-t border-border bg-muted/50 flex flex-col gap-4">
+          {/* Error Message */}
+          {error && (
+            <div className="flex items-center gap-3 p-4 bg-destructive/10 border border-destructive/20 rounded-xl">
+              <span className="material-symbols-outlined text-destructive">error</span>
+              <p className="text-sm text-destructive font-medium">{error}</p>
+            </div>
+          )}
+          
+          <div className="flex items-center justify-between">
+            <div className="flex gap-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onClose}
+                disabled={isPublishing}
+                className="px-6 py-3 h-auto rounded-xl"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                onClick={handleSubmit}
+                disabled={isPublishing}
+                className="px-10 py-3 h-auto rounded-xl shadow-lg shadow-primary/20 hover:brightness-110 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isPublishing ? (
+                  <span className="flex items-center gap-2">
+                    <span className="material-symbols-outlined animate-spin text-sm">progress_activity</span>
+                    Publishing...
+                  </span>
+                ) : (
+                  "Confirm & Publish"
+                )}
+              </Button>
+            </div>
           </div>
         </div>
       </div>

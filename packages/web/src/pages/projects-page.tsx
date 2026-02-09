@@ -184,14 +184,16 @@ export function ProjectsPage() {
 
   // Publish handlers
   const handlePublishClick = useCallback((id: string) => {
+    publishMutation.reset();
     setPublishingProjectId(id);
     setPublishModalOpen(true);
-  }, []);
+  }, [publishMutation]);
 
   const handlePublishClose = useCallback(() => {
     setPublishModalOpen(false);
     setPublishingProjectId(null);
-  }, []);
+    publishMutation.reset();
+  }, [publishMutation]);
 
   const handlePublishSubmit = useCallback((data: PublishFormData) => {
     if (!publishingProjectId) return;
@@ -276,6 +278,8 @@ export function ProjectsPage() {
         onClose={handlePublishClose}
         onPublish={handlePublishSubmit}
         onSaveDraft={handleSaveDraft}
+        isPublishing={publishMutation.isPending}
+        error={publishMutation.error ? (publishMutation.error instanceof Error ? publishMutation.error.message : "Failed to publish project. Please try again.") : null}
       />
 
       {/* Delete Confirmation Dialog */}

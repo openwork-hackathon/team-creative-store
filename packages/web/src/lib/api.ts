@@ -277,7 +277,13 @@ export function createApiClient(
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(input)
-      }).then((response) => response.json()),
+      }).then(async (response) => {
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || errorData.message || "Failed to publish project");
+        }
+        return response.json();
+      }),
     // Marketplace API
     getMarketplaceListings: async (query: MarketplaceQuery): Promise<MarketplaceListingsResponse> => {
       const params = new URLSearchParams();

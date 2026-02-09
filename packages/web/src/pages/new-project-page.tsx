@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { createApiClient } from "@/lib/api";
@@ -9,11 +9,14 @@ const api = createApiClient();
 
 export function NewProjectPage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [projectName, setProjectName] = useState("");
 
   const createMutation = useMutation({
     mutationFn: (name: string) => api.createProject(name),
     onSuccess: () => {
+      // Invalidate projects query to refresh the list
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
       // Navigate to projects list after creation
       navigate({ to: "/projects" });
     },

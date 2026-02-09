@@ -72,6 +72,7 @@ type PrismaLike = {
   };
   brief: {
     create: (args: { data: { projectId: string; intentText: string; briefJson: unknown; constraints: unknown } }) => Promise<unknown>;
+    findMany: (args: { where: { projectId: string }; orderBy?: { createdAt: "desc" }; include?: { drafts?: boolean } }) => Promise<Array<{ id: string; projectId: string; intentText: string; briefJson: unknown; constraints: unknown; status: string; createdAt: Date; drafts?: Array<{ id: string; briefId: string; draftJson: unknown; createdAt: Date }> }>>;
   };
   publishRecord: {
     create: (args: { data: PublishRecordData }) => Promise<PublishRecordResult>;
@@ -175,6 +176,34 @@ export function createProjectRoutes({ prisma }: ProjectRoutesDeps) {
     }
     
     return c.json({ project });
+  });
+
+  // Get briefs for a project
+  routes.get("/:projectId/briefs", async (c) => {
+    const user = c.get("user") as SessionUser | null;
+    if (!user) return c.json({ error: "unauthorized" }, 401);
+
+    const { projectId } = c.req.param();
+
+    const project = await prisma.project.findUnique({
+      where: { id: projectId }
+    });
+
+    if (!project) {
+      return c.json({ error: "project not found" }, 404);
+    }
+
+    if (project.userId !== user.id) {
+      return c.json({ error: "forbidden" }, 403);
+    }
+
+    const briefs = await prisma.brief.findMany({
+      where: { projectId },
+      orderBy: { createdAt: "desc" },
+      include: { drafts: true }
+    });
+
+    return c.json({ briefs });
   });
 
   routes.post(

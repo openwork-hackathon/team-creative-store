@@ -173,6 +173,37 @@ export type MarketplaceListingResponse = {
   listing: MarketplaceListing;
 };
 
+// Brief and Draft types for loading existing data
+export type Draft = {
+  id: string;
+  briefId: string;
+  draftJson: {
+    placement: PlacementSpecKey;
+    imageUrl: string;
+    aspectRatio: string;
+  };
+  createdAt: string;
+};
+
+export type Brief = {
+  id: string;
+  projectId: string;
+  intentText: string;
+  briefJson: unknown;
+  constraints: unknown;
+  status: string;
+  createdAt: string;
+  drafts?: Draft[];
+};
+
+export type BriefsResponse = {
+  briefs: Brief[];
+};
+
+export type DraftsResponse = {
+  drafts: Draft[];
+};
+
 export function createApiClient(
   fetcher: typeof fetch = fetch,
   baseUrl = "/api"
@@ -189,9 +220,8 @@ export function createApiClient(
       }).then((response) => response.json()),
     listProjects: async (): Promise<ProjectsResponse> =>
       request(`${baseUrl}/projects`).then((response) => response.json()),
-    getProjects: async (search?: string, status?: ProjectStatus, recency?: string): Promise<ProjectsResponse> => {
+    getProjects: async (status?: ProjectStatus, recency?: string): Promise<ProjectsResponse> => {
       const params = new URLSearchParams();
-      if (search) params.set("search", search);
       if (status) params.set("status", status);
       if (recency) params.set("recency", recency);
       const query = params.toString();
@@ -262,6 +292,7 @@ export function createApiClient(
     },
     getMarketplaceListing: async (id: string): Promise<MarketplaceListingResponse> =>
       request(`${baseUrl}/marketplace/listings/${id}`).then((response) => response.json()),
+
     // Orders API
     getOrders: async (query: OrdersQuery = {}): Promise<OrdersResponse> => {
       const params = new URLSearchParams();
@@ -288,7 +319,13 @@ export function createApiClient(
     deleteOrder: async (id: string): Promise<{ ok: boolean }> =>
       request(`${baseUrl}/orders/${id}`, {
         method: "DELETE"
-      }).then((response) => response.json())
+      }).then((response) => response.json()),
+
+    // Brief and Draft APIs
+    getBriefsByProjectId: async (projectId: string): Promise<BriefsResponse> =>
+      request(`${baseUrl}/projects/${projectId}/briefs`).then((response) => response.json()),
+    getDraftsByBriefId: async (briefId: string): Promise<DraftsResponse> =>
+      request(`${baseUrl}/briefs/${briefId}/drafts`).then((response) => response.json())
   };
 }
 

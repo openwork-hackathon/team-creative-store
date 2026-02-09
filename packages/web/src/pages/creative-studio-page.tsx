@@ -363,6 +363,15 @@ export function CreativeStudioPage({ api }: CreativeStudioPageProps) {
     }));
 
     try {
+      // Check if intent was modified and update brief first
+      const intentModified = intent.trim() !== originalIntent.trim();
+      if (intentModified) {
+        await apiClient.updateBrief(briefId, {
+          intentText: intent
+        });
+        setOriginalIntent(intent);
+      }
+
       const response = await apiClient.generateCreative({
         briefId,
         placement: selectedCandidate,

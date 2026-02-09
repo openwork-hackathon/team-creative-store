@@ -331,7 +331,21 @@ export function createApiClient(
     getBriefsByProjectId: async (projectId: string): Promise<BriefsResponse> =>
       request(`${baseUrl}/projects/${projectId}/briefs`).then((response) => response.json()),
     getDraftsByBriefId: async (briefId: string): Promise<DraftsResponse> =>
-      request(`${baseUrl}/briefs/${briefId}/drafts`).then((response) => response.json())
+      request(`${baseUrl}/briefs/${briefId}/drafts`).then((response) => response.json()),
+
+    // User wallet API
+    updateUserWallet: async (walletAddress: string): Promise<{ ok: boolean; user: { id: string; walletAddress: string | null } }> =>
+      request(`${baseUrl}/user/@me/wallet`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ walletAddress })
+      }).then(async (response) => {
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || "Failed to update wallet address");
+        }
+        return response.json();
+      })
   };
 }
 

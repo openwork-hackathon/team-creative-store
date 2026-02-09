@@ -1,5 +1,7 @@
 export type PlacementSpecKey =
-  | "square_1_1"
+  | "iphone_14_pro"
+  | "galaxy_s23"
+  | "ipad_air"
   | "feed_4_5"
   | "story_9_16"
   | "landscape_16_9"
@@ -31,16 +33,40 @@ export type PlacementSpec = {
 // MVP fixed specs
 export const PLACEMENT_SPECS: PlacementSpec[] = [
   {
-    key: "square_1_1",
-    label: "Square 1:1 (1080×1080)",
+    key: "iphone_14_pro",
+    label: "iPhone 14 Pro",
+    category: "mobile",
+    width: 1179,
+    height: 2556,
+    aspectRatio: "9:19.5",
+    icon: "smartphone",
+    shortLabel: "iPhone 14 Pro",
+    safeArea: { top: 120, right: 80, bottom: 220, left: 80 },
+    rules: { minTitleFontSize: 52, minBodyFontSize: 30, maxTitleLines: 3, maxBodyLines: 4 }
+  },
+  {
+    key: "galaxy_s23",
+    label: "Galaxy S23",
     category: "mobile",
     width: 1080,
-    height: 1080,
-    aspectRatio: "1:1",
-    icon: "square",
-    shortLabel: "1:1",
-    safeArea: { top: 64, right: 64, bottom: 64, left: 64 },
-    rules: { minTitleFontSize: 44, minBodyFontSize: 28, maxTitleLines: 2, maxBodyLines: 4 }
+    height: 2340,
+    aspectRatio: "9:19.5",
+    icon: "smartphone",
+    shortLabel: "Galaxy S23",
+    safeArea: { top: 100, right: 60, bottom: 180, left: 60 },
+    rules: { minTitleFontSize: 48, minBodyFontSize: 28, maxTitleLines: 3, maxBodyLines: 4 }
+  },
+  {
+    key: "ipad_air",
+    label: "iPad Air",
+    category: "mobile",
+    width: 1640,
+    height: 2360,
+    aspectRatio: "3:4",
+    icon: "tablet",
+    shortLabel: "iPad Air",
+    safeArea: { top: 80, right: 60, bottom: 100, left: 60 },
+    rules: { minTitleFontSize: 56, minBodyFontSize: 32, maxTitleLines: 3, maxBodyLines: 4 }
   },
   {
     key: "feed_4_5",
@@ -63,7 +89,6 @@ export const PLACEMENT_SPECS: PlacementSpec[] = [
     aspectRatio: "9:16",
     icon: "phone_iphone",
     shortLabel: "9:16",
-    // extra bottom safe-area for UI overlays
     safeArea: { top: 120, right: 80, bottom: 220, left: 80 },
     rules: { minTitleFontSize: 52, minBodyFontSize: 30, maxTitleLines: 3, maxBodyLines: 4 }
   },
@@ -100,7 +125,6 @@ export const PLACEMENT_SPECS: PlacementSpec[] = [
     aspectRatio: "16:9",
     icon: "tv",
     shortLabel: "4K",
-    // TV overscan-ish margins
     safeArea: { top: 160, right: 200, bottom: 160, left: 200 },
     rules: { minTitleFontSize: 96, minBodyFontSize: 56, maxTitleLines: 2, maxBodyLines: 3 }
   }

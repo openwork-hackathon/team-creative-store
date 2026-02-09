@@ -42,7 +42,7 @@ export function TopNav({ user }: TopNavProps) {
             </svg>
           </div>
           <h2 className="text-lg font-bold leading-tight tracking-[-0.015em] text-slate-900 dark:text-white">
-            Preview Studio
+            Creative Store
           </h2>
         </div>
 

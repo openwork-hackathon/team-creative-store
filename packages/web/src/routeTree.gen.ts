@@ -10,11 +10,12 @@
 
 import { Route as rootRouteImport } from "./routes/__root"
 import { Route as LoginRouteImport } from "./routes/login"
+import { Route as PreviewRouteImport } from "./routes/_preview"
 import { Route as AuthenticatedRouteImport } from "./routes/_authenticated"
 import { Route as IndexRouteImport } from "./routes/index"
+import { Route as PreviewPreviewStudioRouteImport } from "./routes/_preview/preview-studio"
 import { Route as AuthenticatedWalletRouteImport } from "./routes/_authenticated/wallet"
 import { Route as AuthenticatedProjectsRouteImport } from "./routes/_authenticated/projects"
-import { Route as AuthenticatedPreviewStudioRouteImport } from "./routes/_authenticated/preview-studio"
 import { Route as AuthenticatedMarketRouteImport } from "./routes/_authenticated/market"
 import { Route as AuthenticatedDashboardRouteImport } from "./routes/_authenticated/dashboard"
 import { Route as AuthenticatedCreativeStudioRouteImport } from "./routes/_authenticated/creative-studio"
@@ -23,6 +24,10 @@ import { Route as AuthenticatedMarketIdRouteImport } from "./routes/_authenticat
 const LoginRoute = LoginRouteImport.update({
   id: "/login",
   path: "/login",
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PreviewRoute = PreviewRouteImport.update({
+  id: "/_preview",
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
@@ -34,6 +39,11 @@ const IndexRoute = IndexRouteImport.update({
   path: "/",
   getParentRoute: () => rootRouteImport,
 } as any)
+const PreviewPreviewStudioRoute = PreviewPreviewStudioRouteImport.update({
+  id: "/preview-studio",
+  path: "/preview-studio",
+  getParentRoute: () => PreviewRoute,
+} as any)
 const AuthenticatedWalletRoute = AuthenticatedWalletRouteImport.update({
   id: "/wallet",
   path: "/wallet",
@@ -44,12 +54,6 @@ const AuthenticatedProjectsRoute = AuthenticatedProjectsRouteImport.update({
   path: "/projects",
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedPreviewStudioRoute =
-  AuthenticatedPreviewStudioRouteImport.update({
-    id: "/preview-studio",
-    path: "/preview-studio",
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
 const AuthenticatedMarketRoute = AuthenticatedMarketRouteImport.update({
   id: "/market",
   path: "/market",
@@ -78,9 +82,9 @@ export interface FileRoutesByFullPath {
   "/creative-studio": typeof AuthenticatedCreativeStudioRoute
   "/dashboard": typeof AuthenticatedDashboardRoute
   "/market": typeof AuthenticatedMarketRoute
-  "/preview-studio": typeof AuthenticatedPreviewStudioRoute
   "/projects": typeof AuthenticatedProjectsRoute
   "/wallet": typeof AuthenticatedWalletRoute
+  "/preview-studio": typeof PreviewPreviewStudioRoute
   "/market/$id": typeof AuthenticatedMarketIdRoute
 }
 export interface FileRoutesByTo {
@@ -89,22 +93,23 @@ export interface FileRoutesByTo {
   "/creative-studio": typeof AuthenticatedCreativeStudioRoute
   "/dashboard": typeof AuthenticatedDashboardRoute
   "/market": typeof AuthenticatedMarketRoute
-  "/preview-studio": typeof AuthenticatedPreviewStudioRoute
   "/projects": typeof AuthenticatedProjectsRoute
   "/wallet": typeof AuthenticatedWalletRoute
+  "/preview-studio": typeof PreviewPreviewStudioRoute
   "/market/$id": typeof AuthenticatedMarketIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   "/": typeof IndexRoute
   "/_authenticated": typeof AuthenticatedRouteWithChildren
+  "/_preview": typeof PreviewRouteWithChildren
   "/login": typeof LoginRoute
   "/_authenticated/creative-studio": typeof AuthenticatedCreativeStudioRoute
   "/_authenticated/dashboard": typeof AuthenticatedDashboardRoute
   "/_authenticated/market": typeof AuthenticatedMarketRoute
-  "/_authenticated/preview-studio": typeof AuthenticatedPreviewStudioRoute
   "/_authenticated/projects": typeof AuthenticatedProjectsRoute
   "/_authenticated/wallet": typeof AuthenticatedWalletRoute
+  "/_preview/preview-studio": typeof PreviewPreviewStudioRoute
   "/_authenticated/market_/$id": typeof AuthenticatedMarketIdRoute
 }
 export interface FileRouteTypes {
@@ -115,9 +120,9 @@ export interface FileRouteTypes {
     | "/creative-studio"
     | "/dashboard"
     | "/market"
-    | "/preview-studio"
     | "/projects"
     | "/wallet"
+    | "/preview-studio"
     | "/market/$id"
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -126,27 +131,29 @@ export interface FileRouteTypes {
     | "/creative-studio"
     | "/dashboard"
     | "/market"
-    | "/preview-studio"
     | "/projects"
     | "/wallet"
+    | "/preview-studio"
     | "/market/$id"
   id:
     | "__root__"
     | "/"
     | "/_authenticated"
+    | "/_preview"
     | "/login"
     | "/_authenticated/creative-studio"
     | "/_authenticated/dashboard"
     | "/_authenticated/market"
-    | "/_authenticated/preview-studio"
     | "/_authenticated/projects"
     | "/_authenticated/wallet"
+    | "/_preview/preview-studio"
     | "/_authenticated/market_/$id"
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  PreviewRoute: typeof PreviewRouteWithChildren
   LoginRoute: typeof LoginRoute
 }
 
@@ -157,6 +164,13 @@ declare module "@tanstack/react-router" {
       path: "/login"
       fullPath: "/login"
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/_preview": {
+      id: "/_preview"
+      path: ""
+      fullPath: "/"
+      preLoaderRoute: typeof PreviewRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/_authenticated": {
@@ -173,6 +187,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    "/_preview/preview-studio": {
+      id: "/_preview/preview-studio"
+      path: "/preview-studio"
+      fullPath: "/preview-studio"
+      preLoaderRoute: typeof PreviewPreviewStudioRouteImport
+      parentRoute: typeof PreviewRoute
+    }
     "/_authenticated/wallet": {
       id: "/_authenticated/wallet"
       path: "/wallet"
@@ -185,13 +206,6 @@ declare module "@tanstack/react-router" {
       path: "/projects"
       fullPath: "/projects"
       preLoaderRoute: typeof AuthenticatedProjectsRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    "/_authenticated/preview-studio": {
-      id: "/_authenticated/preview-studio"
-      path: "/preview-studio"
-      fullPath: "/preview-studio"
-      preLoaderRoute: typeof AuthenticatedPreviewStudioRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     "/_authenticated/market": {
@@ -229,7 +243,6 @@ interface AuthenticatedRouteChildren {
   AuthenticatedCreativeStudioRoute: typeof AuthenticatedCreativeStudioRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedMarketRoute: typeof AuthenticatedMarketRoute
-  AuthenticatedPreviewStudioRoute: typeof AuthenticatedPreviewStudioRoute
   AuthenticatedProjectsRoute: typeof AuthenticatedProjectsRoute
   AuthenticatedWalletRoute: typeof AuthenticatedWalletRoute
   AuthenticatedMarketIdRoute: typeof AuthenticatedMarketIdRoute
@@ -239,7 +252,6 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedCreativeStudioRoute: AuthenticatedCreativeStudioRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedMarketRoute: AuthenticatedMarketRoute,
-  AuthenticatedPreviewStudioRoute: AuthenticatedPreviewStudioRoute,
   AuthenticatedProjectsRoute: AuthenticatedProjectsRoute,
   AuthenticatedWalletRoute: AuthenticatedWalletRoute,
   AuthenticatedMarketIdRoute: AuthenticatedMarketIdRoute,
@@ -249,9 +261,21 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
   AuthenticatedRouteChildren,
 )
 
+interface PreviewRouteChildren {
+  PreviewPreviewStudioRoute: typeof PreviewPreviewStudioRoute
+}
+
+const PreviewRouteChildren: PreviewRouteChildren = {
+  PreviewPreviewStudioRoute: PreviewPreviewStudioRoute,
+}
+
+const PreviewRouteWithChildren =
+  PreviewRoute._addFileChildren(PreviewRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  PreviewRoute: PreviewRouteWithChildren,
   LoginRoute: LoginRoute,
 }
 export const routeTree = rootRouteImport

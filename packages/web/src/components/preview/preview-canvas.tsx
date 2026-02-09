@@ -23,22 +23,23 @@ export function PreviewCanvas({
   className,
 }: PreviewCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [zoom, setZoom] = useState<"fit" | number>("fit");
+  // Default to 0.25 (25%) when container is not ready
+  const [zoom, setZoom] = useState<"fit" | number>(0.25);
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
 
   // Calculate zoom to fit
   const calculateFitZoom = useCallback(() => {
-    if (!containerRef.current) return 0.5;
+    if (!containerRef.current) return 0.25;
 
     const container = containerRef.current;
-    const padding = 96; // 24px padding on each side
+    const padding = 48; // 12px padding on each side
     const availableWidth = container.clientWidth - padding;
     const availableHeight = container.clientHeight - padding;
 
     const scaleX = availableWidth / spec.width;
     const scaleY = availableHeight / spec.height;
 
-    return Math.min(scaleX, scaleY, 1); // Max zoom 100%
+    return Math.min(scaleX, scaleY, 0.5); // Max zoom 50%
   }, [spec.height, spec.width]);
 
   // Update container size for zoom calculations
@@ -57,16 +58,11 @@ export function PreviewCanvas({
     return () => window.removeEventListener("resize", updateSize);
   }, []);
 
-  // Set initial fit zoom
-  useEffect(() => {
-    setZoom("fit");
-  }, [spec.key]);
-
   const actualZoom = zoom === "fit" ? calculateFitZoom() : zoom;
 
   const handleZoomIn = () => {
     const currentZoom = zoom === "fit" ? calculateFitZoom() : zoom;
-    const newZoom = Math.min(currentZoom + 0.25, 2);
+    const newZoom = Math.min(currentZoom + 0.25, 1);
     setZoom(newZoom);
   };
 
@@ -84,29 +80,13 @@ export function PreviewCanvas({
     <div
       ref={containerRef}
       className={cn(
-        "flex-1 overflow-auto flex items-center justify-center p-12 relative",
+        "flex items-center justify-center p-4 relative w-full",
         showGrid && "canvas-grid",
         backgroundType === "checkerboard" && "bg-white dark:bg-[#0b0f1a]",
         backgroundType === "solid" && "bg-slate-200 dark:bg-slate-800",
         className
       )}
     >
-      {/* Background Toggle */}
-      <div className="absolute top-4 right-6 z-10">
-        <button
-          className="p-2 rounded-lg bg-white/10 backdrop-blur-md hover:bg-white/20 transition-colors"
-          title="Toggle Background"
-        >
-          <span className="material-symbols-outlined">
-            {backgroundType === "checkerboard"
-              ? "grid_4x4"
-              : backgroundType === "solid"
-              ? "format_color_fill"
-              : " transparency"}
-          </span>
-        </button>
-      </div>
-
       {/* Device Frame with Preview */}
       <DeviceFrame spec={spec} zoom={actualZoom}>
         {children}

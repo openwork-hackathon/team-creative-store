@@ -31,7 +31,11 @@ export function DeviceSizePicker({
 
   const handleCategoryClick = (category: DeviceCategory) => {
     setActiveCategory(category);
-    // Don't auto-select, let user choose
+    // Auto-select the first spec in this category for preview
+    const firstSpec = PLACEMENT_SPECS.find((s) => s.category === category);
+    if (firstSpec) {
+      onSpecSelect(firstSpec.key);
+    }
   };
 
   const handleToggle = (key: PlacementSpecKey) => {
@@ -47,7 +51,7 @@ export function DeviceSizePicker({
   };
 
   return (
-    <div className={cn("flex flex-col h-full", className)}>
+    <div className={cn("flex flex-col h-full p-4", className)}>
       {/* Device Category Tabs */}
       <div className="flex flex-col gap-3 shrink-0">
         <div className="flex flex-col">

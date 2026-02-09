@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { PLACEMENT_SPECS, type PlacementSpecKey, type DeviceCategory } from "../../../../shared/src/placementSpecs";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -11,6 +11,7 @@ import {
   ExportPanel,
 } from "@/components/preview";
 import html2canvas from "html2canvas";
+import { useCurrentUser } from "@/hooks/use-current-user";
 
 type CreativeStatus = "draft" | "published" | "purchased";
 type ExportFormat = "png" | "jpg" | "webp";
@@ -23,6 +24,9 @@ type ExportOptions = {
 };
 
 function PreviewStudioPage() {
+  // User info
+  const { data: user } = useCurrentUser();
+
   // State
   const [title, setTitle] = useState("Untitled Creative");
   const [status, setStatus] = useState<CreativeStatus>("draft");
@@ -412,7 +416,45 @@ function PreviewStudioPage() {
   );
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden">
+    <div className="flex flex-col h-screen overflow-hidden bg-white dark:bg-[#0b0f1a]">
+      {/* Page Header with Logo, Title and User */}
+      <div className="flex items-center justify-between gap-4 px-6 pt-4 pb-3 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark">
+        <div className="flex items-center gap-4">
+          {/* Back Button */}
+          <Button variant="ghost" size="sm" onClick={() => navigate?.({ to: "/dashboard" })}>
+            <span className="material-symbols-outlined">arrow_back</span>
+          </Button>
+
+          {/* Custom Icon */}
+          <div className="size-6 text-primary">
+            <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+              <rect x="4" y="8" width="40" height="32" rx="4" stroke="currentColor" stroke-width="3"/>
+              <path d="M12 20h24M12 28h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <h1 className="text-xl font-bold">Preview Studio</h1>
+        </div>
+
+        {/* User Avatar */}
+        {user?.image ? (
+          <div
+            className="aspect-square size-8 rounded-full border border-primary bg-cover bg-center bg-no-repeat"
+            style={{ backgroundImage: `url("${user.image}")` }}
+          />
+        ) : (
+          <div className="flex size-8 items-center justify-center rounded-full border border-primary bg-slate-100 text-xs font-semibold text-slate-600">
+            {user?.name?.charAt(0) || "U"}
+          </div>
+        )}
+      </div>
+
+      {/* Page Description */}
+      <div className="px-6 py-3">
+        <p className="text-sm text-muted-foreground">
+          Preview your creative across multiple platforms and sizes
+        </p>
+      </div>
+
       {/* Top Toolbar */}
       <PreviewToolbar
         title={title}
@@ -425,16 +467,18 @@ function PreviewStudioPage() {
         isSaving={isSaving}
       />
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden h-[calc(100vh-190px)]">
         {/* Left Sidebar - Device & Size Picker */}
-        <aside className="w-64 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark flex flex-col p-4 shrink-0">
-          <DeviceSizePicker
-            selectedSpecKey={selectedSpecKey}
-            onSpecSelect={handleSpecSelect}
-            selectedSpecs={selectedSpecs}
-            onBatchSelect={setSelectedSpecs}
-            onCategoryChange={(_, firstSpecKey) => setSelectedSpecs([firstSpecKey])}
-          />
+        <aside className="w-64 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark shrink-0">
+          <div className="h-full overflow-y-auto custom-scrollbar pb-24">
+            <DeviceSizePicker
+              selectedSpecKey={selectedSpecKey}
+              onSpecSelect={handleSpecSelect}
+              selectedSpecs={selectedSpecs}
+              onBatchSelect={setSelectedSpecs}
+              onCategoryChange={(_, firstSpecKey) => setSelectedSpecs([firstSpecKey])}
+            />
+          </div>
         </aside>
 
         {/* Main Content */}
@@ -529,6 +573,6 @@ function PreviewStudioPage() {
   );
 }
 
-export const Route = createFileRoute("/_authenticated/preview-studio")({
+export const Route = createFileRoute("/_preview/preview-studio")({
   component: PreviewStudioPage,
 });

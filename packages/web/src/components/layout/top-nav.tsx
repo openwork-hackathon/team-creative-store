@@ -2,7 +2,6 @@ import { Link, useRouterState } from "@tanstack/react-router";
 
 const navItems = [
   { label: "Dashboard", to: "/dashboard" },
-  { label: "Creatives", to: "/creative-studio" },
   { label: "Project", to: "/projects" },
   { label: "Market", to: "/market" },
   { label: "Wallet", to: "/wallet" }

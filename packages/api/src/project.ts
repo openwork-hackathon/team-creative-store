@@ -175,7 +175,18 @@ export function createProjectRoutes({ prisma }: ProjectRoutesDeps) {
       return c.json({ error: "forbidden" }, 403);
     }
     
-    return c.json({ project });
+    // Transform to frontend format (use 'title' instead of 'name')
+    return c.json({
+      project: {
+        id: project.id,
+        title: project.name,
+        status: project.status,
+        imageUrl: project.imageUrl ?? "https://placehold.co/600x400/1a1a2e/ffffff?text=No+Preview",
+        updatedAt: formatRelativeTime(project.updatedAt),
+        createdAt: project.createdAt.toISOString(),
+        creatives: project.creatives
+      }
+    });
   });
 
   // Get briefs for a project
@@ -217,6 +228,51 @@ export function createProjectRoutes({ prisma }: ProjectRoutesDeps) {
         data: { name: input.name, userId: user.id }
       });
       return c.json({ project });
+    }
+  );
+
+  // Update project
+  routes.patch(
+    "/:projectId",
+    zValidator("json", z.object({ name: z.string().min(1).optional(), status: z.enum(["draft", "generating", "ready", "published"]).optional(), imageUrl: z.string().optional() })),
+    async (c) => {
+      const user = c.get("user") as SessionUser | null;
+      if (!user) return c.json({ error: "unauthorized" }, 401);
+      
+      const { projectId } = c.req.param();
+      const input = c.req.valid("json");
+      
+      // Check ownership before updating
+      const project = await prisma.project.findUnique({
+        where: { id: projectId }
+      });
+      
+      if (!project) {
+        return c.json({ error: "project not found" }, 404);
+      }
+      
+      if (project.userId !== user.id) {
+        return c.json({ error: "forbidden" }, 403);
+      }
+      
+      const updatedProject = await prisma.project.update({
+        where: { id: projectId },
+        data: {
+          ...(input.name && { name: input.name }),
+          ...(input.status && { status: input.status }),
+          ...(input.imageUrl && { imageUrl: input.imageUrl })
+        }
+      });
+      
+      return c.json({
+        project: {
+          id: updatedProject.id,
+          title: updatedProject.name,
+          status: updatedProject.status,
+          imageUrl: updatedProject.imageUrl,
+          updatedAt: formatRelativeTime(updatedProject.updatedAt)
+        }
+      });
     }
   );
 

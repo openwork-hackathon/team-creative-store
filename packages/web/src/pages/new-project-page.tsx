@@ -14,11 +14,11 @@ export function NewProjectPage() {
 
   const createMutation = useMutation({
     mutationFn: (name: string) => api.createProject(name),
-    onSuccess: () => {
+    onSuccess: (data: { project: { id: string } }) => {
       // Invalidate projects query to refresh the list
       queryClient.invalidateQueries({ queryKey: ["projects"] });
-      // Navigate to projects list after creation
-      navigate({ to: "/projects" });
+      // Navigate to creative-studio with the new project ID
+      navigate({ to: "/creative-studio", search: { projectId: data.project.id } });
     },
     onError: (error) => {
       console.error("Failed to create project:", error);

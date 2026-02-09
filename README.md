@@ -53,6 +53,16 @@ bun run dev:web
 
 Web runs on http://localhost:5173
 
+## Development with Auth Bypass (for testing without Auth service)
+
+If you want to preview features without setting up full Auth:
+
+```bash
+bun run dev:web:bypass
+```
+
+This will automatically log you in as a test user so you can access all authenticated pages like Preview Studio.
+
 ## Troubleshooting
 
 - If the API complains about `DATABASE_URL`, confirm it is set in `.env`.

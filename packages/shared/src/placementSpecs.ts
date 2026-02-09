@@ -6,12 +6,18 @@ export type PlacementSpecKey =
   | "banner_ultrawide"
   | "tv_4k";
 
+export type DeviceCategory = "mobile" | "web" | "tv";
+
 export type PlacementSpec = {
   key: PlacementSpecKey;
   label: string;
-  category: "mobile" | "web" | "tv";
+  category: DeviceCategory;
   width: number;
   height: number;
+  aspectRatio: string;
+  // UI fields
+  icon: string;
+  shortLabel: string;
   // safe-area margins in pixels
   safeArea: { top: number; right: number; bottom: number; left: number };
   rules: {
@@ -30,6 +36,9 @@ export const PLACEMENT_SPECS: PlacementSpec[] = [
     category: "mobile",
     width: 1080,
     height: 1080,
+    aspectRatio: "1:1",
+    icon: "square",
+    shortLabel: "1:1",
     safeArea: { top: 64, right: 64, bottom: 64, left: 64 },
     rules: { minTitleFontSize: 44, minBodyFontSize: 28, maxTitleLines: 2, maxBodyLines: 4 }
   },
@@ -39,6 +48,9 @@ export const PLACEMENT_SPECS: PlacementSpec[] = [
     category: "mobile",
     width: 1080,
     height: 1350,
+    aspectRatio: "4:5",
+    icon: "rectangle",
+    shortLabel: "4:5",
     safeArea: { top: 64, right: 64, bottom: 80, left: 64 },
     rules: { minTitleFontSize: 44, minBodyFontSize: 28, maxTitleLines: 2, maxBodyLines: 4 }
   },
@@ -48,6 +60,9 @@ export const PLACEMENT_SPECS: PlacementSpec[] = [
     category: "mobile",
     width: 1080,
     height: 1920,
+    aspectRatio: "9:16",
+    icon: "phone_iphone",
+    shortLabel: "9:16",
     // extra bottom safe-area for UI overlays
     safeArea: { top: 120, right: 80, bottom: 220, left: 80 },
     rules: { minTitleFontSize: 52, minBodyFontSize: 30, maxTitleLines: 3, maxBodyLines: 4 }
@@ -58,6 +73,9 @@ export const PLACEMENT_SPECS: PlacementSpec[] = [
     category: "web",
     width: 1920,
     height: 1080,
+    aspectRatio: "16:9",
+    icon: "desktop_windows",
+    shortLabel: "16:9",
     safeArea: { top: 64, right: 96, bottom: 64, left: 96 },
     rules: { minTitleFontSize: 52, minBodyFontSize: 30, maxTitleLines: 2, maxBodyLines: 3 }
   },
@@ -67,6 +85,9 @@ export const PLACEMENT_SPECS: PlacementSpec[] = [
     category: "web",
     width: 2560,
     height: 720,
+    aspectRatio: "ultra",
+    icon: "width_full",
+    shortLabel: "ULTRA",
     safeArea: { top: 48, right: 120, bottom: 48, left: 120 },
     rules: { minTitleFontSize: 56, minBodyFontSize: 32, maxTitleLines: 1, maxBodyLines: 2 }
   },
@@ -76,6 +97,9 @@ export const PLACEMENT_SPECS: PlacementSpec[] = [
     category: "tv",
     width: 3840,
     height: 2160,
+    aspectRatio: "16:9",
+    icon: "tv",
+    shortLabel: "4K",
     // TV overscan-ish margins
     safeArea: { top: 160, right: 200, bottom: 160, left: 200 },
     rules: { minTitleFontSize: 96, minBodyFontSize: 56, maxTitleLines: 2, maxBodyLines: 3 }

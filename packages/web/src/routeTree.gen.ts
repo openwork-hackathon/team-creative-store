@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteImport } from "./routes/_authenticated"
 import { Route as IndexRouteImport } from "./routes/index"
 import { Route as AuthenticatedWalletRouteImport } from "./routes/_authenticated/wallet"
 import { Route as AuthenticatedProjectsRouteImport } from "./routes/_authenticated/projects"
+import { Route as AuthenticatedPreviewStudioRouteImport } from "./routes/_authenticated/preview-studio"
 import { Route as AuthenticatedMarketRouteImport } from "./routes/_authenticated/market"
 import { Route as AuthenticatedDashboardRouteImport } from "./routes/_authenticated/dashboard"
 import { Route as AuthenticatedCreativeStudioRouteImport } from "./routes/_authenticated/creative-studio"
@@ -43,6 +44,12 @@ const AuthenticatedProjectsRoute = AuthenticatedProjectsRouteImport.update({
   path: "/projects",
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedPreviewStudioRoute =
+  AuthenticatedPreviewStudioRouteImport.update({
+    id: "/preview-studio",
+    path: "/preview-studio",
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedMarketRoute = AuthenticatedMarketRouteImport.update({
   id: "/market",
   path: "/market",
@@ -71,6 +78,7 @@ export interface FileRoutesByFullPath {
   "/creative-studio": typeof AuthenticatedCreativeStudioRoute
   "/dashboard": typeof AuthenticatedDashboardRoute
   "/market": typeof AuthenticatedMarketRoute
+  "/preview-studio": typeof AuthenticatedPreviewStudioRoute
   "/projects": typeof AuthenticatedProjectsRoute
   "/wallet": typeof AuthenticatedWalletRoute
   "/market/$id": typeof AuthenticatedMarketIdRoute
@@ -81,6 +89,7 @@ export interface FileRoutesByTo {
   "/creative-studio": typeof AuthenticatedCreativeStudioRoute
   "/dashboard": typeof AuthenticatedDashboardRoute
   "/market": typeof AuthenticatedMarketRoute
+  "/preview-studio": typeof AuthenticatedPreviewStudioRoute
   "/projects": typeof AuthenticatedProjectsRoute
   "/wallet": typeof AuthenticatedWalletRoute
   "/market/$id": typeof AuthenticatedMarketIdRoute
@@ -93,6 +102,7 @@ export interface FileRoutesById {
   "/_authenticated/creative-studio": typeof AuthenticatedCreativeStudioRoute
   "/_authenticated/dashboard": typeof AuthenticatedDashboardRoute
   "/_authenticated/market": typeof AuthenticatedMarketRoute
+  "/_authenticated/preview-studio": typeof AuthenticatedPreviewStudioRoute
   "/_authenticated/projects": typeof AuthenticatedProjectsRoute
   "/_authenticated/wallet": typeof AuthenticatedWalletRoute
   "/_authenticated/market_/$id": typeof AuthenticatedMarketIdRoute
@@ -105,6 +115,7 @@ export interface FileRouteTypes {
     | "/creative-studio"
     | "/dashboard"
     | "/market"
+    | "/preview-studio"
     | "/projects"
     | "/wallet"
     | "/market/$id"
@@ -115,6 +126,7 @@ export interface FileRouteTypes {
     | "/creative-studio"
     | "/dashboard"
     | "/market"
+    | "/preview-studio"
     | "/projects"
     | "/wallet"
     | "/market/$id"
@@ -126,6 +138,7 @@ export interface FileRouteTypes {
     | "/_authenticated/creative-studio"
     | "/_authenticated/dashboard"
     | "/_authenticated/market"
+    | "/_authenticated/preview-studio"
     | "/_authenticated/projects"
     | "/_authenticated/wallet"
     | "/_authenticated/market_/$id"
@@ -174,6 +187,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof AuthenticatedProjectsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    "/_authenticated/preview-studio": {
+      id: "/_authenticated/preview-studio"
+      path: "/preview-studio"
+      fullPath: "/preview-studio"
+      preLoaderRoute: typeof AuthenticatedPreviewStudioRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     "/_authenticated/market": {
       id: "/_authenticated/market"
       path: "/market"
@@ -209,6 +229,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedCreativeStudioRoute: typeof AuthenticatedCreativeStudioRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedMarketRoute: typeof AuthenticatedMarketRoute
+  AuthenticatedPreviewStudioRoute: typeof AuthenticatedPreviewStudioRoute
   AuthenticatedProjectsRoute: typeof AuthenticatedProjectsRoute
   AuthenticatedWalletRoute: typeof AuthenticatedWalletRoute
   AuthenticatedMarketIdRoute: typeof AuthenticatedMarketIdRoute
@@ -218,6 +239,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedCreativeStudioRoute: AuthenticatedCreativeStudioRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedMarketRoute: AuthenticatedMarketRoute,
+  AuthenticatedPreviewStudioRoute: AuthenticatedPreviewStudioRoute,
   AuthenticatedProjectsRoute: AuthenticatedProjectsRoute,
   AuthenticatedWalletRoute: AuthenticatedWalletRoute,
   AuthenticatedMarketIdRoute: AuthenticatedMarketIdRoute,

@@ -9,6 +9,7 @@
     "dev:api": "bun --cwd packages/api run dev",
     "dev:worker": "bun --cwd packages/worker run dev",
     "dev:web": "bun --cwd packages/web run dev",
+    "dev:web:bypass": "bun --cwd packages/web run dev:bypass",
 
     "dev:frontend": "npm --prefix frontend run dev",
     "build:frontend": "npm --prefix frontend run build",

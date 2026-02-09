@@ -282,6 +282,132 @@ export function createApp({ prisma, getSession }: AppDeps) {
     return c.json({ drafts });
   });
 
+  // --- Creative / Preview Studio API ---
+  
+  // Mock creative data storage (in-memory for demo)
+  const mockCreatives: Record<string, { id: string; title: string; specKey: string; status: string; content: unknown; userId: string; createdAt: string; updatedAt: string }> = {};
+
+  app.get("/api/creatives", async (c) => {
+    const user = c.get("user") as SessionUser | null;
+    if (!user) return c.json({ error: "unauthorized" }, 401);
+    
+    const userCreatives = Object.values(mockCreatives).filter((c) => c.userId === user.id);
+    return c.json({ creatives: userCreatives });
+  });
+
+  app.get("/api/creatives/:id", async (c) => {
+    const user = c.get("user") as SessionUser | null;
+    if (!user) return c.json({ error: "unauthorized" }, 401);
+    const { id } = c.req.param();
+    const creative = mockCreatives[id];
+    if (!creative) return c.json({ error: "not_found" }, 404);
+    return c.json({ creative });
+  });
+
+  app.post("/api/creatives", async (c) => {
+    const user = c.get("user") as SessionUser | null;
+    if (!user) return c.json({ error: "unauthorized" }, 401);
+    
+    const body = await c.req.json();
+    const id = `creative_${Date.now()}`;
+    const now = new Date().toISOString();
+    
+    mockCreatives[id] = {
+      id,
+      title: body.title || "Untitled Creative",
+      specKey: body.specKey || "story_9_16",
+      status: "draft",
+      content: body.content || {},
+      userId: user.id,
+      createdAt: now,
+      updatedAt: now
+    };
+    
+    return c.json({ creative: mockCreatives[id] });
+  });
+
+  app.patch("/api/creatives/:id", async (c) => {
+    const user = c.get("user") as SessionUser | null;
+    if (!user) return c.json({ error: "unauthorized" }, 401);
+    const { id } = c.req.param();
+    const creative = mockCreatives[id];
+    if (!creative) return c.json({ error: "not_found" }, 404);
+    
+    const body = await c.req.json();
+    mockCreatives[id] = {
+      ...creative,
+      ...(body.title !== undefined && { title: body.title }),
+      ...(body.specKey !== undefined && { specKey: body.specKey }),
+      ...(body.status !== undefined && { status: body.status }),
+      ...(body.content !== undefined && { content: body.content }),
+      updatedAt: new Date().toISOString()
+    };
+    
+    return c.json({ creative: mockCreatives[id] });
+  });
+
+  app.post("/api/creatives/:id/publish", async (c) => {
+    const user = c.get("user") as SessionUser | null;
+    if (!user) return c.json({ error: "unauthorized" }, 401);
+    const { id } = c.req.param();
+    const creative = mockCreatives[id];
+    if (!creative) return c.json({ error: "not_found" }, 404);
+    
+    mockCreatives[id] = {
+      ...creative,
+      status: "published",
+      updatedAt: new Date().toISOString()
+    };
+    
+    return c.json({ creative: mockCreatives[id] });
+  });
+
+  // --- Independent AI Fix API (works without creative ID) ---
+  app.post("/api/ai/optimize", async (c) => {
+    const user = c.get("user") as SessionUser | null;
+    if (!user) return c.json({ error: "unauthorized" }, 401);
+    
+    const body = await c.req.json();
+    const { specKey, content } = body;
+    
+    // Mock AI optimization response
+    return c.json({ 
+      ok: true, 
+      message: "AI optimization completed",
+      suggestions: [
+        "Adjusted text size for better readability",
+        "Optimized color contrast for accessibility",
+        "Balanced layout composition",
+        "Enhanced visual hierarchy with font weight adjustments"
+      ],
+      optimizedContent: {
+        ...content,
+        aiOptimized: true,
+        optimizedAt: new Date().toISOString()
+      }
+    });
+  });
+
+  // AI fix for existing creative (requires creative ID)
+  app.post("/api/creatives/:id/ai-fix", async (c) => {
+    const user = c.get("user") as SessionUser | null;
+    if (!user) return c.json({ error: "unauthorized" }, 401);
+    const { id } = c.req.param();
+    const creative = mockCreatives[id];
+    if (!creative) return c.json({ error: "not_found" }, 404);
+    
+    // Mock AI auto-fix response
+    return c.json({ 
+      ok: true, 
+      message: "AI optimization applied",
+      suggestions: [
+        "Adjusted text size for better readability",
+        "Optimized color contrast",
+        "Balanced layout composition"
+      ]
+    });
+  });
+
   // --- Marketplace API ---
   const marketplaceQuerySchema = z.object({
     search: z.string().optional(),

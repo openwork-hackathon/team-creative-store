@@ -43,14 +43,13 @@ export function ExportPanel({
 }: ExportPanelProps) {
   const [format, setFormat] = useState<ExportFormat>("png");
   const [scale, setScale] = useState(1);
-  const [backgroundColor, setBackgroundColor] = useState<"#ffffff" | "transparent" | "#000000">("#ffffff");
 
   const handleExport = () => {
     onExport({
       format,
       quality: 0.95,
       scale,
-      backgroundColor,
+      backgroundColor: null,
     });
   };
 
@@ -149,51 +148,6 @@ export function ExportPanel({
               </option>
             ))}
           </select>
-        </div>
-
-        {/* Background */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-slate-400">背景</label>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setBackgroundColor("#ffffff")}
-              className={cn(
-                "w-8 h-8 rounded-lg border-2 transition-all",
-                backgroundColor === "#ffffff"
-                  ? "border-primary"
-                  : "border-transparent"
-              )}
-              style={{ backgroundColor: "#ffffff" }}
-              title="白色"
-            />
-            <button
-              onClick={() => setBackgroundColor("transparent")}
-              className={cn(
-                "w-8 h-8 rounded-lg border-2 transition-all",
-                backgroundColor === "transparent"
-                  ? "border-primary"
-                  : "border-transparent"
-              )}
-              style={{
-                backgroundImage:
-                  "linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%)",
-                backgroundSize: "8px 8px",
-                backgroundPosition: "0 0, 0 4px, 4px -4px, -4px 0px",
-              }}
-              title="透明"
-            />
-            <button
-              onClick={() => setBackgroundColor("#000000")}
-              className={cn(
-                "w-8 h-8 rounded-lg border-2 transition-all",
-                backgroundColor === "#000000"
-                  ? "border-primary"
-                  : "border-transparent"
-              )}
-              style={{ backgroundColor: "#000000" }}
-              title="黑色"
-            />
-          </div>
         </div>
 
         {/* Actions */}

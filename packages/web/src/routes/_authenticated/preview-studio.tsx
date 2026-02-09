@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { PLACEMENT_SPECS, type PlacementSpecKey } from "../../../../shared/src/placementSpecs";
+import { PLACEMENT_SPECS, type PlacementSpecKey, type DeviceCategory } from "../../../../shared/src/placementSpecs";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
@@ -27,27 +27,64 @@ function PreviewStudioPage() {
   const [title, setTitle] = useState("Untitled Creative");
   const [status, setStatus] = useState<CreativeStatus>("draft");
   const [selectedSpecKey, setSelectedSpecKey] = useState<PlacementSpecKey>("story_9_16");
-  const [selectedSpecs, setSelectedSpecs] = useState<PlacementSpecKey[]>(["story_9_16"]);
+  const [selectedSpecs, setSelectedSpecs] = useState<PlacementSpecKey[]>([]);
   const [showGrid, setShowGrid] = useState(true);
   const [showSafeZone, setShowSafeZone] = useState(true);
   const [backgroundType, setBackgroundType] = useState<"checkerboard" | "solid">("checkerboard");
-  
-  // Export state
+
+  // Custom size state
+  const [isCustomSize, setIsCustomSize] = useState(false);
+  const [customSize, setCustomSize] = useState({ width: 1080, height: 1080 });
+
+  // UI State
   const [showExportPanel, setShowExportPanel] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [exportProgress, setExportProgress] = useState(0);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Refs for export
   const previewContainerRef = useRef<HTMLDivElement>(null);
-
-  // Get selected spec
-  const selectedSpec = useMemo(
-    () => PLACEMENT_SPECS.find((s) => s.key === selectedSpecKey)!,
-    [selectedSpecKey]
-  );
+  const creativeIdRef = useRef<string | null>(null);
 
   // Get all specs for tabs
-  const tabsSpecs = useMemo(() => PLACEMENT_SPECS.filter((s) => s.category === selectedSpec.category), [selectedSpec.category]);
+  const tabsSpecs = useMemo(() => {
+    const currentSpec = isCustomSize
+      ? { category: "mobile" as DeviceCategory }
+      : PLACEMENT_SPECS.find((s) => s.key === selectedSpecKey)!;
+    return PLACEMENT_SPECS.filter((s) => s.category === currentSpec.category);
+  }, [selectedSpecKey, isCustomSize]);
+
+  // When switching category via sidebar, update preview to that spec
+  const handleSpecSelect = (key: PlacementSpecKey) => {
+    setSelectedSpecKey(key);
+    setIsCustomSize(false);
+  };
+
+  // Handle custom size
+  const handleCustomSize = (width: number, height: number) => {
+    setCustomSize({ width, height });
+    setIsCustomSize(true);
+    setSelectedSpecKey("custom");
+  };
+
+  // Get selected spec (handle custom size)
+  const selectedSpec = useMemo(() => {
+    if (isCustomSize) {
+      return {
+        key: "custom" as PlacementSpecKey,
+        label: `Custom ${customSize.width}×${customSize.height}`,
+        category: "mobile" as DeviceCategory,
+        width: customSize.width,
+        height: customSize.height,
+        aspectRatio: `${customSize.width}:${customSize.height}`,
+        icon: "custom_size",
+        shortLabel: "CUSTOM",
+        safeArea: { top: 64, right: 64, bottom: 64, left: 64 },
+        rules: { minTitleFontSize: 44, minBodyFontSize: 28, maxTitleLines: 2, maxBodyLines: 4 }
+      };
+    }
+    return PLACEMENT_SPECS.find((s) => s.key === selectedSpecKey)!;
+  }, [selectedSpecKey, isCustomSize, customSize]);
 
   // Get specs objects
   const selectedSpecObjects = useMemo(
@@ -56,22 +93,98 @@ function PreviewStudioPage() {
   );
 
   // Handlers
-  const handleSave = () => {
-    console.log("Saving creative:", { title, spec: selectedSpecKey });
-    // TODO: API call to save
-    setStatus("draft");
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      // In bypass mode, just save locally
+      if (import.meta.env.VITE_BYPASS_AUTH === "true") {
+        // Simulate API call
+        await new Promise(resolve => setTimeout(resolve, 800));
+        setStatus("draft");
+        console.log("Creative saved locally (bypass mode):", { title, spec: selectedSpecKey });
+        alert("保存成功！");
+        setIsSaving(false);
+        return;
+      }
+
+      // Normal API call
+      const response = await fetch("/api/creatives", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title,
+          specKey: selectedSpecKey,
+          content: { title, selectedSpecKey }
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        creativeIdRef.current = data.creative.id;
+        setStatus("draft");
+        console.log("Creative saved:", data.creative);
+        alert("保存成功！");
+      } else {
+        throw new Error("Failed to save");
+      }
+    } catch (error) {
+      console.error("Save failed:", error);
+      alert("保存失败，请重试");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const handlePublish = () => {
-    console.log("Publishing creative:", { title, spec: selectedSpecKey });
-    // TODO: API call to publish
-    setStatus("published");
-  };
+  const handlePublish = async () => {
+    setIsSaving(true);
+    try {
+      // In bypass mode, just update locally
+      if (import.meta.env.VITE_BYPASS_AUTH === "true") {
+        await new Promise(resolve => setTimeout(resolve, 800));
+        setStatus("published");
+        console.log("Creative published locally (bypass mode):", { title, spec: selectedSpecKey });
+        alert("发布成功！");
+        setIsSaving(false);
+        return;
+      }
 
-  const handlePurchase = () => {
-    console.log("Purchasing creative:", { title, spec: selectedSpecKey });
-    // TODO: API call to purchase
-    setStatus("purchased");
+      // Normal API call
+      if (creativeIdRef.current) {
+        await fetch(`/api/creatives/${creativeIdRef.current}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title, specKey: selectedSpecKey })
+        });
+
+        await fetch(`/api/creatives/${creativeIdRef.current}/publish`, {
+          method: "POST"
+        });
+      } else {
+        const response = await fetch("/api/creatives", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title,
+            specKey: selectedSpecKey,
+            status: "published"
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          creativeIdRef.current = data.creative.id;
+        }
+      }
+
+      setStatus("published");
+      console.log("Creative published");
+      alert("发布成功！");
+    } catch (error) {
+      console.error("Publish failed:", error);
+      alert("发布失败，请重试");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   // Export handler
@@ -81,15 +194,26 @@ function PreviewStudioPage() {
     setShowExportPanel(false);
 
     try {
-      // Get the preview container
       const container = previewContainerRef.current;
       if (!container) {
         throw new Error("Preview container not found");
       }
 
-      // Get device frames within the container
-      const deviceFrames = container.querySelectorAll(".device-frame-export");
+      // Get content from preview
+      const originalContent = container.querySelector(".preview-content") as HTMLElement;
+      if (!originalContent) {
+        throw new Error("Preview content not found");
+      }
+
+      // Extract actual text content
+      const titleText = originalContent.querySelector("h3")?.textContent || "Elevate Your Creative Workflow.";
+      const descText = originalContent.querySelector("p")?.textContent || "Generate stunning NFT assets in seconds with AI-powered optimization.";
+      const btnText = originalContent.querySelector("button")?.textContent || "MINT NOW";
       
+      // Get background image
+      const previewStyle = window.getComputedStyle(originalContent);
+      const bgImage = previewStyle.backgroundImage;
+
       const downloadedFiles: string[] = [];
 
       for (let i = 0; i < selectedSpecObjects.length; i++) {
@@ -97,54 +221,151 @@ function PreviewStudioPage() {
         setExportProgress(i + 1);
 
         try {
-          // Create a temporary container for this export
-          const tempContainer = document.createElement("div");
-          tempContainer.style.width = `${spec.width}px`;
-          tempContainer.style.height = `${spec.height}px`;
-          tempContainer.style.position = "fixed";
-          tempContainer.style.left = "-9999px";
-          tempContainer.style.top = "0";
-          document.body.appendChild(tempContainer);
+          // Create container with precise inline styles matching preview
+          const containerEl = document.createElement("div");
+          containerEl.style.cssText = `
+            position: fixed;
+            left: -9999px;
+            top: 0;
+            width: ${spec.width}px;
+            height: ${spec.height}px;
+            background-image: ${bgImage};
+            background-size: cover;
+            background-position: center;
+            overflow: hidden;
+          `;
 
-          // Clone the preview content
-          const originalContent = container.querySelector(".preview-content");
-          if (originalContent) {
-            const clonedContent = originalContent.cloneNode(true) as HTMLElement;
-            
-            // Apply background
-            if (options.backgroundColor) {
-              clonedContent.style.backgroundColor = options.backgroundColor;
-              clonedContent.style.backgroundImage = "none";
-            }
-            
-            tempContainer.appendChild(clonedContent);
+          // Inner wrapper - exact styles from preview
+          const innerEl = document.createElement("div");
+          innerEl.style.cssText = `
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: ${spec.safeArea.top}px ${spec.safeArea.right}px ${spec.safeArea.bottom}px ${spec.safeArea.left}px;
+          `;
 
-            // Generate canvas
-            const canvas = await html2canvas(tempContainer, {
-              width: spec.width,
-              height: spec.height,
-              scale: options.scale,
-              backgroundColor: options.backgroundColor,
-              logging: false,
-            });
+          // Top bar
+          const topBar = document.createElement("div");
+          topBar.style.cssText = `
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+          `;
 
-            // Download file
-            const link = document.createElement("a");
-            link.download = `${title.replace(/\s+/g, "_")}_${spec.key}_${spec.width}x${spec.height}.${options.format}`;
-            link.href = canvas.toDataURL(`image/${options.format}`, options.quality);
-            link.click();
+          // LIVE AD badge
+          const liveBadge = document.createElement("span");
+          liveBadge.textContent = "LIVE AD";
+          liveBadge.style.cssText = `
+            color: white;
+            background: #6366f1;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-family: 'Space Grotesk', Arial, sans-serif;
+            font-size: 10px;
+            font-weight: 700;
+            line-height: 1;
+            display: inline-block;
+            margin: 4px 0 0 4px;
+          `;
 
-            downloadedFiles.push(link.download);
-          }
+          // More icon (using unicode instead of material icons)
+          const moreIcon = document.createElement("span");
+          moreIcon.textContent = "⋮";
+          moreIcon.style.cssText = `
+            color: white;
+            font-size: 20px;
+            font-family: Arial, sans-serif;
+            line-height: 1;
+          `;
 
-          // Clean up
-          document.body.removeChild(tempContainer);
+          topBar.appendChild(liveBadge);
+          topBar.appendChild(moreIcon);
+          innerEl.appendChild(topBar);
+
+          // Bottom content
+          const bottomContent = document.createElement("div");
+          bottomContent.style.cssText = `
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+          `;
+
+          // Title
+          const titleEl = document.createElement("h3");
+          titleEl.textContent = titleText;
+          titleEl.style.cssText = `
+            color: white;
+            font-family: 'Space Grotesk', Arial, sans-serif;
+            font-size: ${spec.rules.minTitleFontSize}px;
+            font-weight: 900;
+            line-height: 1.2;
+            margin: 0;
+          `;
+
+          // Description
+          const descEl = document.createElement("p");
+          descEl.textContent = descText;
+          descEl.style.cssText = `
+            color: #cbd5e1;
+            font-family: 'Space Grotesk', Arial, sans-serif;
+            font-size: ${spec.rules.minBodyFontSize}px;
+            font-weight: 400;
+            line-height: 1.4;
+            margin: 0;
+          `;
+
+          // Button
+          const btnEl = document.createElement("button");
+          btnEl.textContent = btnText;
+          btnEl.style.cssText = `
+            width: 100%;
+            background: white;
+            color: black;
+            font-family: 'Space Grotesk', Arial, sans-serif;
+            font-size: 16px;
+            font-weight: 700;
+            padding: 12px 24px;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            margin-top: 8px;
+          `;
+
+          bottomContent.appendChild(titleEl);
+          bottomContent.appendChild(descEl);
+          bottomContent.appendChild(btnEl);
+          innerEl.appendChild(bottomContent);
+
+          containerEl.appendChild(innerEl);
+          document.body.appendChild(containerEl);
+
+          // Generate canvas
+          const canvas = await html2canvas(containerEl, {
+            width: spec.width,
+            height: spec.height,
+            scale: options.scale,
+            backgroundColor: null,
+            logging: false,
+            useCORS: true,
+          });
+
+          // Download
+          const link = document.createElement("a");
+          link.download = `${title.replace(/\s+/g, "_")}_${spec.key}_${spec.width}x${spec.height}.${options.format}`;
+          link.href = canvas.toDataURL(`image/${options.format}`, options.quality);
+          link.click();
+
+          downloadedFiles.push(link.download);
+
+          // Cleanup
+          document.body.removeChild(containerEl);
         } catch (err) {
           console.error(`Failed to export ${spec.key}:`, err);
         }
       }
 
-      // Show success message
       alert(`成功导出 ${downloadedFiles.length} 个文件！\n\n${downloadedFiles.join("\n")}`);
     } catch (error) {
       console.error("Export failed:", error);
@@ -200,9 +421,8 @@ function PreviewStudioPage() {
         status={status}
         onSave={handleSave}
         onPublish={status === "draft" ? handlePublish : undefined}
-        onPurchase={status === "draft" ? handlePurchase : undefined}
         canPublish={status === "draft"}
-        canPurchase={status === "draft"}
+        isSaving={isSaving}
       />
 
       <div className="flex flex-1 overflow-hidden">
@@ -210,9 +430,10 @@ function PreviewStudioPage() {
         <aside className="w-64 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark flex flex-col p-4 shrink-0">
           <DeviceSizePicker
             selectedSpecKey={selectedSpecKey}
-            onSpecSelect={setSelectedSpecKey}
+            onSpecSelect={handleSpecSelect}
             selectedSpecs={selectedSpecs}
             onBatchSelect={setSelectedSpecs}
+            onCategoryChange={(_, firstSpecKey) => setSelectedSpecs([firstSpecKey])}
           />
         </aside>
 
@@ -252,12 +473,6 @@ function PreviewStudioPage() {
                 <span className="material-symbols-outlined">download</span>
                 <span>Export All ({selectedSpecs.length})</span>
               </Button>
-
-              {/* AI Auto-Fix Button */}
-              <Button variant="primary" size="sm">
-                <span className="material-symbols-outlined fill-1">auto_fix_high</span>
-                <span>AI Auto-Fix</span>
-              </Button>
             </div>
           </div>
 
@@ -265,7 +480,8 @@ function PreviewStudioPage() {
           <DeviceTabs
             specs={tabsSpecs}
             activeSpecKey={selectedSpecKey}
-            onSpecSelect={setSelectedSpecKey}
+            onSpecSelect={handleSpecSelect}
+            onCustomClick={handleCustomSize}
           />
 
           {/* Preview Canvas */}

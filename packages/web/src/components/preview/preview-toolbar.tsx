@@ -1,9 +1,10 @@
+import { useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
-export type CreativeStatus = "draft" | "published" | "purchased";
+export type CreativeStatus = "draft" | "published";
 
 type PreviewToolbarProps = {
   title: string;
@@ -12,9 +13,8 @@ type PreviewToolbarProps = {
   status: CreativeStatus;
   onSave: () => void;
   onPublish?: () => void;
-  onPurchase?: () => void;
   canPublish?: boolean;
-  canPurchase?: boolean;
+  isSaving?: boolean;
   className?: string;
 };
 
@@ -24,7 +24,6 @@ const STATUS_CONFIG: Record<
 > = {
   draft: { label: "Draft", className: "bg-slate-500/20 text-slate-400" },
   published: { label: "Published", className: "bg-green-500/20 text-green-400" },
-  purchased: { label: "Purchased", className: "bg-primary/20 text-primary" },
 };
 
 export function PreviewToolbar({
@@ -34,11 +33,12 @@ export function PreviewToolbar({
   status,
   onSave,
   onPublish,
-  onPurchase,
   canPublish = false,
-  canPurchase = false,
+  isSaving = false,
   className,
 }: PreviewToolbarProps) {
+  const navigate = useNavigate();
+
   return (
     <header
       className={cn(
@@ -49,7 +49,7 @@ export function PreviewToolbar({
       {/* Left Section */}
       <div className="flex items-center gap-4">
         {/* Back Button */}
-        <Button variant="ghost" size="sm">
+        <Button variant="ghost" size="sm" onClick={() => navigate({ to: "/dashboard" })}>
           <span className="material-symbols-outlined">arrow_back</span>
         </Button>
 
@@ -85,22 +85,15 @@ export function PreviewToolbar({
       {/* Right Section */}
       <div className="flex items-center gap-3">
         {/* Actions */}
-        <Button variant="secondary" onClick={onSave}>
-          <span className="material-symbols-outlined">save</span>
-          <span>Save</span>
+        <Button variant="secondary" onClick={onSave} disabled={isSaving}>
+          <span className="material-symbols-outlined">{isSaving ? "hourglass_empty" : "save"}</span>
+          <span>{isSaving ? "Saving..." : "Save"}</span>
         </Button>
 
         {canPublish && onPublish && (
-          <Button variant="primary" onClick={onPublish}>
+          <Button variant="primary" onClick={onPublish} disabled={isSaving}>
             <span className="material-symbols-outlined">publish</span>
-            <span>Publish</span>
-          </Button>
-        )}
-
-        {canPurchase && onPurchase && (
-          <Button variant="primary" onClick={onPurchase}>
-            <span className="material-symbols-outlined">shopping_cart</span>
-            <span>Purchase</span>
+            <span>{isSaving ? "Publishing..." : "Publish"}</span>
           </Button>
         )}
       </div>

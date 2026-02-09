@@ -13,6 +13,7 @@ import {
   type WalletTx,
   type Order
 } from "../components/wallet";
+import { aiccTokenAddress } from "@/lib/constants";
 
 export function WalletPage() {
   const [tab, setTab] = useState<"wallet" | "orders">("wallet");
@@ -28,10 +29,6 @@ export function WalletPage() {
     address,
     chainId: base.id
   });
-
-  const aiccTokenAddress = import.meta.env.VITE_AICC_TOKEN_ADDRESS as
-    | `0x${string}`
-    | undefined;
 
   // Get AICC token balance (ERC20 on Base)
   const { data: aiccBalance } = useReadContract({
@@ -60,11 +57,9 @@ export function WalletPage() {
     ? `${parseFloat(formatUnits(balanceData.value, balanceData.decimals)).toFixed(4)} ${balanceData.symbol}`
     : "0.00 ETH";
 
-  const formattedAiccBalance = aiccTokenAddress && aiccBalance !== undefined && aiccDecimals !== undefined
+  const formattedAiccBalance = aiccBalance !== undefined && aiccDecimals !== undefined
     ? `${parseFloat(formatUnits(aiccBalance, aiccDecimals)).toFixed(2)} AICC`
-    : aiccTokenAddress
-      ? "0.00 AICC"
-      : "Set VITE_AICC_TOKEN_ADDRESS";
+    : "0.00 AICC";
 
   const txQuery = useQuery({
     queryKey: ["wallet", "transactions", address],

@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useTokenData, FALLBACK_TOKEN_DATA, type TokenTransaction } from "../hooks/use-token-data";
+import { aiccTokenAddress } from "@/lib/constants";
 
 // Skeleton loader component for stats
 function StatSkeleton() {
@@ -373,10 +374,10 @@ export function LandingPage() {
                   <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">AICC Token Contract</label>
                   <div className="flex items-center justify-between">
                     <code className="text-accent font-mono text-sm">0x6F94...1d45</code>
-                    <button 
+                    <button
                       className="text-slate-400 hover:text-white transition-colors"
                       onClick={() => {
-                        navigator.clipboard.writeText("0x6F947b45C023Ef623b39331D0C4D21FBC51C1d45");
+                        navigator.clipboard.writeText(aiccTokenAddress);
                       }}
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -386,9 +387,9 @@ export function LandingPage() {
                   </div>
                 </div>
                 <div className="flex gap-4">
-                  <a 
-                    className="flex-1 bg-[#0f172a]/40 backdrop-blur-xl border border-white/10 py-3 rounded-lg flex items-center justify-center gap-2 hover:bg-slate-800 transition-colors" 
-                    href="https://basescan.org/token/0x6F947b45C023Ef623b39331D0C4D21FBC51C1d45"
+                  <a
+                    className="flex-1 bg-[#0f172a]/40 backdrop-blur-xl border border-white/10 py-3 rounded-lg flex items-center justify-center gap-2 hover:bg-slate-800 transition-colors"
+                    href={`https://basescan.org/token/${aiccTokenAddress}`}
                     target="_blank"
                     rel="noopener noreferrer"
                   >

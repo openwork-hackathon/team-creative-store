@@ -150,7 +150,7 @@ export function PublishModal({
             onClick={onClose}
             className="p-2 hover:bg-muted rounded-full text-muted-foreground transition-colors"
           >
-            <span className="material-symbols-outlined">close</span>
+            <span className="material-symbols-outlined block leading-none">close</span>
           </button>
         </div>
 

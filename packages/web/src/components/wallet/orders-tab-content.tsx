@@ -1,4 +1,5 @@
 import type { Order } from "./types";
+import { downloadImage } from "@/lib/utils";
 
 type OrdersTabContentProps = {
   isConnected: boolean;
@@ -89,6 +90,7 @@ export function OrdersTabContent({ isConnected, orders, onConnectClick }: Orders
                 <>
                   <button
                     type="button"
+                    onClick={() => order.imageUrl && downloadImage(order.imageUrl, `${order.creativeTitle}.png`)}
                     className="flex items-center justify-center gap-2 rounded-lg bg-primary px-6 py-2 font-bold text-white transition-colors hover:bg-blue-700"
                   >
                     <span className="material-symbols-outlined text-sm">download</span>

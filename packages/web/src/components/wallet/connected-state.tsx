@@ -1,6 +1,7 @@
 import type { WalletTx, Order } from "./types";
 import { TxIcon } from "./tx-icon";
 import { StatusBadge } from "./status-badge";
+import { downloadImage } from "@/lib/utils";
 
 type ConnectedStateProps = {
   address: string;
@@ -199,6 +200,7 @@ export function ConnectedState({
                   <>
                     <button
                       type="button"
+                      onClick={() => order.imageUrl && downloadImage(order.imageUrl, `${order.creativeTitle}.png`)}
                       className="flex items-center justify-center gap-2 rounded-lg bg-primary px-6 py-2 font-bold text-white transition-colors hover:bg-blue-700"
                     >
                       <span className="material-symbols-outlined text-sm">download</span>

@@ -8,6 +8,7 @@ import { ConnectWalletModal } from "../wallet/connect-wallet-modal"
 import { erc20Abi } from "../wallet/types"
 import { createApiClient } from "@/lib/api"
 import { aiccTokenAddress } from "@/lib/constants"
+import { downloadImage } from "@/lib/utils"
 
 const api = createApiClient()
 
@@ -211,10 +212,8 @@ export function PurchaseCard({ listing }: PurchaseCardProps) {
 
   // Handle download action
   const handleDownload = () => {
-    // For now, open the image URL in a new tab
-    // In a real implementation, this would download the full asset package
     if (listing.imageUrl) {
-      window.open(listing.imageUrl, "_blank")
+      downloadImage(listing.imageUrl, `${listing.title}.png`)
     }
   }
 

@@ -9,15 +9,16 @@
     "test": "vitest --run"
   },
   "dependencies": {
-    "@ai-sdk/google": "^3.0.22",
-    "@aws-sdk/client-s3": "^3.985.0",
+    "@ai-sdk/amazon-bedrock": "^4.0.59",
+    "@ai-sdk/google": "^3.0.29",
+    "@aws-sdk/client-s3": "^3.989.0",
     "@creative-store/db": "file:../db",
     "@creative-store/shared": "file:../shared",
     "@hono/node-server": "^1.13.7",
     "@hono/zod-validator": "^0.4.2",
-    "ai": "^6.0.76",
+    "ai": "^6.0.85",
     "better-auth": "^1.4.18",
-    "hono": "^4.6.10",
+    "hono": "^4.11.9",
     "nanoid": "^5.0.9",
     "sanitize-html": "^2.12.1",
     "zod": "^3.24.1"

@@ -1,5 +1,5 @@
 import { generateText, Output, stepCountIs } from "ai";
-import { google } from "@ai-sdk/google";
+import { createAmazonBedrock } from "@ai-sdk/amazon-bedrock";
 import {
   zBrief,
   type Brief,
@@ -47,6 +47,12 @@ type BriefParseResult = {
 // --- Research Constants ---
 
 const RESEARCH_MAX_STEPS = 8;
+const BEDROCK_MODEL_ID =
+  process.env.AWS_BEDROCK_CLAUDE_MODEL_ID ?? "global.anthropic.claude-sonnet-4-5-20250929-v1:0";
+
+const bedrock = createAmazonBedrock({
+  region: process.env.AWS_REGION ?? "us-east-1"
+});
 
 const RESEARCH_SYSTEM_PROMPT = `You are a marketing research agent conducting comprehensive research to create an advertising brief.
 
@@ -73,7 +79,7 @@ After completing your research, provide a comprehensive summary organized by:
 - Compliance Considerations
 - Recommended Messaging Strategy
 
-Use multiple search queries to build a complete picture. Be thorough but focused on advertising-relevant insights.`;
+You do not have live web search tools in this environment. Use your internal knowledge and clearly state assumptions when needed.`;
 
 const EXTRACTION_SYSTEM_PROMPT = `You are extracting a structured advertising brief from research findings.
 
@@ -136,69 +142,43 @@ Focus on actionable, marketing-relevant information.`;
 function extractSources(
   result: Awaited<ReturnType<typeof generateText>>
 ): ResearchSource[] {
-  const sources: ResearchSource[] = [];
-
-  for (const step of result.steps) {
-    const metadata = step.providerMetadata?.google as Record<string, unknown> | undefined;
-    const groundingMetadata = metadata?.groundingMetadata as {
-      groundingChunks?: Array<{
-        web?: { uri?: string; title?: string };
-        retrievedContext?: { text?: string };
-      }>;
-    } | undefined;
-
-    if (groundingMetadata?.groundingChunks) {
-      for (const chunk of groundingMetadata.groundingChunks) {
-        if (chunk.web?.uri) {
-          sources.push({
-            url: chunk.web.uri,
-            title: chunk.web.title,
-            snippet: chunk.retrievedContext?.text?.substring(0, 200)
-          });
-        }
-      }
-    }
+  if (!Array.isArray(result.steps)) {
+    return [];
   }
 
-  // Deduplicate by URL
-  return [...new Map(sources.map(s => [s.url, s])).values()];
+  return [];
 }
 
 // --- Core Research Functions ---
 
 async function conductResearch(input: BriefParseInput): Promise<ResearchResult> {
-  const researchModel = google("gemini-2.5-flash");
+  const researchModel = bedrock(BEDROCK_MODEL_ID);
 
   const result = await generateText({
     model: researchModel,
-    tools: {
-      google_search: google.tools.googleSearch({
-        mode: "MODE_DYNAMIC",
-        dynamicThreshold: 0.3
-      })
-    },
     stopWhen: stepCountIs(RESEARCH_MAX_STEPS),
     system: RESEARCH_SYSTEM_PROMPT,
     prompt: buildResearchPrompt(input),
   });
 
+  const steps = Array.isArray(result.steps) ? result.steps : [];
   const sources = extractSources(result);
   const warnings: string[] = [];
 
   if (sources.length === 0) {
-    warnings.push("No Google Search sources found during research phase.");
+    warnings.push("No external sources are available in Bedrock research mode.");
   }
 
-  if (result.steps.length >= RESEARCH_MAX_STEPS) {
+  if (steps.length >= RESEARCH_MAX_STEPS) {
     warnings.push("Research reached maximum steps; results may be incomplete.");
   }
 
-  console.log(`[AI] Research completed in ${result.steps.length} steps, found ${sources.length} sources`);
+  console.log(`[AI] Research completed in ${steps.length} steps, found ${sources.length} sources`);
 
   return {
     summary: result.text,
     sources,
-    stepCount: result.steps.length,
+    stepCount: steps.length,
     warnings
   };
 }
@@ -207,7 +187,7 @@ async function extractBrief(
   input: BriefParseInput,
   research: ResearchResult
 ): Promise<BriefParseResult> {
-  const extractionModel = google("gemini-2.5-flash");
+  const extractionModel = bedrock(BEDROCK_MODEL_ID);
 
   const result = await generateText({
     model: extractionModel,

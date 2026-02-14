@@ -1,5 +1,3 @@
-import { generateText } from "ai";
-import { google } from "@ai-sdk/google";
 import {
   PLACEMENT_SPEC_BY_KEY,
   type BrandAsset,
@@ -69,9 +67,321 @@ function groupAssetsByKind(assets: BrandAsset[]): GroupedAssets {
 // Image Generation Types
 // ============================================================================
 
-type ContentPart =
-  | { type: "text"; text: string }
-  | { type: "file"; data: string; mediaType: string };
+type DuomiImageGenerateInput = {
+  prompt: string;
+  aspectRatio?: string;
+  files?: Array<{ dataUrl: string; mimeType: string }>;
+};
+
+const DUOMI_CREATE_URL = "https://duomiapi.com/api/gemini/nano-banana";
+const DUOMI_QUERY_URL = "https://duomiapi.com/api/gemini/nano-banana";
+const DUOMI_EDIT_URL = "https://duomiapi.com/api/gemini/nano-banana-edit";
+const DUOMI_POLL_MAX_ATTEMPTS = 30;
+const DUOMI_POLL_INTERVAL_MS = 2_000;
+
+function getDuomiApiKey(): string {
+  const key = process.env.DUOMI_API_KEY?.trim();
+  if (!key) {
+    throw new AiCreativeError("DUOMI_API_KEY is not configured", "MISSING_API_KEY");
+  }
+  return key;
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function getValueAtPath(obj: unknown, path: string[]): unknown {
+  let cursor = obj;
+  for (const segment of path) {
+    if (!cursor || typeof cursor !== "object" || !(segment in cursor)) {
+      return undefined;
+    }
+    cursor = (cursor as Record<string, unknown>)[segment];
+  }
+  return cursor;
+}
+
+function pickString(obj: unknown, paths: string[][]): string | undefined {
+  for (const path of paths) {
+    const value = getValueAtPath(obj, path);
+    if (typeof value === "string" && value.trim().length > 0) {
+      return value;
+    }
+  }
+  return undefined;
+}
+
+function normalizeAspectRatio(aspectRatio?: string): string {
+  return aspectRatio?.trim() || "1:1";
+}
+
+function toDuomiFiles(files?: Array<{ dataUrl: string; mimeType: string }>): Array<{ data: string; media_type: string }> {
+  return (files ?? []).map((file) => ({
+    data: file.dataUrl,
+    media_type: file.mimeType
+  }));
+}
+
+function buildDuomiGenerateBody(input: DuomiImageGenerateInput): Record<string, unknown> {
+  const images = toDuomiFiles(input.files);
+  return {
+    model: "gemini-2.5-pro-image-preview",
+    prompt: input.prompt,
+    aspect_ratio: normalizeAspectRatio(input.aspectRatio),
+    image_size: "1K",
+    ...(images.length > 0 && {
+      image_urls: images.map(img => img.data)
+    })
+  };
+}
+
+function extractTaskId(payload: unknown): string | undefined {
+  return pickString(payload, [
+    ["data", "task_id"],
+    ["taskId"],
+    ["task_id"],
+    ["id"],
+    ["data", "taskId"],
+    ["data", "id"]
+  ]);
+}
+
+function extractStatus(payload: unknown): string | undefined {
+  return pickString(payload, [
+    ["data", "state"],
+    ["status"],
+    ["state"],
+    ["data", "status"]
+  ])?.toLowerCase();
+}
+
+type ExtractedImage = {
+  imageBase64?: string;
+  imageUrl?: string;
+  mimeType?: string;
+};
+
+function extractImage(payload: unknown): ExtractedImage {
+  const imageBase64 = pickString(payload, [
+    ["imageBase64"],
+    ["image_base64"],
+    ["base64"],
+    ["data", "imageBase64"],
+    ["data", "image_base64"],
+    ["data", "base64"],
+    ["data", "image", "base64"],
+    ["output", "imageBase64"],
+    ["output", "base64"]
+  ]);
+
+  const imageUrl = pickString(payload, [
+    ["imageUrl"],
+    ["image_url"],
+    ["url"],
+    ["data", "imageUrl"],
+    ["data", "image_url"],
+    ["data", "url"],
+    ["output", "imageUrl"],
+    ["output", "url"]
+  ]);
+
+  const mimeType = pickString(payload, [
+    ["mimeType"],
+    ["mime_type"],
+    ["data", "mimeType"],
+    ["data", "mime_type"]
+  ]);
+
+  if (imageBase64 || imageUrl) {
+    return { imageBase64, imageUrl, mimeType };
+  }
+
+  // Handle Nano Banana nested images array: { data: { state: "succeeded", data: { images: [{url, file_name}] } } }
+  if (payload && typeof payload === "object") {
+    const data = (payload as { data?: unknown }).data;
+    if (data && typeof data === "object") {
+      const nestedData = (data as { data?: unknown }).data;
+      if (nestedData && typeof nestedData === "object") {
+        const images = (nestedData as { images?: unknown[] }).images;
+        if (Array.isArray(images) && images.length > 0) {
+          const first = images[0];
+          if (first && typeof first === "object") {
+            const img = first as Record<string, unknown>;
+            return {
+              imageUrl: typeof img.url === "string" ? img.url : undefined,
+              imageBase64: typeof img.base64 === "string" ? img.base64 : undefined,
+              mimeType: "image/png"
+            };
+          }
+        }
+      }
+    }
+  }
+
+  // Handle OpenAI-style array format: { data: [{ url, b64_json }] }
+  if (payload && typeof payload === "object") {
+    const data = (payload as { data?: unknown }).data;
+    if (Array.isArray(data) && data.length > 0) {
+      const first = data[0];
+      if (first && typeof first === "object") {
+        const firstRecord = first as Record<string, unknown>;
+        const url = typeof firstRecord.url === "string" ? firstRecord.url : undefined;
+        const b64 =
+          typeof firstRecord.b64_json === "string"
+            ? firstRecord.b64_json
+            : typeof firstRecord.base64 === "string"
+              ? firstRecord.base64
+              : undefined;
+        return {
+          imageBase64: b64,
+          imageUrl: url,
+          mimeType
+        };
+      }
+    }
+  }
+
+  return { imageBase64, imageUrl, mimeType };
+}
+
+async function fetchJson(url: string, init: RequestInit): Promise<unknown> {
+  const response = await fetch(url, init);
+  const text = await response.text();
+
+  if (!response.ok) {
+    throw new AiCreativeError(
+      `Duomi request failed (${response.status}): ${text.substring(0, 300)}`,
+      "DUOMI_HTTP_ERROR"
+    );
+  }
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new AiCreativeError(
+      `Duomi returned non-JSON response: ${text.substring(0, 300)}`,
+      "DUOMI_INVALID_RESPONSE"
+    );
+  }
+}
+
+async function fetchImageAsDataUrl(imageUrl: string, fallbackMimeType = "image/png"): Promise<string> {
+  const response = await fetch(imageUrl);
+  if (!response.ok) {
+    throw new AiCreativeError(
+      `Failed to fetch generated image URL (${response.status})`,
+      "DUOMI_IMAGE_FETCH_ERROR"
+    );
+  }
+
+  const contentType = response.headers.get("content-type") || fallbackMimeType;
+  const imageBuffer = Buffer.from(await response.arrayBuffer());
+  return `data:${contentType};base64,${imageBuffer.toString("base64")}`;
+}
+
+function toDataUrl(image: ExtractedImage): string | undefined {
+  if (image.imageBase64) {
+    if (image.imageBase64.startsWith("data:")) {
+      return image.imageBase64;
+    }
+    return `data:${image.mimeType ?? "image/png"};base64,${image.imageBase64}`;
+  }
+  return undefined;
+}
+
+async function pollForDuomiImage(apiKey: string, taskId: string): Promise<unknown> {
+  for (let attempt = 0; attempt < DUOMI_POLL_MAX_ATTEMPTS; attempt++) {
+    const payload = await fetchJson(`${DUOMI_QUERY_URL}/${taskId}`, {
+      method: "GET",
+      headers: {
+        Authorization: apiKey
+      }
+    });
+
+    const status = extractStatus(payload);
+    const image = extractImage(payload);
+    if (image.imageBase64 || image.imageUrl) {
+      return payload;
+    }
+
+    if (status && ["failed", "error", "cancelled"].includes(status)) {
+      throw new AiCreativeError(`Duomi task ${taskId} failed with status: ${status}`, "DUOMI_TASK_FAILED");
+    }
+
+    await sleep(DUOMI_POLL_INTERVAL_MS);
+  }
+
+  throw new AiCreativeError(
+    `Duomi task did not complete in time: ${taskId}`,
+    "DUOMI_TASK_TIMEOUT"
+  );
+}
+
+async function generateImageWithDuomi(input: DuomiImageGenerateInput): Promise<string> {
+  const apiKey = getDuomiApiKey();
+
+  const payload = await fetchJson(DUOMI_CREATE_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: apiKey
+    },
+    body: JSON.stringify(buildDuomiGenerateBody(input))
+  });
+
+  const immediateImage = extractImage(payload);
+  const immediateDataUrl = toDataUrl(immediateImage);
+  if (immediateDataUrl) {
+    return immediateDataUrl;
+  }
+
+  if (immediateImage.imageUrl) {
+    return fetchImageAsDataUrl(immediateImage.imageUrl, immediateImage.mimeType);
+  }
+
+  const taskId = extractTaskId(payload);
+  if (!taskId) {
+    throw new AiCreativeError(
+      "Duomi response did not contain an image or task id",
+      "DUOMI_NO_TASK_ID"
+    );
+  }
+
+  const completedPayload = await pollForDuomiImage(apiKey, taskId);
+  const completedImage = extractImage(completedPayload);
+  const completedDataUrl = toDataUrl(completedImage);
+  if (completedDataUrl) {
+    return completedDataUrl;
+  }
+
+  if (completedImage.imageUrl) {
+    return fetchImageAsDataUrl(completedImage.imageUrl, completedImage.mimeType);
+  }
+
+  throw new AiCreativeError(
+    "Duomi task completed without image data",
+    "DUOMI_NO_IMAGE"
+  );
+}
+
+function toDuomiFileFromBrandAsset(asset: BrandAsset): { dataUrl: string; mimeType: string } {
+  return {
+    dataUrl: `data:${asset.mimeType};base64,${asset.dataBase64}`,
+    mimeType: asset.mimeType
+  };
+}
+
+function parseDataUrl(dataUrl: string): { mimeType: string } {
+  const match = dataUrl.match(/^data:([^;]+);base64,(.+)$/);
+  if (!match) {
+    throw new AiCreativeError("Invalid data URL returned from image generation", "INVALID_DATA_URL");
+  }
+
+  return {
+    mimeType: match[1]
+  };
+}
 
 // ============================================================================
 // Base Image Generation (Flash model)
@@ -85,50 +395,15 @@ type GenerateImageInput = {
 };
 
 async function generateBaseImage(input: GenerateImageInput): Promise<string> {
-  const contentParts: ContentPart[] = [{ type: "text", text: input.prompt }];
+  const files = [...(input.productAssets ?? []), ...(input.referenceAssets ?? [])].map(
+    toDuomiFileFromBrandAsset
+  );
 
-  // Add product assets as file parts for context
-  for (const asset of input.productAssets ?? []) {
-    contentParts.push({
-      type: "file",
-      data: `data:${asset.mimeType};base64,${asset.dataBase64}`,
-      mediaType: asset.mimeType
-    });
-  }
-
-  // Add reference assets for style/mood guidance
-  for (const asset of input.referenceAssets ?? []) {
-    contentParts.push({
-      type: "file",
-      data: `data:${asset.mimeType};base64,${asset.dataBase64}`,
-      mediaType: asset.mimeType
-    });
-  }
-
-  const result = await generateText({
-    model: google("gemini-2.5-flash-image"),
-    providerOptions: {
-      google: {
-        responseModalities: ["TEXT", "IMAGE"],
-        ...(input.aspectRatio && {
-          imageConfig: {
-            aspectRatio: input.aspectRatio
-          }
-        })
-      }
-    },
-    messages: [
-      {
-        role: "user",
-        content: contentParts
-      }
-    ]
+  return generateImageWithDuomi({
+    prompt: input.prompt,
+    aspectRatio: input.aspectRatio,
+    files
   });
-
-  console.log("[AI] generateBaseImage result.text:", result.text?.substring(0, 100));
-  console.log("[AI] generateBaseImage result.files:", result.files);
-
-  return extractImageFromResult(result.files, result.text);
 }
 
 // ============================================================================
@@ -150,80 +425,56 @@ async function overlayLogo(input: LogoOverlayInput): Promise<string> {
     "Do not alter faces, key features, or existing text."
   ].join(" ");
 
-  // Extract base64 from data URL
-  const baseImageBase64 = input.baseImageDataUrl.replace(/^data:[^;]+;base64,/, "");
-  const baseImageMimeType = input.baseImageDataUrl.match(/^data:([^;]+);/)?.[1] ?? "image/png";
+  const apiKey = getDuomiApiKey();
 
-  const contentParts: ContentPart[] = [
-    { type: "text", text: prompt },
-    {
-      type: "file",
-      data: `data:${baseImageMimeType};base64,${baseImageBase64}`,
-      mediaType: baseImageMimeType
+  // Use edit endpoint for logo overlay
+  const payload = await fetchJson(DUOMI_EDIT_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: apiKey
     },
-    {
-      type: "file",
-      data: `data:${input.logoAsset.mimeType};base64,${input.logoAsset.dataBase64}`,
-      mediaType: input.logoAsset.mimeType
-    }
-  ];
-
-  const result = await generateText({
-    model: google("gemini-2.5-flash-image"),
-    providerOptions: {
-      google: {
-        responseModalities: ["TEXT", "IMAGE"]
-      }
-    },
-    messages: [
-      {
-        role: "user",
-        content: contentParts
-      }
-    ]
+    body: JSON.stringify({
+      model: "gemini-2.5-pro-image-preview",
+      prompt,
+      image_urls: [
+        input.baseImageDataUrl,
+        `data:${input.logoAsset.mimeType};base64,${input.logoAsset.dataBase64}`
+      ],
+      image_size: "1K"
+    })
   });
 
-  console.log("[AI] overlayLogo result.text:", result.text?.substring(0, 100));
-  console.log("[AI] overlayLogo result.files:", result.files);
-
-  return extractImageFromResult(result.files, result.text);
-}
-
-// ============================================================================
-// Shared Image Extraction
-// ============================================================================
-
-function extractImageFromResult(
-  files: Array<{ mediaType: string; base64: string }> | undefined,
-  text: string | undefined
-): string {
-  if (!files || files.length === 0) {
-    throw new AiCreativeError(
-      "Image generation response did not contain any files. Text: " + text?.substring(0, 200),
-      "NO_FILES_IN_RESPONSE"
-    );
+  // Check for immediate image
+  const immediateImage = extractImage(payload);
+  const immediateDataUrl = toDataUrl(immediateImage);
+  if (immediateDataUrl) {
+    return immediateDataUrl;
   }
 
-  for (const file of files) {
-    console.log("[AI] File:", file);
-
-    // Check both base64 and base64Data properties
-    const base64 = (file as any).base64 || (file as any).base64Data;
-    const mediaType = (file as any).mediaType || (file as any).mimeType || "image/png";
-
-    if (base64) {
-      console.log("[AI] Found image with mediaType:", mediaType);
-      if (base64.startsWith("data:")) {
-        return base64;
-      }
-      return `data:${mediaType};base64,${base64}`;
-    }
+  if (immediateImage.imageUrl) {
+    return fetchImageAsDataUrl(immediateImage.imageUrl, immediateImage.mimeType);
   }
 
-  throw new AiCreativeError(
-    "Image generation did not return an image file in files array",
-    "NO_IMAGE_GENERATED"
-  );
+  // Extract task_id and poll for completion
+  const taskId = extractTaskId(payload);
+  if (!taskId) {
+    throw new AiCreativeError("Duomi edit returned no task_id", "DUOMI_NO_TASK_ID");
+  }
+
+  const completedPayload = await pollForDuomiImage(apiKey, taskId);
+  const completedImage = extractImage(completedPayload);
+  const completedDataUrl = toDataUrl(completedImage);
+
+  if (completedDataUrl) {
+    return completedDataUrl;
+  }
+
+  if (completedImage.imageUrl) {
+    return fetchImageAsDataUrl(completedImage.imageUrl, completedImage.mimeType);
+  }
+
+  throw new AiCreativeError("Logo overlay failed to return image", "DUOMI_NO_IMAGE");
 }
 
 // ============================================================================

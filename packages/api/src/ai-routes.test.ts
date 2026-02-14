@@ -12,6 +12,13 @@ vi.mock("ai", () => ({
   stepCountIs: vi.fn().mockReturnValue(() => false)
 }));
 
+vi.mock("@ai-sdk/amazon-bedrock", () => ({
+  createAmazonBedrock: vi.fn().mockReturnValue((modelId: string) => ({
+    provider: "amazon-bedrock",
+    modelId
+  }))
+}));
+
 // Import after mocking
 import { generateObject, generateText } from "ai";
 const mockGenerateObject = generateObject as Mock;
@@ -28,12 +35,20 @@ const createMockStorage = (): S3Storage => ({
 type Brief = { id: string; intentText: string; briefJson: unknown };
 type Draft = { id: string; briefId: string; draftJson: unknown };
 
-const originalApiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+const originalDuomiApiKey = process.env.DUOMI_API_KEY;
+const originalFetch = globalThis.fetch;
+
+const createJsonResponse = (payload: unknown, status = 200): Response =>
+  new Response(JSON.stringify(payload), {
+    status,
+    headers: { "Content-Type": "application/json" }
+  });
 
 afterEach(() => {
   mockGenerateObject.mockReset();
   mockGenerateText.mockReset();
-  process.env.GOOGLE_GENERATIVE_AI_API_KEY = originalApiKey;
+  process.env.DUOMI_API_KEY = originalDuomiApiKey;
+  globalThis.fetch = originalFetch;
 });
 
 const createMemoryPrisma = () => {
@@ -71,30 +86,12 @@ const createMemoryPrisma = () => {
 
 describe("AI routes", () => {
   it("parses briefs with AI using two-phase research", async () => {
-    process.env.GOOGLE_GENERATIVE_AI_API_KEY = "test-key";
-    
+    process.env.DUOMI_API_KEY = "test-key";
+
     // Phase 1: Research phase mock (conductResearch uses generateText with tools)
     mockGenerateText.mockResolvedValueOnce({
       text: "Brand Overview: EcoStep is a sustainable footwear company...",
-      steps: [
-        {
-          providerMetadata: {
-            google: {
-              groundingMetadata: {
-                groundingChunks: [
-                  {
-                    web: {
-                      uri: "https://example.com/ecostep",
-                      title: "EcoStep Brand"
-                    },
-                    retrievedContext: { text: "EcoStep makes eco-friendly sneakers..." }
-                  }
-                ]
-              }
-            }
-          }
-        }
-      ]
+      steps: [{}]
     });
 
     // Phase 2: Extraction phase mock (extractBrief uses generateText with Output.object)
@@ -127,22 +124,16 @@ describe("AI routes", () => {
     const payload = await response.json();
     expect(payload.briefJson.industry).toBe("Retail");
     expect(payload.briefJson.audience.interests).toContain("Gen Z");
-    expect(payload.sources).toHaveLength(1);
-    expect(payload.sources[0].url).toBe("https://example.com/ecostep");
+    expect(payload.sources).toHaveLength(0);
     expect(payload.researchSummary).toContain("EcoStep");
     expect(payload.stepCount).toBe(1);
   });
 
   it("generates image and stores draft", async () => {
-    process.env.GOOGLE_GENERATIVE_AI_API_KEY = "test-key";
-    mockGenerateText.mockResolvedValueOnce({
-      files: [
-        {
-          mediaType: "image/png",
-          base64: "aGVsbG8="
-        }
-      ]
-    });
+    process.env.DUOMI_API_KEY = "test-key";
+    globalThis.fetch = vi
+      .fn()
+      .mockResolvedValue(createJsonResponse({ code: 200, data: { imageBase64: "aGVsbG8=" } })) as typeof fetch;
 
     const prisma = createMemoryPrisma();
     const mockStorage = createMockStorage();
@@ -169,17 +160,12 @@ describe("AI routes", () => {
   });
 
   it("generates image with logo overlay when logo asset provided", async () => {
-    process.env.GOOGLE_GENERATIVE_AI_API_KEY = "test-key";
-    
-    // Phase 1: Base image generation
-    mockGenerateText.mockResolvedValueOnce({
-      files: [{ mediaType: "image/png", base64: "YmFzZV9pbWFnZQ==" }]
-    });
-    
-    // Phase 2: Logo overlay
-    mockGenerateText.mockResolvedValueOnce({
-      files: [{ mediaType: "image/png", base64: "bG9nb19vdmVybGF5" }]
-    });
+    process.env.DUOMI_API_KEY = "test-key";
+
+    globalThis.fetch = vi
+      .fn()
+      .mockResolvedValueOnce(createJsonResponse({ code: 200, data: { imageBase64: "YmFzZV9pbWFnZQ==" } }))
+      .mockResolvedValueOnce(createJsonResponse({ code: 200, data: { imageBase64: "bG9nb19vdmVybGF5" } })) as typeof fetch;
 
     const prisma = createMemoryPrisma();
     const mockStorage = createMockStorage();
@@ -209,8 +195,8 @@ describe("AI routes", () => {
     expect(response.status).toBe(200);
     const payload = await response.json();
     
-    // Should have 2 generateText calls (base + logo overlay)
-    expect(mockGenerateText).toHaveBeenCalledTimes(2);
+    // Should have 2 Duomi calls (base + logo overlay)
+    expect(globalThis.fetch).toHaveBeenCalledTimes(2);
     
     // Final image should be uploaded to S3 with creative-store-images prefix
     expect(payload.image.imageUrl).toMatch(/^https:\/\/test-bucket\.s3\.us-east-1\.amazonaws\.com\/creative-store-images\/drafts\/brief_1\/\d+\.png$/);
@@ -218,11 +204,11 @@ describe("AI routes", () => {
   });
 
   it("generates image with product and reference assets", async () => {
-    process.env.GOOGLE_GENERATIVE_AI_API_KEY = "test-key";
-    
-    mockGenerateText.mockResolvedValueOnce({
-      files: [{ mediaType: "image/png", base64: "cHJvZHVjdF9pbWFnZQ==" }]
-    });
+    process.env.DUOMI_API_KEY = "test-key";
+
+    globalThis.fetch = vi
+      .fn()
+      .mockResolvedValue(createJsonResponse({ code: 200, data: { imageBase64: "cHJvZHVjdF9pbWFnZQ==" } })) as typeof fetch;
 
     const prisma = createMemoryPrisma();
     const mockStorage = createMockStorage();
@@ -258,12 +244,8 @@ describe("AI routes", () => {
     expect(response.status).toBe(200);
     const payload = await response.json();
     
-    // Should only have 1 generateText call (no logo overlay needed)
-    expect(mockGenerateText).toHaveBeenCalledTimes(1);
-    
-    // Verify the call included product and reference assets
-    const callArgs = mockGenerateText.mock.calls[0][0];
-    expect(callArgs.messages[0].content).toHaveLength(3); // prompt + product + reference
+    // Should only have 1 Duomi call (no logo overlay needed)
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1);
     
     // Verify aspect ratio is correct for feed_4_5
     expect(payload.image.aspectRatio).toBe("4:5");
@@ -273,8 +255,8 @@ describe("AI routes", () => {
   });
 
   it("returns error when AI generation fails", async () => {
-    process.env.GOOGLE_GENERATIVE_AI_API_KEY = "test-key";
-    mockGenerateText.mockRejectedValueOnce(new Error("Network error"));
+    process.env.DUOMI_API_KEY = "test-key";
+    globalThis.fetch = vi.fn().mockRejectedValueOnce(new Error("Network error")) as typeof fetch;
 
     const prisma = createMemoryPrisma();
     const app = createApp({
@@ -296,7 +278,7 @@ describe("AI routes", () => {
   });
 
   it("returns error when AI brief parsing fails in research phase", async () => {
-    process.env.GOOGLE_GENERATIVE_AI_API_KEY = "test-key";
+    process.env.DUOMI_API_KEY = "test-key";
     // Research phase fails
     mockGenerateText.mockRejectedValueOnce(new Error("Rate limit exceeded"));
 
@@ -322,7 +304,7 @@ describe("AI routes", () => {
   });
 
   it("returns error when AI brief extraction fails", async () => {
-    process.env.GOOGLE_GENERATIVE_AI_API_KEY = "test-key";
+    process.env.DUOMI_API_KEY = "test-key";
     
     // Research phase succeeds
     mockGenerateText.mockResolvedValueOnce({
@@ -354,11 +336,10 @@ describe("AI routes", () => {
     expect(payload.code).toBe("AI_ERROR");
   });
 
-  it("returns error when GOOGLE_GENERATIVE_AI_API_KEY is not set", async () => {
-    delete process.env.GOOGLE_GENERATIVE_AI_API_KEY;
-    
-    // Mock generateText to throw API key error like the SDK would
-    mockGenerateText.mockRejectedValueOnce(new Error("Google Generative AI API key is missing"));
+  it("returns error when DUOMI_API_KEY is not set", async () => {
+    delete process.env.DUOMI_API_KEY;
+
+    globalThis.fetch = vi.fn() as typeof fetch;
 
     const app = createApp({
       prisma: createMemoryPrisma(),
@@ -366,23 +347,23 @@ describe("AI routes", () => {
       storage: createMockStorage()
     });
 
-    const response = await app.request("/api/ai/brief/parse", {
+    const response = await app.request("/api/ai/creative/generate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        intentText: "Launch a sale for eco-friendly sneakers",
-        placements: ["square_1_1"]
+        briefId: "brief_1",
+        placement: "square_1_1"
       })
     });
 
     expect(response.status).toBe(500);
     const payload = await response.json();
-    expect(payload.error).toContain("API key");
-    expect(payload.code).toBe("AI_ERROR");
+    expect(payload.error).toContain("DUOMI_API_KEY");
+    expect(payload.code).toBe("MISSING_API_KEY");
   });
 
   it("adds warning when no sources found during research", async () => {
-    process.env.GOOGLE_GENERATIVE_AI_API_KEY = "test-key";
+    process.env.DUOMI_API_KEY = "test-key";
     
     // Research phase with no grounding sources
     mockGenerateText.mockResolvedValueOnce({
@@ -416,7 +397,7 @@ describe("AI routes", () => {
     });
 
     const payload = await response.json();
-    expect(payload.warnings).toContain("No Google Search sources found during research phase.");
+    expect(payload.warnings).toContain("No external sources are available in Bedrock research mode.");
     expect(payload.sources).toHaveLength(0);
   });
 });
